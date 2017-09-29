@@ -45,7 +45,7 @@
 #define CONFIG_MODELICA_SPEC_PLATFORM "win64"
 #define CONFIG_OPENMODELICA_SPEC_PLATFORM "mingw64"
 #define CONFIG_GCC_DUMPMACHINE "x86_64-w64-mingw32"
-#define CONFIG_GCC_VERSION "5.3.0" /* adrpo, change here when we upgrade! */
+#define CONFIG_GCC_VERSION "7.2.0" /* adrpo, change here when we upgrade! */
 #define DEFAULT_TRIPLE ""
 
 #elif defined(__MINGW32__)
@@ -54,7 +54,7 @@
 #define CONFIG_MODELICA_SPEC_PLATFORM "win32"
 #define CONFIG_OPENMODELICA_SPEC_PLATFORM "mingw32"
 #define CONFIG_GCC_DUMPMACHINE "i686-w64-mingw32"
-#define CONFIG_GCC_VERSION "5.3.0" /* adrpo, change here when we upgrade! */
+#define CONFIG_GCC_VERSION "7.2.0" /* adrpo, change here when we upgrade! */
 #define DEFAULT_TRIPLE ""
 
 #elif defined(_MSV_VER) && defined(_M_IX86)

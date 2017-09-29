@@ -14,6 +14,7 @@
 #include <functional>
 
 #define BOOST_UBLAS_SHALLOW_ARRAY_ADAPTOR
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
