@@ -18,14 +18,35 @@ namespace fs = boost::filesystem;
 
 //osu helper struct
 struct osi_me {
-  jm_callbacks callbacks;
-  fmi_import_context_t* context;
-  fmi2_callback_functions_t callback_functions;
-  fmi2_import_t* instance;
-  osi_solving_mode_t solving_mode;
-  fmi2_event_info_t* event_info;
+	jm_callbacks callbacks;
+	fmi_import_context_t* context;
+	fmi2_callback_functions_t callback_functions;
+	fmi2_import_t* instance;
+	osi_solving_mode_t solving_mode;
+	fmi2_event_info_t* event_info;
+	int debug_logging;
+
 };
 
+
+/* Logger function used by the C-API */
+void importFMU2logger(jm_callbacks* c, jm_string module, jm_log_level_enu_t log_level, jm_string message)
+{
+	std::cout << message << std::endl;
+}
+
+
+/* Logger function used by the FMU internally */
+void fmi2logger(fmi2_component_environment_t env, fmi2_string_t instanceName, fmi2_status_t status, fmi2_string_t category, fmi2_string_t message, ...)
+{
+	int len;
+	char msg[BUFFER];
+	va_list argp;
+	va_start(argp, message);
+	len = vsnprintf(msg, BUFFER, message, argp);
+	std::cout << fmi2_status_to_string((fmi2_status_t)status) << " " << instanceName << " " << category << " " << msg << std::endl;
+
+}
 
 
 
@@ -33,66 +54,86 @@ struct osi_me {
  *   Constructor for oso system
  */
 OSUSystem::OSUSystem(shared_ptr<IGlobalSettings> globalSettings, string osu_name)
-  :SystemDefaultImplementation(globalSettings)
-  , _osu_name(osu_name)
-  , _osu_me(NULL)
-  , _instantiated(false)
-  , _zeroVal(NULL)
+	:SystemDefaultImplementation(globalSettings)
+	, _osu_name(osu_name)
+	, _osu_me(NULL)
+	, _instantiated(false)
+	, _zeroVal(NULL)
 {
 
-  /*get temp dir, for working directory, unzip fmu*/
-  fs::path  temp_path = fs::temp_directory_path();
-  _osu_working_dir = temp_path.string();
-  //fs::path current_path = fs::current_path();
-  fmi_version_enu_t version;
-  _osu_me = new osi_me();
-  _osu_me->callbacks.malloc = malloc;
-  _osu_me->callbacks.calloc = calloc;
-  _osu_me->callbacks.realloc = realloc;
-  _osu_me->callbacks.free = free;
-  _osu_me->callbacks.logger = jm_default_logger;
-  _osu_me->callbacks.log_level = jm_log_level_warning;
-  _osu_me->callbacks.context = 0;
+	/*get temp dir, for working directory, unzip fmu*/
+	fs::path  temp_path = fs::temp_directory_path();
+	_osu_working_dir = temp_path.string();
+	//fs::path current_path = fs::current_path();
+	fmi_version_enu_t version;
+	_osu_me = new osi_me();
+	_osu_me->callbacks.malloc = malloc;
+	_osu_me->callbacks.calloc = calloc;
+	_osu_me->callbacks.realloc = realloc;
+	_osu_me->callbacks.free = free;
+	_osu_me->callbacks.logger = /*importFMU2logger*/ jm_default_logger;
+	_osu_me->callbacks.log_level = jm_log_level_warning;
+	_osu_me->callbacks.context = 0;
 
-  _osu_me->context = fmi_import_allocate_context(&_osu_me->callbacks);
-  /*unzip fmu */
-  version = fmi_import_get_fmi_version(_osu_me->context, _osu_name.c_str(), _osu_working_dir.c_str());
-  if (version != fmi_version_2_0_enu)
-  {
-    throw ModelicaSimulationError(MODEL_EQ_SYSTEM, "Only FMI version 2.0 is supported");
-  }
-  _osu_me->instance = fmi2_import_parse_xml(_osu_me->context, _osu_working_dir.c_str(), NULL);
-  if (!_osu_me->instance)
-  {
-    _osu_me->solving_mode = osi_none_mode;
-    std::string error = std::string("Error parsing the XML file contained in ") + _osu_working_dir;
-    throw ModelicaSimulationError(MODEL_EQ_SYSTEM, error);
-  }
-  if (fmi2_import_get_fmu_kind(_osu_me->instance) == fmi2_fmu_kind_cs)
-  {
-    std::string error = std::string("Only FMI ME 2.0 is supported by this component");
-    throw ModelicaSimulationError(MODEL_EQ_SYSTEM, error);
-  }
-
-
-  /* FMI callback functions */
-  _osu_me->callback_functions.logger = fmi2_log_forwarding  /*fmi2logger*/;
-  _osu_me->callback_functions.allocateMemory = calloc;
-  _osu_me->callback_functions.freeMemory = free;
-  _osu_me->callback_functions.componentEnvironment = _osu_me->instance;
-
-  jm_status_enu_t status, instantiateModelStatus;
-  /* Load the binary (dll/so) */
-  status = fmi2_import_create_dllfmu(_osu_me->instance, fmi2_import_get_fmu_kind(_osu_me->instance), &_osu_me->callback_functions);
-  if (status == jm_status_error)
-  {
-    _osu_me->solving_mode = osi_none_mode;
-    const char* log_str = jm_log_level_to_string((jm_log_level_enu_t)status);
-    std::string error = std::string("Loading of FMU dynamic link library failed with status ") + std::string(log_str);
-    throw ModelicaSimulationError(MODEL_EQ_SYSTEM, error);
-  }
+	_osu_me->context = fmi_import_allocate_context(&_osu_me->callbacks);
+	/*unzip fmu */
+	version = fmi_import_get_fmi_version(_osu_me->context, _osu_name.c_str(), _osu_working_dir.c_str());
+	if (version != fmi_version_2_0_enu)
+	{
+		throw ModelicaSimulationError(MODEL_EQ_SYSTEM, "Only FMI version 2.0 is supported");
+	}
+	_osu_me->instance = fmi2_import_parse_xml(_osu_me->context, _osu_working_dir.c_str(), NULL);
+	if (!_osu_me->instance)
+	{
+		_osu_me->solving_mode = osi_none_mode;
+		std::string error = std::string("Error parsing the XML file contained in ") + _osu_working_dir;
+		throw ModelicaSimulationError(MODEL_EQ_SYSTEM, error);
+	}
+	if (fmi2_import_get_fmu_kind(_osu_me->instance) == fmi2_fmu_kind_cs)
+	{
+		std::string error = std::string("Only FMI ME 2.0 is supported by this component");
+		throw ModelicaSimulationError(MODEL_EQ_SYSTEM, error);
+	}
 
 
+	/* FMI callback functions */
+	_osu_me->callback_functions.logger = fmi2_log_forwarding  /*fmi2logger*/;
+	_osu_me->callback_functions.allocateMemory = calloc;
+	_osu_me->callback_functions.freeMemory = free;
+	_osu_me->callback_functions.componentEnvironment = _osu_me->instance;
+	_osu_me->debug_logging = 0;
+	jm_status_enu_t status, instantiateModelStatus;
+	/* Load the binary (dll/so) */
+	status = fmi2_import_create_dllfmu(_osu_me->instance, fmi2_import_get_fmu_kind(_osu_me->instance), &_osu_me->callback_functions);
+	if (status == jm_status_error)
+	{
+		_osu_me->solving_mode = osi_none_mode;
+		const char* log_str = jm_log_level_to_string((jm_log_level_enu_t)status);
+		std::string error = std::string("Loading of FMU dynamic link library failed with status ") + std::string(log_str);
+		throw ModelicaSimulationError(MODEL_EQ_SYSTEM, error);
+	}
+
+
+	/* Only call fmi2SetDebugLogging if debugLogging is true */
+	if (_osu_me->debug_logging)
+	{
+		int i;
+		size_t categoriesSize = 0;
+		fmi2_status_t debugLoggingStatus;
+		fmi2_string_t *categories;
+		/* Read the log categories size */
+		categoriesSize = fmi2_import_get_log_categories_num(_osu_me->instance);
+		categories = (fmi2_string_t*)malloc(categoriesSize*sizeof(fmi2_string_t));
+		for (i = 0; i < categoriesSize; i++) {
+			categories[i] = fmi2_import_get_log_category(_osu_me->instance, i);
+		}
+		debugLoggingStatus = fmi2_import_set_debug_logging(_osu_me->instance, _osu_me->debug_logging, categoriesSize, categories);
+		if (debugLoggingStatus != fmi2_status_ok && debugLoggingStatus != fmi2_status_warning) {
+			const char* log_str = fmi2_status_to_string((fmi2_status_t)debugLoggingStatus);
+			std::string error = std::string("fmi2SetDebugLogging failed with status :") + std::string(log_str);
+			throw ModelicaSimulationError(MODEL_EQ_SYSTEM, error);
+		}
+	}
 
 
 }

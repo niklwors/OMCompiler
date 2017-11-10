@@ -818,7 +818,7 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
   <%\t%>mkdir -p "binaries/$(PLATFORM)"
   <%\t%>cp $(BINARIES) "binaries/$(PLATFORM)/"
   <%\t%>mkdir -p "resources"
-  <%\t%>cp <%modelName%>_init.xml "resources"
+  <%\t%>cp <%fileNamePrefix%>_init.xml "resources"
   <%\t%>rm -f $(MODEL_NAME).fmu
   <%\t%>zip -r "$(MODEL_NAME).fmu" modelDescription.xml binaries resources
   <%\t%>rm -rf binaries
@@ -927,7 +927,7 @@ case "gcc" then
             <%\t%><%mkdir%> -p "binaries/$(PLATFORM)"
             <%\t%><%mkdir%> -p "resources"
             <%\t%>cp $(BINARIES) "binaries/$(PLATFORM)/"
-            <%\t%>cp <%modelName%>_init.xml "resources/"
+            <%\t%>cp <%fileNamePrefix%>_init.xml "resources/"
             ifeq ($(USE_FMU_SUNDIALS),ON)
             <%\t%>rm -rf documentation
             <%\t%><%mkdir%> -p "documentation"
@@ -966,10 +966,11 @@ template simulationOSUMainRunScript(SimCode simCode ,Text& extraFuncs,Text& extr
     let solver    = match simCode case SIMCODE(daeModeData=NONE()) then settings.method else 'ida' //for dae mode only ida is supported
     let moLib     =  makefileParams.compileDir
     let home      = makefileParams.omhome
-  let outputformat = settings.outputFormat
-   let fileNamePrefixx = fileNamePrefix
+    let outputformat = settings.outputFormat
+    let modelName =  dotPath(modelInfo.name)
+    let fileNamePrefixx = fileNamePrefix
     let platformstr = match makefileParams.platform case "i386-pc-linux" then 'linux32' case "x86_64-linux" then 'linux64' else '<%makefileParams.platform%>'
-    let execParameters = '-S <%start%> -E <%end%> -H <%stepsize%> -G <%intervals%> -P <%outputformat%> -T <%tol%> -I <%solver%> -R <%simulationLibDir(simulationCodeTarget(),simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)%> -M <%moLib%> -r <%simulationResults(getRunningTestsuite(),simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)%> -p <%moLib%> -o <%fileNamePrefixx%>.fmu'
+    let execParameters = '-S <%start%> -E <%end%> -H <%stepsize%> -G <%intervals%> -P <%outputformat%> -T <%tol%> -I <%solver%> -R <%simulationLibDir(simulationCodeTarget(),simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)%> -M <%moLib%> -r <%simulationResults(getRunningTestsuite(),simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)%> -p <%moLib%> -o <%modelName%>.fmu'
     let outputParameter = if (stringEq(settings.outputFormat, "empty")) then "-O none" else ""
 
 

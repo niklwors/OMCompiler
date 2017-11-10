@@ -21,6 +21,15 @@ struct  osi_event_info_t
 };
 
 
+
+#ifdef __cplusplus
+}  /* end of extern "C" { */
+#endif
+
+#endif
+
+
+/*
 //called from fmi2_instantiate
 int osi_me_init(osi_t* osi, const char* GUID, const char* resource_location);
 //call from fmi2_setup_expriment
@@ -69,9 +78,4 @@ int osi_terminate(osi_t* osi);
 
 
 int osi_next_time_event(osi_t* osi);
-
-#ifdef __cplusplus
-}  /* end of extern "C" { */
-#endif
-
-#endif
+*/
