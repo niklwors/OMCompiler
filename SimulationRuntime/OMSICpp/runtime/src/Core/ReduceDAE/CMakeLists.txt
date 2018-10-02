@@ -21,7 +21,7 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/ReduceDAE/Ranking.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/ReduceDAE/Reduction.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/ReduceDAE/com/ModelicaCompiler.h
-  DESTINATION include/omc/cpp/Core/ReduceDAE)
+  DESTINATION include/omc/OMSICpp/Core/ReduceDAE)
 
 
 

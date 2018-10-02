@@ -21,4 +21,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Kinsol/Kinsol.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Kinsol/KinsolSettings.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Kinsol/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/Kinsol)
+  DESTINATION include/omc/OMSICpp/Solver/Kinsol)

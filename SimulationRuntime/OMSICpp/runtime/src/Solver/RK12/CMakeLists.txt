@@ -15,4 +15,4 @@ add_precompiled_header(${RK12Name} runtime/include/Core/Modelica.h)
 
 
 install(TARGETS ${RK12Name} DESTINATION ${LIBINSTALLEXT})
-install(FILES "config/RK12Settings.xml" DESTINATION share/omc/runtime/cpp/config)
+

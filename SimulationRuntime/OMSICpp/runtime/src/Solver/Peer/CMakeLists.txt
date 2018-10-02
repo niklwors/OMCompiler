@@ -34,4 +34,4 @@ install(TARGETS ${PeerName} DESTINATION ${LIBINSTALLEXT})
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Peer/Peer.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Peer/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/Peer)
+  DESTINATION include/omc/OMSICpp/Solver/Peer)

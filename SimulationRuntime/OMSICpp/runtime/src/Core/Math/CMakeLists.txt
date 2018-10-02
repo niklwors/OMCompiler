@@ -25,4 +25,4 @@ install(FILES ${CMAKE_SOURCE_DIR}/runtime/include/Core/Math/Functions.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Math/OMAPI.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Math/Array.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Math/ArraySlice.h
-  DESTINATION include/omc/cpp/Core/Math)
+  DESTINATION include/omc/OMSICpp/Core/Math)

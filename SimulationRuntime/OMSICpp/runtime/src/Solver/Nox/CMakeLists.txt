@@ -23,4 +23,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/Include/Solver/Nox/FactoryExport.h
   ${CMAKE_SOURCE_DIR}/runtime/Include/Solver/Nox/NoxLapackInterface.h
   ${CMAKE_SOURCE_DIR}/runtime/Include/Solver/Nox/NOX_StatusTest_SgnChange.H
-  DESTINATION include/omc/cpp/Solver/Nox)
+  DESTINATION include/omc/OMSICpp/Solver/Nox)

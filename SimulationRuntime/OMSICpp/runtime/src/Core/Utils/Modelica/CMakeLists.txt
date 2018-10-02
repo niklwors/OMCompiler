@@ -18,7 +18,7 @@ install(TARGETS ${ModelicaUtilitiesName} DESTINATION ${LIBINSTALLEXT})
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Utils/Modelica/FactoryExport.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Utils/Modelica/ModelicaSimulationError.h
-  DESTINATION include/omc/cpp/Core/Utils/Modelica)
+  DESTINATION include/omc/OMSICpp/Core/Utils/Modelica)
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/ModelicaUtilities.h
-  DESTINATION include/omc/cpp)
+  DESTINATION include/omc/OMSICpp)

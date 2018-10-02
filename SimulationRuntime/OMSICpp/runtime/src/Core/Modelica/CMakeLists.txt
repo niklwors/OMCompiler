@@ -119,13 +119,13 @@ IF(WIN32)
     ENDIF(MSVC)
 
 	IF(MSVC)
-		SET(Boost_INCLUDE_ "$(OMHOME)/include/omc/cpp/3rdParty/boost/msvc/")
+		SET(Boost_INCLUDE_ "$(OMHOME)/include/omc/OMSICpp/3rdParty/boost/msvc/")
 	ELSE(MSVC)
-		SET(Boost_INCLUDE_ "$(OMHOME)/include/omc/cpp/3rdParty/boost/gcc/")
+		SET(Boost_INCLUDE_ "$(OMHOME)/include/omc/OMSICpp/3rdParty/boost/gcc/")
 	ENDIF(MSVC)
 
 	SET(SUNDIALS_LIBS_ "$(OMHOME)/bin")
-	SET(SUNDIALS_INCLUDE_DIR_ "$(OMHOME)/include/omc/cpp/sundials")
+	SET(SUNDIALS_INCLUDE_DIR_ "$(OMHOME)/include/omc/OMSICpp/sundials")
 	SET(LAPACK_LIBS_ "$(OMHOME)/bin")
 ELSE(WIN32)
 	IF("${Boost_LIBRARY_DIR}" STREQUAL "")
@@ -245,7 +245,7 @@ IF(MSVC)
   )
   install (FILES
 				${PROJECT_BINARY_DIR}/ModelicaConfig_msvc.inc
-				DESTINATION include/omc/cpp)
+				DESTINATION include/omc/OMSICpp)
 
   configure_file (
    "ModelicaLibraryConfig_msvc.inc.in"
@@ -253,7 +253,7 @@ IF(MSVC)
    )
   install (FILES
   				${PROJECT_BINARY_DIR}/ModelicaLibraryConfig_msvc.inc
-  				DESTINATION include/omc/cpp)
+  				DESTINATION include/omc/OMSICpp)
 ENDIF(MSVC)
 
 IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -263,7 +263,7 @@ configure_file (
   )
 install (FILES
 				${PROJECT_BINARY_DIR}/ModelicaConfig_gcc.inc
-				DESTINATION include/omc/cpp)
+				DESTINATION include/omc/OMSICpp)
 
   configure_file (
    "ModelicaLibraryConfig_gcc.inc.in"
@@ -271,18 +271,18 @@ install (FILES
    )
   install (FILES
   				${PROJECT_BINARY_DIR}/ModelicaLibraryConfig_gcc.inc
-  				DESTINATION include/omc/cpp)
+  				DESTINATION include/omc/OMSICpp)
 ENDIF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 
 
 
 install(TARGETS ${ModelicaName} DESTINATION ${LIBINSTALLEXT})
-install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/Modelica.h ${CMAKE_SOURCE_DIR}/runtime/include/Core/ModelicaDefine.h DESTINATION include/omc/cpp/Core)
-install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/Policies/TextfileWriter.h DESTINATION include/omc/cpp/Core/DataExchange/Policies)
-install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/Policies/MatfileWriter.h DESTINATION include/omc/cpp/Core/DataExchange/Policies)
-install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/Policies/BufferReaderWriter.h DESTINATION include/omc/cpp/Core/DataExchange/Policies)
+install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/Modelica.h ${CMAKE_SOURCE_DIR}/runtime/include/Core/ModelicaDefine.h DESTINATION include/omc/OMSICpp/Core)
+install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/Policies/TextfileWriter.h DESTINATION include/omc/OMSICpp/Core/DataExchange/Policies)
+install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/Policies/MatfileWriter.h DESTINATION include/omc/OMSICpp/Core/DataExchange/Policies)
+install (FILES  ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/Policies/BufferReaderWriter.h DESTINATION include/omc/OMSICpp/Core/DataExchange/Policies)
 #if(REDUCE_DAE)
-#install (FILES Policies/BufferReaderWriter.h DESTINATION include/omc/cpp/policies)
+#install (FILES Policies/BufferReaderWriter.h DESTINATION include/omc/OMSICpp/policies)
 #endif()
 
 

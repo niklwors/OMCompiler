@@ -24,4 +24,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/FMU/FMULibInterface.h
   ${CMAKE_SOURCE_DIR}/runtime/include/FMU/IFMUInterface.h
   ${CMAKE_SOURCE_DIR}/runtime/include/FMU/FactoryExport.h
-  DESTINATION include/omc/cpp/FMU)
+  DESTINATION include/omc/OMSICpp/FMU)

@@ -1,0 +1,70 @@
+{
+  // See https://go.microsoft.com//fwlink//?linkid=834763 for more information about this file.
+  "configurations": [
+    {
+
+
+      "name": "x86-Debug-Dynamic",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "variables": [
+        {
+          "name": "PLATFORM",
+          "value": "dynamic"
+        },
+        {
+          "name": "CMAKE_INSTALL_PREFIX",
+          "value": "D:\\OpenModelica\\omc\\win32_omc_dev\\build"
+        }
+
+      ],
+      "ctestCommandArgs": "",
+      "environments": [
+        {
+          "OMDEV": "D:\\OpenModelica\\OMDev_GCC5_3_0"
+
+        }
+      ],
+
+      "buildCommandArgs": "-v"
+
+    },
+    {
+
+
+      "name": "x86-Debug-Static",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "variables": [
+        {
+          "name": "PLATFORM",
+          "value": "static"
+        },
+        {
+          "name": "CMAKE_INSTALL_PREFIX",
+          "value": "D:\\OpenModelica\\omc\\win32_omc_dev\\build"
+        }
+
+      ],
+      "ctestCommandArgs": "",
+      "environments": [
+        {
+          "OMDEV": "D:\\OpenModelica\\OMDev_GCC5_3_0"
+
+        }
+      ],
+
+      "buildCommandArgs": "-v"
+
+    }
+
+  ]
+}

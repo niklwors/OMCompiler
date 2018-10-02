@@ -34,4 +34,4 @@ install(TARGETS ${CppDASSLName} DESTINATION ${LIBINSTALLEXT})
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/CppDASSL/CppDASSL.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/CppDASSL/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/CppDASSL)
+  DESTINATION include/omc/OMSICpp/Solver/CppDASSL)

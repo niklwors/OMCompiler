@@ -21,4 +21,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Broyden/Broyden.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Broyden/BroydenSettings.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Broyden/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/Broyden)
+  DESTINATION include/omc/OMSICpp/Solver/Broyden)

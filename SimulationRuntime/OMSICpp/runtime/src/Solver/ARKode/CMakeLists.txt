@@ -19,4 +19,4 @@ install(TARGETS ${ARKodeName} DESTINATION ${LIBINSTALLEXT})
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/ARKode/ARKode.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/ARKode/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/ARKode)
+  DESTINATION include/omc/OMSICpp/Solver/ARKode)
