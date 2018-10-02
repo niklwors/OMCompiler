@@ -33,4 +33,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/FactoryPolicy.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/DefaultContainerManager.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/DataExchange/ParallelContainerManager.h
-  DESTINATION include/omc/cpp/Core/DataExchange)
+  DESTINATION include/omc/OMSICpp/Core/DataExchange)

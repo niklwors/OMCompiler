@@ -24,12 +24,12 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Utils/extension/measure_time_scorep.hpp
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Utils/extension/barriers.hpp
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/Utils/extension/logger.hpp
-  DESTINATION include/omc/cpp/Core/Utils/extension)
+  DESTINATION include/omc/OMSICpp/Core/Utils/extension)
 
 #install (FILES  ${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/utils.h
-#         DESTINATION include/omc/cpp/Core/Utils/numeric)
+#         DESTINATION include/omc/OMSICpp/Core/Utils/numeric)
 #install (FILES  ${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/bindings/ublas.hpp
-#         DESTINATION include/omc/cpp/Core/Utils/numeric/bindings)
+#         DESTINATION include/omc/OMSICpp/Core/Utils/numeric/bindings)
 #install (FILES  ${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/bindings/ublas.hpp
 #				${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/bindings/ublas/banded.hpp>
 #				${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/bindings/ublas/hermitian.hpp>
@@ -45,7 +45,7 @@ install(FILES
 #				${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/bindings/ublas/vector_expression.hpp>
 #				${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/bindings/ublas/vector_proxy.hpp>
 #				${CMAKE_SOURCE_DIR}/Include/Core/Utils/numeric/bindings/ublas/vector_sparse.hpp>
- #        DESTINATION include/omc/cpp/Core/Utils/numeric/bindings/ublas)
+ #        DESTINATION include/omc/OMSICpp/Core/Utils/numeric/bindings/ublas)
 
 if(PAPI_FOUND)
   add_library("${ExtensionUtilitiesName}_papi" SHARED measure_time_papi.cpp)
@@ -57,5 +57,5 @@ if(PAPI_FOUND)
   install(TARGETS "${ExtensionUtilitiesName}_papi" DESTINATION ${LIBINSTALLEXT})
 
   install(FILES ${CMAKE_SOURCE_DIR}/Include/Core/Utils/extension/measure_time_papi.hpp
-    DESTINATION include/omc/cpp/Core/Utils/extension)
+    DESTINATION include/omc/OMSICpp/Core/Utils/extension)
 endif(PAPI_FOUND)

@@ -28,4 +28,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/SimController/SimManager.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/SimController/Configuration.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/SimController/Initialization.h
-  DESTINATION include/omc/cpp/Core/SimController)
+  DESTINATION include/omc/OMSICpp/Core/SimController)

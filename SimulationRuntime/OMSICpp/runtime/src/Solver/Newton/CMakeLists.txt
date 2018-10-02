@@ -20,4 +20,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Newton/Newton.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/Newton/NewtonSettings.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/CVode/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/Newton)
+  DESTINATION include/omc/OMSICpp/Solver/Newton)

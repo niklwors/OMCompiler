@@ -37,15 +37,15 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/SimCoreFactory/Policies/NonLinSolverVxWorksFactory.h
   ${CMAKE_SOURCE_DIR}/runtime/include/SimCoreFactory/Policies/SystemVxWorksFactory.h
   ${CMAKE_SOURCE_DIR}/runtime/include/SimCoreFactory/Policies/SolverSettingsVxWorksFactory.h
-  DESTINATION include/omc/cpp/SimCoreFactory/Policies)
+  DESTINATION include/omc/OMSICpp/SimCoreFactory/Policies)
 
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/SimCoreFactory/OMCFactory/StaticOMCFactory.h
   ${CMAKE_SOURCE_DIR}/runtime/include/SimCoreFactory/OMCFactory/OMCFactory.h
-  DESTINATION include/omc/cpp/SimCoreFactory/OMCFactory/)
+  DESTINATION include/omc/OMSICpp/SimCoreFactory/OMCFactory/)
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/SimCoreFactory/VxWorksFactory/VxWorksFactory.h
-  DESTINATION include/omc/cpp/SimCoreFactory/VxWorksFactory/)
+  DESTINATION include/omc/OMSICpp/SimCoreFactory/VxWorksFactory/)
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/SimCoreFactory/ObjectFactory.h
-  DESTINATION include/omc/cpp/SimCoreFactory)
+  DESTINATION include/omc/OMSICpp/SimCoreFactory)

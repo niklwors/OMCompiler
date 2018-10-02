@@ -16,10 +16,10 @@ add_precompiled_header(${SimulationSettings} runtime/include/Core/Modelica.h)
 
 
 install(TARGETS ${SimulationSettings} DESTINATION ${LIBINSTALLEXT})
-install(FILES "config/GlobalSettings.xml" DESTINATION share/omc/runtime/cpp/config)
+
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/SimulationSettings/IGlobalSettings.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/SimulationSettings/ISettingsFactory.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/SimulationSettings/ISimControllerSettings.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/SimulationSettings/Factory.h
-  DESTINATION include/omc/cpp/Core/SimulationSettings)
+  DESTINATION include/omc/OMSICpp/Core/SimulationSettings)

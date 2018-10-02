@@ -258,16 +258,16 @@ endif
 	(cp -pufr $(OMDEVMSYS)/tools/gnuplot $(builddir_lib)/omc/libexec/)
 
 copycppheader:
-	echo Copying needed header files to the $(OMBUILDDIR)/include/omc/cpp directory
-	(mkdir -p $(OMBUILDDIR)/include/omc/cpp/3rdParty/boost/gcc/boost)
-	(cp -puf $(BOOST_PATH)/boost/*.hpp              $(OMBUILDDIR)/include/omc/cpp/3rdParty/boost/gcc/boost)
-	(cp -pufr $(BOOST_PATH)/boost/*                 $(OMBUILDDIR)/include/omc/cpp/3rdParty/boost/gcc/boost)
+	echo Copying needed header files to the $(OMBUILDDIR)/include/omc/OMSICpp directory
+	(mkdir -p $(OMBUILDDIR)/include/omc/OMSICpp/3rdParty/boost/gcc/boost)
+	(cp -puf $(BOOST_PATH)/boost/*.hpp              $(OMBUILDDIR)/include/omc/OMSICpp/3rdParty/boost/gcc/boost)
+	(cp -pufr $(BOOST_PATH)/boost/*                 $(OMBUILDDIR)/include/omc/OMSICpp/3rdParty/boost/gcc/boost)
 
 copycppmsvcheader: getMSVCversion
-	echo Copying needed header files to the $(OMBUILDDIR)/include/omc/cpp/ directory
-	(mkdir -p $(OMBUILDDIR)/include/omc/cpp/3rdParty/boost/msvc/boost)
-	(cp -puf $(BOOST_PATH_MSVC)/boost/*.hpp              $(OMBUILDDIR)/include/omc/cpp/3rdParty/boost/msvc/boost)
-	(cp -pufr $(BOOST_PATH_MSVC)/boost/*                 $(OMBUILDDIR)/include/omc/cpp/3rdParty/boost/msvc/boost)
+	echo Copying needed header files to the $(OMBUILDDIR)/include/omc/OMSICpp/ directory
+	(mkdir -p $(OMBUILDDIR)/include/omc/OMSICpp/3rdParty/boost/msvc/boost)
+	(cp -puf $(BOOST_PATH_MSVC)/boost/*.hpp              $(OMBUILDDIR)/include/omc/OMSICpp/3rdParty/boost/msvc/boost)
+	(cp -pufr $(BOOST_PATH_MSVC)/boost/*                 $(OMBUILDDIR)/include/omc/OMSICpp/3rdParty/boost/msvc/boost)
 
 ifeq ($(OMENCRYPTION),yes)
 omc: mkbuilddirs interactive fmil omdev_extra_dlls breakprocess opencl_rt CMinpack metis Cdaskr $(IPOPT_TARGET) graphstream semla
@@ -440,12 +440,12 @@ nox_msvc: getMSVCversion 3rdParty/trilinos-nox/CMakeLists.txt
 
 
 omcCAPImsvcinstall:
-	$(MAKE) -C SimulationRuntime/cpp/ -f Makefile.omdev.mingw omcCAPImsvc OMBUILDDIR=$(OMBUILDDIR)
+	$(MAKE) -C SimulationRuntime/OMSICpp/ -f Makefile.omdev.mingw omcCAPImsvc OMBUILDDIR=$(OMBUILDDIR)
 
 runtimeCPPmsvcinstall: mkbuilddirs CMinpack_msvc Umfpack_msvc fmil_msvc sundials_msvc copycppmsvcheader
-	$(MAKE) -C SimulationRuntime/cpp/ -f Makefile.omdev.mingw runtimeCPPmsvc OMBUILDDIR=$(OMBUILDDIR)
+	$(MAKE) -C SimulationRuntime/OMSICpp/ -f Makefile.omdev.mingw runtimeCPPmsvc OMBUILDDIR=$(OMBUILDDIR)
 	cp -p $(BOOST_PATH_MSVC)/lib/*vc*.dll $(OMBUILDDIR)/bin/msvc
-	cp -p $(BOOST_PATH_MSVC)/lib/*vc*.lib $(OMBUILDDIR)/lib/omc/cpp/msvc
+	cp -p $(BOOST_PATH_MSVC)/lib/*vc*.lib $(OMBUILDDIR)/lib/omc/OMSICpp/msvc
 
 runtimeOMSIBaseMSVCInstall:
 	$(MAKE) -C SimulationRuntime/OMSI/ -f Makefile.omdev.mingw OMSIBaseMSVC OMBUILDDIR=$(OMBUILDDIR)

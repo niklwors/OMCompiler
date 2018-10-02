@@ -131,9 +131,9 @@ OPTION(USE_CPP_03 "USE_CPP_03" OFF)
 IF(NOT FMU_TARGET)
  IF(MSVC)
   MESSAGE(STATUS "MSVC")
-  SET(LIBINSTALLEXT "lib/omc/cpp/msvc" )
+  SET(LIBINSTALLEXT "lib/omc/OMSICpp/msvc" )
 ELSE(MSVC)
-   SET(LIBINSTALLEXT "lib/omc/cpp" )
+   SET(LIBINSTALLEXT "lib/omc/OMSICpp" )
  ENDIF(MSVC)
 ENDIF(NOT FMU_TARGET)
 MESSAGE(STATUS "Using library folder extension " ${LIBINSTALLEXT})
@@ -1162,8 +1162,8 @@ MACRO(INSTALL_HEADERS_WITH_DIRECTORY HEADER_LIST)
 FOREACH(HEADER ${${HEADER_LIST}})
     STRING(REGEX MATCH "(.*)[/\\]" DIR ${HEADER})
     STRING(REPLACE runtime/include "" DIR ${DIR})
-   message(STATUS "copy to "include/omc/cpp/${DIR})
-  INSTALL(FILES ${HEADER} DESTINATION include/omc/cpp/${DIR})
+   message(STATUS "copy to "include/omc/OMSICpp/${DIR})
+  INSTALL(FILES ${HEADER} DESTINATION include/omc/OMSICpp/${DIR})
 ENDFOREACH(HEADER)
 
 ENDMACRO(INSTALL_HEADERS_WITH_DIRECTORY)
@@ -1171,9 +1171,9 @@ ENDMACRO(INSTALL_HEADERS_WITH_DIRECTORY)
 
 
 
-install (FILES "${PROJECT_BINARY_DIR}/LibrariesConfig.h" DESTINATION include/omc/cpp)
+install (FILES "${PROJECT_BINARY_DIR}/LibrariesConfig.h" DESTINATION include/omc/OMSICpp)
 
-install (FILES "Licenses/sundials.license" DESTINATION share/omc/runtime/cpp/licenses)
+install (FILES "Licenses/sundials.license" DESTINATION share/omc/runtime/OMSICpp/licenses)
 
 #copy Utils/extension
 SET(HS 	runtime/include/Core/Utils/extension/adaptable_factory.hpp

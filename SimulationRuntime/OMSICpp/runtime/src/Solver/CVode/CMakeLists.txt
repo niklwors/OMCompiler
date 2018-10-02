@@ -22,4 +22,4 @@ install(TARGETS ${CVodeName} DESTINATION ${LIBINSTALLEXT})
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/CVode/CVode.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/CVode/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/CVode)
+  DESTINATION include/omc/OMSICpp/Solver/CVode)

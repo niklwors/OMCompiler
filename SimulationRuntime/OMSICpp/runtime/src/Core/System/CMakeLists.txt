@@ -60,4 +60,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/System/ISimVars.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/System/ISimObjects.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Core/System/OSUSystem.h
-  DESTINATION include/omc/cpp/Core/System)
+  DESTINATION include/omc/OMSICpp/Core/System)

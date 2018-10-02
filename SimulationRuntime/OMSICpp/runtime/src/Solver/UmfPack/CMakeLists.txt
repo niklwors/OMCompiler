@@ -19,4 +19,4 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/UmfPack/UmfPack.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/UmfPack/UmfPackSettings.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/UmfPack/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/UmfPack)
+  DESTINATION include/omc/OMSICpp/Solver/UmfPack)

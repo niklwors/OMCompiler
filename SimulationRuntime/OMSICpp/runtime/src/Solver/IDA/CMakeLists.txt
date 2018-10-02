@@ -19,4 +19,4 @@ install(TARGETS ${IDAName} DESTINATION ${LIBINSTALLEXT})
 install(FILES
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/IDA/IDA.h
   ${CMAKE_SOURCE_DIR}/runtime/include/Solver/IDA/FactoryExport.h
-  DESTINATION include/omc/cpp/Solver/IDA)
+  DESTINATION include/omc/OMSICpp/Solver/IDA)
