@@ -2857,7 +2857,8 @@ algorithm
 
     // create known variables
     knvarLst1 := BackendEquation.equationsVars(eqns, globalKnownVars);
-    knvarLst2 := BackendEquation.equationsVars(eqns, inAllVars);
+    //knvarLst2 := BackendEquation.equationsVars(eqns, inAllVars);
+    knvarLst2 := {};
     // Create a list of known variables true *only* for this shared system
     globalKnownVars := BackendVariable.listVar2(knvarLst1,knvarLst2);
     // Remove inputs for the jacobian
