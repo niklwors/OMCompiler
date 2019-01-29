@@ -3804,7 +3804,7 @@ algorithm
   case (BackendDAE.GENERIC_JACOBIAN(jacobian=SOME(sJac))) algorithm
     ((dae,matrixName,diffVars, _, _,_)) := sJac;
     for var in diffVars loop
-      nonlinearCountLst := getNonlinearStateCount(var,dae,matrixName)::nonlinearCountLst;
+      nonlinearCountLst := getNonlinearStateCount(var,diffVars,dae,matrixName)::nonlinearCountLst;
     end for;
   then 0;
   end match;
@@ -3813,6 +3813,7 @@ end getFixedStatesForSelfdependentSets;
 
 protected function getNonlinearStateCount
   input BackendDAE.Var state;
+  input list<BackendDAE.Var> diffVars;
   input BackendDAE.BackendDAE dae;
   input String matrixName;
   output tuple<BackendDAE.Var,Integer> outTpl;
@@ -3821,11 +3822,11 @@ algorithm
   outTpl:=match(dae)
   local
     BackendDAE.EqSystems systs;
-    tuple<BackendDAE.Var,Integer,String> tpl;
+    tuple<BackendDAE.Var,list<BackendDAE.Var>,Integer,String> tpl;
     BackendDAE.Var outState;
     Integer nonlinearCount = 0;
   case BackendDAE.DAE(eqs=systs) algorithm
-    tpl := (state,nonlinearCount,matrixName);
+    tpl := (state,diffVars,nonlinearCount,matrixName);
     for syst in systs loop
       _:= match(syst)
       local
@@ -3836,42 +3837,52 @@ algorithm
       then 0;
       end match;
     end for;
-    (outState,nonlinearCount,_) := tpl;
+    (outState,_,nonlinearCount,_) := tpl;
   then (outState,nonlinearCount);
   end match;
+
 end getNonlinearStateCount;
 
 protected function getNonlinearStateCount0
   input BackendDAE.Equation inEq;
-  input tuple<BackendDAE.Var, Integer,String> inTpl; // put candidates to check in tuple
+  input tuple<BackendDAE.Var,list<BackendDAE.Var>,Integer,String> inTpl;
   output BackendDAE.Equation outEq;
-  output tuple<BackendDAE.Var, Integer,String> outTpl;
+  output tuple<BackendDAE.Var,list<BackendDAE.Var>,Integer,String> outTpl;
 algorithm
   outEq := inEq;
   outTpl := match inEq
   local
     DAE.Exp exp, diffExp;
     BackendDAE.Var state;
+    list<BackendDAE.Var> diffVars;
     Integer nonlinearCount;
     String matrixName;
     DAE.ComponentRef seedVar;
   case BackendDAE.EQUATION(scalar=exp) algorithm
-    (state,nonlinearCount,matrixName) := inTpl;
-    ExpressionDump.dumpExp(exp);
+    (state,diffVars,nonlinearCount,matrixName) := inTpl;
     seedVar := Differentiate.createSeedCrefName(state.varName,matrixName);
     diffExp := Differentiate.differentiateExpSolve(exp,seedVar,NONE());
-
-    // TODO diffexp contains candidates - state for seedVar? -> count++
-    // for candidate in candidates loop
-    //   if Expression.expContains(diffexp,EXPRESSIONFROMVAR(candidate)) then
-    //     count ++;
-    //     break;
-    //   end if;
-    // end for;
-
-  then (state,nonlinearCount,matrixName);
+    for var in diffVars loop
+      if not ComponentReference.crefEqual(var.varName, state.varName) and Expression.expContains(diffExp,Expression.crefExp(var.varName)) then
+        nonlinearCount := nonlinearCount + 1;
+      end if;
+    end for;
+  then (state,diffVars,nonlinearCount,matrixName);
   end match;
 end getNonlinearStateCount0;
+
+protected function fixedVarsFromNonlinearCount
+  input  list<tuple<BackendDAE.Var,Integer>> tplLst;
+  input Integer toFix;
+  output list<BackendDAE.Var> = {};
+protected
+  array<Integer> nonLinearCounts;
+algorithm
+  for tpl in tplLst loop
+    // TODO be smart here
+
+  end for;
+end fixedVarsFromNinlinearCount;
 
 annotation(__OpenModelica_Interface="backend");
 end SymbolicJacobian;
