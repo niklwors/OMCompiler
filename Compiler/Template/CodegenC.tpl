@@ -5281,7 +5281,7 @@ case eqn as SES_ARRAY_CALL_ASSIGN(lhs=lhs as CREF(__)) then
     <%preExp%>
     copy_string_array_data(<%expPart%>, &<%lhsstr%>);
     >>
-  else error(sourceInfo(), 'No runtime support for this sort of array call: <%dumpExp(eqn.exp,"\"")%>')
+  else error(sourceInfo(), 'No runtime support for this sort of array call: <%dumpExp(eqn.exp,"\"")%> ')
 %>
 <%endModelicaLine()%>
 >>

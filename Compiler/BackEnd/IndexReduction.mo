@@ -72,6 +72,7 @@ import List;
 import Matching;
 import SCode;
 import Sorting;
+import SymbolicJacobian;
 import System;
 import Util;
 
@@ -1311,7 +1312,7 @@ protected function dynamicStateSelectionWork
   output BackendDAE.EqSystem osyst;
   output BackendDAE.Shared oshared;
   output HashTableCrIntToExp.HashTable oHt;
-  output Integer oSetIndex;
+  output Integer oSetIndex=iSetIndex;
 protected
   BackendDAE.StateOrder so;
   BackendDAE.ConstraintEquations orgEqnsLst;
@@ -1544,7 +1545,7 @@ protected function addStateSets
   input StateSets iTplLst;
   input Integer iSetIndex;
   input BackendDAE.EqSystem inSystem;
-  output Integer oSetIndex;
+  output Integer oSetIndex=iSetIndex;
   output BackendDAE.EqSystem oSystem;
 algorithm
   (oSetIndex,oSystem) := match(iTplLst,inSystem)
@@ -1644,8 +1645,8 @@ algorithm
     stateCandidates := List.map1(stateCandidates,BackendVariable.setVarKind,BackendDAE.DUMMY_STATE());
     otherVars := List.map1(otherVars,BackendVariable.setVarKind,BackendDAE.DUMMY_STATE());
 
+    oStateSets := BackendDAE.STATESET(oSetIndex,rang,crset,crA,aVars,stateCandidates,otherVars,cEqnsLst,oEqnLst,crJ,varJ,BackendDAE.EMPTY_JACOBIAN())::oStateSets;
     oSetIndex := oSetIndex + 1;
-    oStateSets := BackendDAE.STATESET(rang,crset,crA,aVars,stateCandidates,otherVars,cEqnsLst,oEqnLst,crJ,varJ,BackendDAE.EMPTY_JACOBIAN())::oStateSets;
   end for;
 end generateStateSets;
 
@@ -1663,7 +1664,7 @@ protected function setStartExp
   input Integer size;
   input Integer iIndex;
   output BackendDAE.Var outVar;
-  output Integer oIndex;
+  output Integer oIndex=iIndex;
 protected
   DAE.Exp e;
 algorithm
@@ -1690,7 +1691,7 @@ protected function selectStates
   output BackendDAE.EqSystem osyst;
   output BackendDAE.Shared oshared;
   output HashTableCrIntToExp.HashTable oHt;
-  output Integer oSetIndex;
+  output Integer oSetIndex=iSetIndex;
 algorithm
   (osyst,oshared,oHt,oSetIndex) := matchcontinue inSystem
     local
@@ -1777,7 +1778,7 @@ protected function selectStatesWork
   output BackendDAE.EqSystem osyst;
   output BackendDAE.Shared oshared;
   output HashTableCrIntToExp.HashTable oHt;
-  output Integer oSetIndex;
+  output Integer oSetIndex=iSetIndex;
 algorithm
   (osyst,oshared,oHt,oSetIndex) :=
   matchcontinue (inSystem, iOrgEqnsLst)
@@ -4076,6 +4077,35 @@ algorithm
   oJVars := List.map1(oJVars,BackendVariable.setVarFixed,false);
 end getSetVars;
 
+public function getInitSetVars
+  input Integer index;
+  input Integer setsize;
+  input Integer nCandidates;
+  output DAE.ComponentRef crInitStates;
+  output list<DAE.ComponentRef> crInitSet;
+  output list<BackendDAE.Var> oInitSetVars;
+  output DAE.ComponentRef crF;
+  output list<BackendDAE.Var> oVarsF;
+  output DAE.Type realtp;
+protected
+  DAE.ComponentRef set;
+  DAE.Type tp;
+algorithm
+  set := ComponentReference.makeCrefIdent("$STATESET" + intString(index),DAE.T_COMPLEX_DEFAULT,{});
+  tp := if intGt(setsize,1) then DAE.T_ARRAY(DAE.T_REAL_DEFAULT,{DAE.DIM_INTEGER(setsize)}) else DAE.T_REAL_DEFAULT;
+  crInitStates := ComponentReference.joinCrefs(set,ComponentReference.makeCrefIdent("i",tp,{}));
+  oInitSetVars := BackendVariable.generateArrayVar(crInitStates,BackendDAE.STATE(1,NONE()),tp,NONE());
+  oInitSetVars := List.map1(oInitSetVars,BackendVariable.setVarFixed,false);
+  crInitSet := List.map(oInitSetVars,BackendVariable.varCref);
+
+  tp := if intGt(setsize,1) then DAE.T_ARRAY(DAE.T_INTEGER_DEFAULT,{DAE.DIM_INTEGER(setsize),DAE.DIM_INTEGER(nCandidates)})
+                            else DAE.T_ARRAY(DAE.T_INTEGER_DEFAULT,{DAE.DIM_INTEGER(nCandidates)});
+  crF := ComponentReference.joinCrefs(set,ComponentReference.makeCrefIdent("F",tp,{}));
+  oVarsF := BackendVariable.generateArrayVar(crF,BackendDAE.VARIABLE(),tp,NONE());
+  realtp := if intGt(setsize,1) then DAE.T_ARRAY(DAE.T_REAL_DEFAULT,{DAE.DIM_INTEGER(setsize),DAE.DIM_INTEGER(nCandidates)})
+                                else DAE.T_ARRAY(DAE.T_REAL_DEFAULT,{DAE.DIM_INTEGER(nCandidates)});
+end getInitSetVars;
+
 
 protected function setSetAStart
   input list<BackendDAE.Var> iVars;
@@ -4304,6 +4334,25 @@ algorithm
   end matchcontinue;
   */
 end addOrgEqn;
+
+public function isSelfDependent
+" author: kabdelhak 2019-01
+  Returns true, if the jacobian matrix contains state candidates."
+input BackendDAE.StateSet stateSet;
+output Boolean selfdependent = false;
+protected
+  list<DAE.ComponentRef> dependencies;
+algorithm
+  dependencies := SymbolicJacobian.getJacobianDependencies(stateSet.jacobian);
+  for dep in dependencies loop
+    if BackendVariable.isCrefInVarList(dep,stateSet.statescandidates) then
+      print("StateSet" + intString(stateSet.index) + ": " +  ComponentReference.printComponentRefStr(dep) +
+      " is detected to be causing self-dependency.\n");
+      selfdependent := true;
+      break;
+    end if;
+  end for;
+end isSelfDependent;
 
 annotation(__OpenModelica_Interface="backend");
 end IndexReduction;

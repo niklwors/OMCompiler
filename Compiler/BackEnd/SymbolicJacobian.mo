@@ -1744,7 +1744,7 @@ try
     if Flags.isSet(Flags.JAC_DUMP2) then
       BackendDump.dumpSparsityPattern(sparsePattern, "FMI sparsity");
     end if;
-    outJacobianMatrixes := (SOME((emptyBDAE,"FMIDER",{},{},{})), sparsePattern, sparseColoring)::outJacobianMatrixes;
+    outJacobianMatrixes := (SOME((emptyBDAE,"FMIDER",{},{},{}, {})), sparsePattern, sparseColoring)::outJacobianMatrixes;
     outFunctionTree := inBackendDAE.shared.functionTree;
   else
     // prepare more needed variables
@@ -2001,7 +2001,7 @@ algorithm
     local
       BackendDAE.BackendDAE backendDAE, reducedDAE;
 
-      list<DAE.ComponentRef> comref_vars, comref_differentiatedVars;
+      list<DAE.ComponentRef> comref_vars, comref_differentiatedVars, dependencies;
 
       BackendDAE.Shared shared;
       BackendDAE.Variables  globalKnownVars, globalKnownVars1;
@@ -2043,9 +2043,10 @@ algorithm
         if Flags.isSet(Flags.JAC_DUMP2) then
           print("analytical Jacobians -> generated Jacobian DAE time: " + realString(clock()) + "\n");
         end if;
+        dependencies = calcJacobianDependencies((backendDAE, "", {}, {}, {}, {}));
 
      then
-        ((backendDAE, inName, inDiffVars, diffedVars, inVars), funcs);
+        ((backendDAE, inName, inDiffVars, diffedVars, inVars, dependencies), funcs);
     else
       equation
         Error.addInternalError("function createJacobian failed", sourceInfo());
@@ -2382,7 +2383,7 @@ algorithm
       BackendDAE.SymbolicJacobians rest;
       String name;
 
-    case (matrix as (SOME((_,name,_,_,_)), _, _))::_ guard
+    case (matrix as (SOME((_,name,_,_,_,_)), _, _))::_ guard
       stringEq(name, inJacobianName)
     then SOME(matrix);
 
@@ -2392,6 +2393,36 @@ algorithm
     else NONE();
   end match;
 end getJacobianMatrixbyName;
+
+
+public function calcJacobianDependencies
+  input BackendDAE.SymbolicJacobian jacobian;
+  output list<DAE.ComponentRef> dependencies;
+protected
+  BackendDAE.EqSystem syst;
+  BackendDAE.Shared shared;
+algorithm
+  (BackendDAE.DAE({syst}, shared), _, _, _, _, _) := jacobian;
+  dependencies := BackendEquation.getCrefsFromEquations(syst.orderedEqs, syst.orderedVars, shared.globalKnownVars);
+end calcJacobianDependencies;
+
+public function getJacobianDependencies
+  input BackendDAE.Jacobian jacobian;
+  output list<DAE.ComponentRef> dependencies;
+algorithm
+  dependencies := match(jacobian)
+    case (BackendDAE.GENERIC_JACOBIAN(jacobian=SOME((_, _, _, _, _, dependencies))))
+    then dependencies;
+
+    case (BackendDAE.GENERIC_JACOBIAN(jacobian=NONE()))
+    then {};
+
+    else equation
+      Error.addInternalError("function getJacobianDependencies failed", sourceInfo());
+    then fail();
+
+  end match;
+end getJacobianDependencies;
 
 // =============================================================================
 // Module for to calculate strong component Jacobains
@@ -2945,7 +2976,7 @@ algorithm
       BackendDAE.StateSet stateSet;
       BackendDAE.Shared shared;
 
-      Integer rang;
+      Integer index, rang;
       list<DAE.ComponentRef> state;
       DAE.ComponentRef crA, crJ;
       list<BackendDAE.Var> varA, varJ, statescandidates, ovars;
@@ -2963,7 +2994,7 @@ algorithm
 
       String name;
 
-    case (BackendDAE.STATESET(rang=rang, state=state, crA=crA, varA=varA, statescandidates=statescandidates,
+    case (BackendDAE.STATESET(index=index, rang=rang, state=state, crA=crA, varA=varA, statescandidates=statescandidates,
       ovars=ovars, eqns=eqns, oeqns=oeqns, crJ=crJ, varJ=varJ), _, _, _, _)
       equation
         // get state names
@@ -3006,7 +3037,7 @@ algorithm
         // generate generic Jacobian back end dae
         (jacobian, shared) = getSymbolicJacobian(diffVars, cEqns, resVars, oEqns, oVars, inShared, allvars, name, false);
 
-      then (BackendDAE.STATESET(rang, state, crA, varA, statescandidates, ovars, eqns, oeqns, crJ, varJ, jacobian), shared);
+      then (BackendDAE.STATESET(index, rang, state, crA, varA, statescandidates, ovars, eqns, oeqns, crJ, varJ, jacobian), shared);
   end match;
 end calculateStateSetJacobian;
 
@@ -3717,7 +3748,7 @@ protected
   BackendDAE.BackendDAE jacBDAE;
   String name;
 algorithm
-  (jacBDAE, name, _, _, _) := symbolicJacobian;
+  (jacBDAE, name, _, _, _, _) := symbolicJacobian;
   try
     _ := BackendDAEUtil.mapEqSystem(jacBDAE, checkForNonLinearStrongComponents_work);
     result := true;
@@ -3754,6 +3785,93 @@ algorithm
     fail();
   end try;
 end checkForNonLinearStrongComponents_work;
+
+// TODO: KAB
+public function getFixedStatesForSelfdependentSets
+  input BackendDAE.StateSet stateSet;
+  input Integer toFix;
+  output list<BackendDAE.Var> statesToFix;
+protected
+  list<tuple<BackendDAE.Var,Integer>> nonlinearCountLst = {};
+  Integer nonlinearCount;
+algorithm
+  _:= match(stateSet.jacobian)
+  local
+    BackendDAE.SymbolicJacobian sJac;
+    BackendDAE.BackendDAE dae;
+    list<BackendDAE.Var> diffVars;
+    String matrixName;
+  case (BackendDAE.GENERIC_JACOBIAN(jacobian=SOME(sJac))) algorithm
+    ((dae,matrixName,diffVars, _, _,_)) := sJac;
+    for var in diffVars loop
+      nonlinearCountLst := getNonlinearStateCount(var,dae,matrixName)::nonlinearCountLst;
+    end for;
+  then 0;
+  end match;
+  statesToFix := stateSet.statescandidates;
+end getFixedStatesForSelfdependentSets;
+
+protected function getNonlinearStateCount
+  input BackendDAE.Var state;
+  input BackendDAE.BackendDAE dae;
+  input String matrixName;
+  output tuple<BackendDAE.Var,Integer> outTpl;
+protected
+algorithm
+  outTpl:=match(dae)
+  local
+    BackendDAE.EqSystems systs;
+    tuple<BackendDAE.Var,Integer,String> tpl;
+    BackendDAE.Var outState;
+    Integer nonlinearCount = 0;
+  case BackendDAE.DAE(eqs=systs) algorithm
+    tpl := (state,nonlinearCount,matrixName);
+    for syst in systs loop
+      _:= match(syst)
+      local
+        BackendDAE.EquationArray eqnarray;
+
+      case BackendDAE.EQSYSTEM(_,eqnarray,_,_,_,_,_,_) algorithm
+        tpl := BackendEquation.traverseEquationArray(eqnarray,getNonlinearStateCount0,tpl);
+      then 0;
+      end match;
+    end for;
+    (outState,nonlinearCount,_) := tpl;
+  then (outState,nonlinearCount);
+  end match;
+end getNonlinearStateCount;
+
+protected function getNonlinearStateCount0
+  input BackendDAE.Equation inEq;
+  input tuple<BackendDAE.Var, Integer,String> inTpl; // put candidates to check in tuple
+  output BackendDAE.Equation outEq;
+  output tuple<BackendDAE.Var, Integer,String> outTpl;
+algorithm
+  outEq := inEq;
+  outTpl := match inEq
+  local
+    DAE.Exp exp, diffExp;
+    BackendDAE.Var state;
+    Integer nonlinearCount;
+    String matrixName;
+    DAE.ComponentRef seedVar;
+  case BackendDAE.EQUATION(scalar=exp) algorithm
+    (state,nonlinearCount,matrixName) := inTpl;
+    ExpressionDump.dumpExp(exp);
+    seedVar := Differentiate.createSeedCrefName(state.varName,matrixName);
+    diffExp := Differentiate.differentiateExpSolve(exp,seedVar,NONE());
+
+    // TODO diffexp contains candidates - state for seedVar? -> count++
+    // for candidate in candidates loop
+    //   if Expression.expContains(diffexp,EXPRESSIONFROMVAR(candidate)) then
+    //     count ++;
+    //     break;
+    //   end if;
+    // end for;
+
+  then (state,nonlinearCount,matrixName);
+  end match;
+end getNonlinearStateCount0;
 
 annotation(__OpenModelica_Interface="backend");
 end SymbolicJacobian;

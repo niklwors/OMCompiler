@@ -65,10 +65,12 @@ import ExpressionDump;
 import ExpressionSimplify;
 import Flags;
 import GC;
+import IndexReduction;
 import List;
 import Matching;
 import MetaModelica.Dangerous;
 import Sorting;
+import SymbolicJacobian;
 
 // =============================================================================
 // section for all public functions
@@ -2081,11 +2083,137 @@ algorithm
           (vars, fixVars, eqns, _, _, _) := BackendVariable.traverseBackendDAEVars(eq.orderedVars,
             collectInitialVars, (vars, fixVars, eqns, hs, allPrimaryParams, datareconFlag));
           (eqns, reEqns) := BackendEquation.traverseEquationArray(eq.orderedEqs, collectInitialEqns, (eqns, reEqns));
+          (vars, eqns) := collectInitialStateSets(eq.stateSets, vars, eqns);
+          //BackendDump.dumpVariables(vars, "initial vars");
+          //BackendDump.dumpEquationArray(eqns, "initial equations");
         then
           ();
     end match;
   end for;
+
 end collectInitialVarsEqnsSystem;
+
+protected function collectInitialStateSets
+  input BackendDAE.StateSets stateSets;
+  input BackendDAE.Variables iVars;
+  input BackendDAE.EquationArray iEqns;
+  output BackendDAE.Variables oVars;
+  output BackendDAE.EquationArray oEqns;
+
+  protected
+  BackendDAE.StateSet stateSet;
+  BackendDAE.Equation eqn, Feqn, initEqns;
+  DAE.Exp lhs, rhs, exp, expcrF, expInitset, mulFstates;
+  list<DAE.Exp> expLst = {}, expcrstates, expcrInitset;
+  list<DAE.ComponentRef> crLst, crInitSet;
+  DAE.ComponentRef set, crF, crInitStates;
+  BackendDAE.Var var, fixState;
+  list<BackendDAE.Var> statesToFix = {}, unfixedStates = {}, VarsF, oInitSetVars;
+  DAE.Type tp, tyExpCrStates;
+  Integer toFix, setsize, nCandidates;
+  Boolean b;
+  DAE.Operator op;
+  DAE.ElementSource source;
+algorithm
+  //BackendDump.dumpVariables(vars, "INITIAL VARS BEFORE");
+  //BackendDump.dumpEquationArray(eqns, "INITIAL EQUATIONS BEFORE");
+  (oVars, oEqns) := (iVars, iEqns);
+  for stateSet in stateSets loop
+    oVars := BackendVariable.addVars(stateSet.varA, oVars);
+    lhs := Expression.crefToExp(stateSet.crA);
+
+    expLst:={};
+
+    // KAB Change to jacobian
+    crLst := SymbolicJacobian.getJacobianDependencies(stateSet.jacobian);
+    expLst := list(Expression.crefToExp(cr) for cr in crLst);
+    expLst := DAE.ICONST(integer=stateSet.index-1)::expLst;
+
+    rhs := DAE.CALL(path=Absyn.IDENT(name="$stateSelectionSet"),expLst=expLst,attr=DAE.callAttrBuiltinOther);
+    eqn := BackendDAE.ARRAY_EQUATION(dimSize={listLength(stateSet.varA)}, left=lhs, right=rhs,source=DAE.emptyElementSource,attr=BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
+    oEqns := ExpandableArray.add(eqn,oEqns);
+
+    print("Needed states: " + intString(stateSet.rang) + " number of candidates: " + intString(listLength(stateSet.statescandidates)) + ".\n");
+    unfixedStates := {};
+    for state in stateSet.statescandidates loop
+       if not BackendVariable.varFixed(state) then
+         unfixedStates := state::unfixedStates;
+       end if;
+    end for;
+    //BackendDump.printVarList(unfixedStates);
+
+    // If selfdependent -> heuristic, if not -> add new vars and write new pivot algorithm c
+    if listLength(stateSet.statescandidates) - listLength(unfixedStates) < stateSet.rang then
+      print("Need fixing!\n");
+      toFix := stateSet.rang - listLength(stateSet.statescandidates) + listLength(unfixedStates);
+	    statesToFix := {};
+
+      if IndexReduction.isSelfDependent(stateSet) then
+	      // KAB: Change to heuristic
+        //print(BackendDump.jacobianString(stateSet.jacobian));
+        statesToFix := SymbolicJacobian.getFixedStatesForSelfdependentSets(stateSet,toFix);
+	      while toFix > 0 loop
+	        fixState::unfixedStates := unfixedStates;
+	        fixState.values := DAEUtil.setFixedAttr(fixState.values,SOME(DAE.BCONST(true)));
+	        statesToFix := fixState::statesToFix;
+	        toFix := toFix - 1;
+	      end while;
+	      oVars := BackendVariable.addVars(statesToFix, oVars);
+      else
+        nCandidates := listLength(stateSet.statescandidates);
+        setsize := listLength(stateSet.eqns);
+
+
+        // add equiatons
+        // set.F = $initialStateSelection(stateSet.Jacobian,fixedVars)
+        // set.i = set.F*set.statecandidates (initial equations)
+        (crInitStates,crInitSet,oInitSetVars,crF,VarsF,tp) := IndexReduction.getInitSetVars(stateSet.index,stateSet.rang,nCandidates);
+
+        lhs := Expression.crefToExp(crF);
+        rhs := DAE.CALL(path=Absyn.IDENT(name="$initialStateSelection"),expLst=expLst,attr=DAE.callAttrBuiltinOther);
+
+        // set.F = $initialStateSelection(stateSet.Jacobian,fixedVars)
+        Feqn := BackendDAE.ARRAY_EQUATION(dimSize={listLength(VarsF)}, left=lhs, right=rhs,source=DAE.emptyElementSource,attr=BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
+
+        b := intGt(stateSet.rang,1);
+
+        expcrstates := List.map(stateSet.statescandidates, BackendVariable.varExp);
+
+        expcrInitset := List.map(crInitSet,Expression.crefExp);
+        expInitset := if b then DAE.ARRAY(DAE.T_ARRAY(DAE.T_REAL_DEFAULT,{DAE.DIM_INTEGER(stateSet.rang)}),true,expcrInitset) else listHead(expcrInitset);
+
+        expcrF := Expression.crefExp(crF);
+        expcrF := DAE.CAST(tp,expcrF);
+
+        tyExpCrStates := DAE.T_ARRAY(DAE.T_REAL_DEFAULT,{DAE.DIM_INTEGER(nCandidates)});
+        op := if b then DAE.MUL_MATRIX_PRODUCT(DAE.T_ARRAY(DAE.T_REAL_DEFAULT,{DAE.DIM_INTEGER(stateSet.rang)})) else DAE.MUL_SCALAR_PRODUCT(DAE.T_REAL_DEFAULT);
+        mulFstates := DAE.BINARY(expcrF,op,DAE.ARRAY(tyExpCrStates,true,expcrstates));
+        (mulFstates,_) := Expression.extendArrExp(mulFstates,false);
+
+        source := DAE.SOURCE(SOURCEINFO("stateselection",false,0,0,0,0,0.0),{},Prefix.NOCOMPPRE(),{},{},{},{}); // Edit this?
+
+        // set.i = set.F*set.statecandidates (initial equations)
+        initEqns := if b then BackendDAE.ARRAY_EQUATION({stateSet.rang},expInitset,mulFstates,source,BackendDAE.EQ_ATTR_DEFAULT_DYNAMIC)
+                                else BackendDAE.EQUATION(expInitset,mulFstates,source,BackendDAE.EQ_ATTR_DEFAULT_DYNAMIC);
+
+        oEqns := ExpandableArray.add(Feqn,oEqns);
+        oEqns := ExpandableArray.add(initEqns,oEqns);
+
+        oVars := BackendVariable.addVars(listAppend(VarsF,oInitSetVars), oVars);
+
+      end if;
+
+    end if;
+    BackendDump.dumpVarList(statesToFix, "statestofix");
+
+
+    //TODO:KAB EXPLIST FROM JACOBIAN (WILLI stateSet.Jacobian.dependencies), lhs as flattened array for matching?
+    //eqn := BackendEquation.generateEquation(lhs=lhs, rhs=rhs,source=DAE.emptyElementSource,inEqAttr=BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
+
+  end for;
+  //BackendDump.dumpVariables(vars, "INITIAL VARS AFTER");
+  //BackendDump.dumpEquationArray(eqns, "INITIAL EQUATIONS AFTER");
+end collectInitialStateSets;
 
 protected function collectInitialVars "author: lochel
   This function collects all the vars for the initial system.

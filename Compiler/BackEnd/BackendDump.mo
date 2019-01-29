@@ -2300,7 +2300,7 @@ algorithm
     then s;
   case(BackendDAE.GENERIC_JACOBIAN(jacobian=SOME(sJac),sparsePattern=sparsePattern))
     equation
-      ((dae,_,_,_,_)) = sJac;
+      ((dae,_,_,_,_, _)) = sJac;
       s = "GENERIC JACOBIAN:\n";
       dumpBackendDAE(dae,"Directional Derivatives System");
       dumpSparsityPattern(sparsePattern,"Sparse Pattern");
@@ -2331,7 +2331,7 @@ algorithm
       String s;
   case((SOME(sJac), sparsePattern, _))
     equation
-      ((dae,_,_,_,_)) = sJac;
+      ((dae,_,_,_,_, _)) = sJac;
       s = "GENERIC JACOBIAN:\n";
       dumpBackendDAE(dae,"Directional Derivatives System");
       dumpSparsityPattern(sparsePattern,"Sparse Pattern");
