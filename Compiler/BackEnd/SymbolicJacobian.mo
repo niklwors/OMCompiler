@@ -3792,7 +3792,7 @@ public function getFixedStatesForSelfdependentSets
   input Integer toFix;
   output list<BackendDAE.Var> statesToFix;
 protected
-  list<tuple<BackendDAE.Var,Integer>> nonlinearCountLst = {};
+  list<tuple<Integer,BackendDAE.Var>> nonlinearCountLst = {};
   Integer nonlinearCount;
 algorithm
   _:= match(stateSet.jacobian)
@@ -3808,7 +3808,7 @@ algorithm
     end for;
   then 0;
   end match;
-  statesToFix := stateSet.statescandidates;
+  statesToFix := fixedVarsFromNonlinearCount(nonlinearCountLst, toFix);
 end getFixedStatesForSelfdependentSets;
 
 protected function getNonlinearStateCount
@@ -3816,7 +3816,7 @@ protected function getNonlinearStateCount
   input list<BackendDAE.Var> diffVars;
   input BackendDAE.BackendDAE dae;
   input String matrixName;
-  output tuple<BackendDAE.Var,Integer> outTpl;
+  output tuple<Integer,BackendDAE.Var> outTpl;
 protected
 algorithm
   outTpl:=match(dae)
@@ -3838,7 +3838,7 @@ algorithm
       end match;
     end for;
     (outState,_,nonlinearCount,_) := tpl;
-  then (outState,nonlinearCount);
+  then (nonlinearCount,outState);
   end match;
 
 end getNonlinearStateCount;
@@ -3872,17 +3872,21 @@ algorithm
 end getNonlinearStateCount0;
 
 protected function fixedVarsFromNonlinearCount
-  input  list<tuple<BackendDAE.Var,Integer>> tplLst;
+  input list<tuple<Integer,BackendDAE.Var>> tplLst;
   input Integer toFix;
-  output list<BackendDAE.Var> = {};
+  output list<BackendDAE.Var> fixedVars = {};
 protected
-  array<Integer> nonLinearCounts;
+  list<tuple<Integer,BackendDAE.Var>> sortedTplLst, strippedTplLst;
+  BackendDAE.Var fixVar;
 algorithm
-  for tpl in tplLst loop
-    // TODO be smart here
-
+  sortedTplLst := List.sort(tplLst, Util.compareTupleIntGt);
+  strippedTplLst := List.firstN(sortedTplLst,toFix);
+  for tpl in strippedTplLst loop
+    (_,fixVar) := tpl;
+    fixVar.values := DAEUtil.setFixedAttr(fixVar.values,SOME(DAE.BCONST(true)));
+    fixedVars := fixVar::fixedVars;
   end for;
-end fixedVarsFromNinlinearCount;
+end fixedVarsFromNonlinearCount;
 
 annotation(__OpenModelica_Interface="backend");
 end SymbolicJacobian;

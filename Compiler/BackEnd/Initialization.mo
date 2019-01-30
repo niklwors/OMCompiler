@@ -2152,12 +2152,6 @@ algorithm
 	      // KAB: Change to heuristic
         //print(BackendDump.jacobianString(stateSet.jacobian));
         statesToFix := SymbolicJacobian.getFixedStatesForSelfdependentSets(stateSet,toFix);
-	      while toFix > 0 loop
-	        fixState::unfixedStates := unfixedStates;
-	        fixState.values := DAEUtil.setFixedAttr(fixState.values,SOME(DAE.BCONST(true)));
-	        statesToFix := fixState::statesToFix;
-	        toFix := toFix - 1;
-	      end while;
 	      oVars := BackendVariable.addVars(statesToFix, oVars);
       else
         nCandidates := listLength(stateSet.statescandidates);
