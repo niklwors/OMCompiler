@@ -2085,8 +2085,6 @@ algorithm
            collectInitialVars, (vars, fixVars, eqns, hs, allPrimaryParams, datareconFlag));
           (eqns, reEqns) := BackendEquation.traverseEquationArray(eq.orderedEqs, collectInitialEqns, (eqns, reEqns));
           (vars, eqns) := collectInitialStateSets(eq.stateSets, vars, eqns);
-          BackendDump.dumpVariables(vars, "initial vars");
-          BackendDump.dumpEquationArray(eqns, "initial equations");
         then
           ();
     end match;
@@ -2116,8 +2114,6 @@ protected function collectInitialStateSets
   DAE.Operator op;
   DAE.ElementSource source;
 algorithm
-  //BackendDump.dumpVariables(vars, "INITIAL VARS BEFORE");
-  //BackendDump.dumpEquationArray(eqns, "INITIAL EQUATIONS BEFORE");
   (oVars, oEqns) := (iVars, iEqns);
   for stateSet in stateSets loop
     oVars := BackendVariable.addVars(stateSet.varA, oVars);
@@ -2134,24 +2130,20 @@ algorithm
     eqn := BackendDAE.ARRAY_EQUATION(dimSize={listLength(stateSet.varA)}, left=lhs, right=rhs,source=DAE.emptyElementSource,attr=BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
     oEqns := ExpandableArray.add(eqn,oEqns);
 
-    print("Needed states: " + intString(stateSet.rang) + " number of candidates: " + intString(listLength(stateSet.statescandidates)) + ".\n");
+    //print("Needed states: " + intString(stateSet.rang) + " number of candidates: " + intString(listLength(stateSet.statescandidates)) + ".\n");
     unfixedStates := {};
     for state in stateSet.statescandidates loop
        if not BackendVariable.varFixed(state) then
          unfixedStates := state::unfixedStates;
        end if;
     end for;
-    //BackendDump.printVarList(unfixedStates);
 
     // If selfdependent -> heuristic, if not -> add new vars and write new pivot algorithm c
     if listLength(stateSet.statescandidates) - listLength(unfixedStates) < stateSet.rang then
-      print("Need fixing!\n");
       toFix := stateSet.rang - listLength(stateSet.statescandidates) + listLength(unfixedStates);
 	    statesToFix := {};
 
       //if IndexReduction.isSelfDependent(stateSet) then
-	      // KAB: Change to heuristic
-        //print(BackendDump.jacobianString(stateSet.jacobian));
         statesToFix := SymbolicJacobian.getFixedStatesForSelfdependentSets(stateSet,toFix);
 	      oVars := BackendVariable.addVars(statesToFix, oVars);
 	      for state in statesToFix loop
@@ -2206,7 +2198,7 @@ algorithm
       end if;
  */
     end if;
-    BackendDump.dumpVarList(statesToFix, "statestofix");
+    //BackendDump.dumpVarList(statesToFix, "statestofix");
 
 
     //TODO:KAB EXPLIST FROM JACOBIAN (WILLI stateSet.Jacobian.dependencies), lhs as flattened array for matching?
