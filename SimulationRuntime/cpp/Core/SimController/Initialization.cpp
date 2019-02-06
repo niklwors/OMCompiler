@@ -22,7 +22,7 @@ void Initialization::initializeSystem()
   shared_ptr<IContinuous> continous_system = dynamic_pointer_cast<IContinuous>(_system);
   shared_ptr<IEvent> event_system = dynamic_pointer_cast<IEvent>(_system);
   shared_ptr<IMixedSystem> mixed_system = dynamic_pointer_cast<IMixedSystem>(_system);
-  int dim = event_system->getDimZeroFunc();
+  int dim = event_system->getDimConditions();
   bool* conditions0 = new bool[dim];
   bool* conditions1 = new bool[dim];
 

@@ -3103,9 +3103,9 @@ template zeroCrossLength(SimCode simCode)
 ::=
   match simCode
     case SIMCODE(modelInfo = MODELINFO(varInfo = vi as VARINFO(__))) then
-      let size = listLength(zeroCrossings)
+      let size = if intGt(intSub(listLength(zeroCrossings), vi.numTimeEvents), 0) then intSub(listLength(zeroCrossings), vi.numTimeEvents) else 0
       <<
-      <%intSub(listLength(zeroCrossings), vi.numTimeEvents)%>
+      <%size%>
       >>
 end zeroCrossLength;
 
