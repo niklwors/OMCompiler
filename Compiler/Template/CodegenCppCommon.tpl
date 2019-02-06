@@ -3109,6 +3109,17 @@ template zeroCrossLength(SimCode simCode)
       >>
 end zeroCrossLength;
 
+
+template conditionsLength(SimCode simCode)
+::=
+  match simCode
+    case SIMCODE(modelInfo = MODELINFO(varInfo = vi as VARINFO(__))) then
+      let size = listLength(relations)
+      <<
+      <%size%>
+      >>
+end conditionsLength;
+
 template timeEventLength(SimCode simCode)
 ::=
   match simCode

@@ -26,6 +26,7 @@ public:
 
     /// Provide number (dimension) of zero functions
     virtual int getDimZeroFunc() = 0;
+     virtual int getDimConditions() = 0;
      virtual int getDimClock() = 0;
     /// Provides current values of root/zero functions
     virtual void getZeroFunc(double* f) = 0;

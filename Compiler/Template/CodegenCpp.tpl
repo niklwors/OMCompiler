@@ -3637,7 +3637,7 @@ case SIMCODE(modelInfo = MODELINFO(__)) then
     <%isODE(simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)%>
     <%dimZeroFunc(simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)%>
 
-    <%getCondition(zeroCrossings,simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)%>
+    <%getCondition(relations,simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)%>
 
     <%saveAll(modelInfo,simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace,stateDerVectorName,useFlatArrayNotation)%>
 
@@ -3691,6 +3691,7 @@ match simCode
       //Number of equations
       <%dimension1(simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)%>
       _dimZeroFunc = <%zeroCrossLength(simCode)%>;
+      _dimConditions = <%conditionsLength(simCode)%>;
       _dimClock = <%listLength(getSubPartitions(clockedPartitions))%>;
       // simplified treatment of clocks in model as time events
       _dimTimeEvent = <%timeEventLength(simCode)%>  + _dimClock;
@@ -5850,7 +5851,7 @@ case SIMCODE(modelInfo = MODELINFO(__),makefileParams = MAKEFILE_PARAMS(__))  th
       //init equations
       initEquations();
 
-      for(int i = 0; i < _dimZeroFunc; i++)
+      for(int i = 0; i < _dimConditions; i++)
       {
          getCondition(i);
       }
@@ -7595,6 +7596,8 @@ case SIMCODE(modelInfo = MODELINFO(vars = vars as SIMVARS(__))) then
 
     //Provide number (dimension) of zero functions
     virtual int getDimZeroFunc();
+    //Provide number (dimension) of zero crossing conditions
+    virtual int getDimConditions();
     //Provide number (dimension) of zero functions
     virtual int getDimClock();
     //Provides current values of root/zero functions
@@ -9659,7 +9662,7 @@ template equationString(SimEqSystem eq, Context context, Text &varDecls, SimCode
               {
 
                 _algLoop<%ls.index%>->evaluate();
-                for(int i=0; i<_dimZeroFunc; i++)
+                for(int i=0; i<_dimConditions; i++)
                 {
                   getCondition(i);
                 }
@@ -9714,12 +9717,12 @@ template equationString(SimEqSystem eq, Context context, Text &varDecls, SimCode
                            '_algLoopLinearSolver->solve(_algLoop<%ls.index%>,(iterations<%ls.index%>==1));'
                           %>
                           _callType = IContinuous::DISCRETE;
-                         for(int i=0;i<_dimZeroFunc;i++)
+                         for(int i=0;i<_dimConditions;i++)
                          {
                            getCondition(i);
                          }
                          getConditions(conditions1<%ls.index%>);
-                         restart<%ls.index%> = !std::equal (conditions1<%ls.index%>, conditions1<%ls.index%>+_dimZeroFunc,conditions0<%ls.index%>);
+                         restart<%ls.index%> = !std::equal (conditions1<%ls.index%>, conditions1<%ls.index%>+_dimConditions,conditions0<%ls.index%>);
                        }
                     }
                     else
@@ -9768,7 +9771,7 @@ template equationString(SimEqSystem eq, Context context, Text &varDecls, SimCode
               {
 
                 _algLoop<%nls.index%>->evaluate();
-                for(int i=0; i<_dimZeroFunc; i++)
+                for(int i=0; i<_dimConditions; i++)
                 {
                   getCondition(i);
                 }
@@ -9823,12 +9826,12 @@ template equationString(SimEqSystem eq, Context context, Text &varDecls, SimCode
                          %>
 
                          _callType = IContinuous::DISCRETE;
-                         for(int i=0;i<_dimZeroFunc;i++)
+                         for(int i=0;i<_dimConditions;i++)
                          {
                            getCondition(i);
                          }
                          getConditions(conditions1<%nls.index%>);
-                         restart<%nls.index%> = !std::equal (_conditions1<%nls.index%>, _conditions1<%nls.index%>+_dimZeroFunc,_conditions0<%nls.index%>);
+                         restart<%nls.index%> = !std::equal (_conditions1<%nls.index%>, _conditions1<%nls.index%>+_dimConditions,_conditions0<%nls.index%>);
                        }
                     }
                     else
@@ -11331,7 +11334,7 @@ template equationLinearOrNonLinear(SimEqSystem eq, Context context,Text &varDecl
            {
 
                _algLoop<%ls.index%>->evaluate();
-               for(int i=0; i<_dimZeroFunc; i++) {
+               for(int i=0; i<_dimConditions; i++) {
                    getCondition(i);
                }
                IContinuous::UPDATETYPE calltype = _callType;
@@ -11384,13 +11387,13 @@ template equationLinearOrNonLinear(SimEqSystem eq, Context context,Text &varDecl
                         '_algLoopLinearSolver->solve(_algLoop<%ls.index%>,(iterations<%ls.index%>==1));'
                       %>
                       _callType = IContinuous::DISCRETE;
-                      for(int i=0;i<_dimZeroFunc;i++)
+                      for(int i=0;i<_dimConditions;i++)
                       {
                           getCondition(i);
                       }
 
                       getConditions(conditions1<%ls.index%>);
-                      restart<%ls.index%> = !std::equal (conditions1<%ls.index%>, conditions1<%ls.index%>+_dimZeroFunc,conditions0<%ls.index%>);
+                      restart<%ls.index%> = !std::equal (conditions1<%ls.index%>, conditions1<%ls.index%>+_dimConditions,conditions0<%ls.index%>);
                   }
               }
               else
@@ -11949,6 +11952,10 @@ case SIMCODE(modelInfo = MODELINFO(__)) then
   {
     return _dimZeroFunc;
   }
+  int <%lastIdentOfPath(modelInfo.name)%>::getDimConditions()
+  {
+    return _dimConditions;
+  }
   int <%lastIdentOfPath(modelInfo.name)%>::getDimClock()
   {
     return _dimClock;
@@ -12245,7 +12252,11 @@ template zeroCrossingOpFunc(Operator op)
   case LESSEQ(__)    then "<="
   case GREATEREQ(__) then ">="
   case EQUAL(__)     then "=="
-  case NEQUAL(__)    then "!="
+  case AND(__)    then "&&"
+  case OR(__)    then "||"
+  case NOT(__)    then "!"
+  else
+   error(sourceInfo(), 'UNKNOWN ZERO CROSSING operator')
 end zeroCrossingOpFunc;
 
 template giveZeroFunc1(list<ZeroCrossing> zeroCrossings,SimCode simCode ,Text& extraFuncs,Text& extraFuncsDecl,Text extraFuncsNamespace, Text stateDerVectorName /*=__zDot*/, Boolean useFlatArrayNotation)
@@ -12335,48 +12346,115 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
       let e1 = daeExp(exp1, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
       let e2 = daeExp(exp2, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
       match rel.operator
-
-      case LESS(__) then
-        <<
-        if(_conditions[<%zerocrossingIndex%>])
-            f[<%index1%>]=(<%e1%> - 1e-6 - <%e2%>);
-        else
-            f[<%index1%>]=(<%e2%> - <%e1%> -  1e-6);
-        >>
+      case LESS(__)
       case LESSEQ(__) then
         <<
         if(_conditions[<%zerocrossingIndex%>])
             f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>);
         else
             f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6);
+
         >>
-      case GREATER(__) then
-        <<
-        if(_conditions[<%zerocrossingIndex%>])
-            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6);
-        else
-            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>);
-        >>
+      case GREATER(__)
       case GREATEREQ(__) then
         <<
         if(_conditions[<%zerocrossingIndex%>])
             f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6);
         else
             f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>);
+
         >>
-    else
-        <<
-        f[<%index1%>] = -1;
-        /*error(sourceInfo(), 'Unknown relation: <%ExpressionDumpTpl.dumpExp(rel,"\"")%> for <%index1%>')*/
-        >>
-      end match
-  case CALL(path=IDENT(name="sample"), expLst={_, start, interval}) then
-    //error(sourceInfo(), ' sample not supported for <%index1%> ')
-    '//sample for <%index1%>'
+       end match
+    case binary_rel as LBINARY(__) then
+    let op = zeroCrossingOpFunc(operator)
+    let rel1 = giveZeroFunc4(exp1, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
+    let rel2 = giveZeroFunc4(exp2, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
+    <<
+        //binary zero crossing
+        f[<%index1%>] = (<%rel1%> <%op%> <%rel1%>) ? 1 : -1;
+
+    >>
+   case binary_rel2 as LUNARY(__) then
+     let op = zeroCrossingOpFunc(operator)
+     let rel1 = giveZeroFunc4(exp, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
+     <<
+        //unary zero crossing
+        f[<%index1%>] = (<%op%> <%rel1%>)? 1 : -1;
+
+     >>
   else
     error(sourceInfo(), ' UNKNOWN ZERO CROSSING for <%index1%> ')
   end match
 end giveZeroFunc3;
+
+
+
+
+
+template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCode simCode ,Text& extraFuncs,Text& extraFuncsDecl,Text extraFuncsNamespace, Text stateDerVectorName /*=__zDot*/, Boolean useFlatArrayNotation)
+::=
+
+  match relation
+  case rel as  RELATION(index=zerocrossingIndex) then
+      let e1 = daeExp(exp1, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
+      let e2 = daeExp(exp2, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
+      let tmp = tempDecl('double', &varDecls)
+
+      match rel.operator
+      case LESSEQ(__)
+      case LESS(__) then
+        let &preExp +=
+        <<
+        if(_conditions[<%zerocrossingIndex%>])
+          <%tmp%>=(<%e1%> - 1e-6 - <%e2%>);
+        else
+          <%tmp%>=(<%e2%> - <%e1%> -  1e-6);
+
+        >>
+        tmp
+      case GREATEREQ(__)
+      case GREATER(__) then
+         let &preExp +=
+         <<
+          if(_conditions[<%zerocrossingIndex%>])
+            <%tmp%> = (<%e2%> - <%e1%> - 1e-6);
+          else
+            <%tmp%> = (<%e1%> - 1e-6 - <%e2%>);
+
+         >>
+         tmp
+     end match
+    case binary_rel as LBINARY(__) then
+        let tmp = tempDecl('bool', &varDecls)
+        let op = zeroCrossingOpFunc(operator)
+        let tmp1 = giveZeroFunc4(exp1, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
+        let tmp2 = giveZeroFunc4(exp2, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
+        let &preExp +=
+        <<
+           //binary inner zero crossing
+            <%tmp%> = (<%tmp1%> <%op%> <%tmp2%>) ? true : false;
+
+        >>
+        tmp
+    case binary_rel2 as LUNARY(__) then
+        let tmp = tempDecl('bool', &varDecls)
+        let op = zeroCrossingOpFunc(operator)
+        let tmp1 = giveZeroFunc4(exp, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
+        let &preExp +=
+        <<
+            //unary inner zero crossing
+            <%tmp%> = <%op%> <%tmp1%>) ? true : false;
+
+        >>
+        tmp
+
+
+  else
+    error(sourceInfo(), ' UNKNOWN ZERO CROSSING <%ExpressionDumpTpl.dumpExp(relation,"\"")%> ')
+  end match
+end giveZeroFunc4;
+
+
 
 template conditionvarZero(list<ZeroCrossing> zeroCrossings,SimCode simCode ,Text& extraFuncs,Text& extraFuncsDecl,Text extraFuncsNamespace)
 ::=

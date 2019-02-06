@@ -186,6 +186,7 @@ protected:
         _dimBoolean,          ///< Anzahl der boolwertigen Variablen
         _dimString,           ///< Anzahl der stringwertigen Variablen
         _dimZeroFunc,         ///< Dimension (=Anzahl) Nullstellenfunktion
+        _dimConditions,         ///< Dimension of zero crossing conditions
         _dimTimeEvent,        ///< Dimension (=Anzahl) Time event (start zeit und frequenz)
         _dimClock,            ///< Dimension (=Anzahl) Clocks (active)
         _dimAE;               ///< Number (dimension) of algebraic equations (e.g. constraints from an algebraic loop)

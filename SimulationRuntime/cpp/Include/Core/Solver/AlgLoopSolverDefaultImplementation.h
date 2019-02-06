@@ -20,7 +20,7 @@ class BOOST_EXTENSION_SOLVER_DECL AlgLoopSolverDefaultImplementation
   virtual bool* getConditions2WorkArray();
   virtual double* getVariableWorkArray();
 protected:
-  long int _dimZeroFunc;
+  long int _dimConditions;
   long int    _dimSys;              ///< Number of unknowns (=dimension of system of equations)
   long int _max_dimSys;
   long int _max_dimZeroFunc;

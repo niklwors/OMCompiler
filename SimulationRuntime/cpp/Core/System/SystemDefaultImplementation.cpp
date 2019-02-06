@@ -232,16 +232,17 @@ void SystemDefaultImplementation::initialize()
   }
   */
 
-  if(_dimZeroFunc > 0)
+  if(_dimConditions > 0)
   {
     if(_conditions) delete [] _conditions ;
     if(_conditions0) delete [] _conditions0 ;
-    _conditions = new bool[_dimZeroFunc];
-    _conditions0= new bool[_dimZeroFunc];
+    _conditions = new bool[_dimConditions];
+    _conditions0= new bool[_dimConditions];
 
-    memset(_conditions,false,(_dimZeroFunc)*sizeof(bool));
-  _event_system = dynamic_cast<IEvent*>(this);
+    memset(_conditions,false,(_dimConditions)*sizeof(bool));
+
   }
+  _event_system = dynamic_cast<IEvent*>(this);
   if(_dimTimeEvent > 0)
   {
     if(_time_conditions) delete [] _time_conditions ;
@@ -386,16 +387,16 @@ shared_ptr<ISimVars> SystemDefaultImplementation::getSimVars()
 
 bool SystemDefaultImplementation::isConsistent()
 {
-  if(_dimZeroFunc > 0)
+  if(_dimConditions > 0)
   {
      getConditions(_conditions0);
     IContinuous::UPDATETYPE pre_call_type=_callType;
     _callType = IContinuous::DISCRETE;
-    for(int i=0;i<_dimZeroFunc;i++)
+    for(int i=0;i<_dimConditions;i++)
     {
       _event_system->getCondition(i);
     }
-    bool isConsistent =  std::equal (_conditions, _conditions+_dimZeroFunc,_conditions0);
+    bool isConsistent =  std::equal (_conditions, _conditions+_dimConditions,_conditions0);
     _callType = pre_call_type;
     setConditions(_conditions0);
     return isConsistent;
@@ -406,12 +407,12 @@ bool SystemDefaultImplementation::isConsistent()
 
 void SystemDefaultImplementation::setConditions(bool* c)
 {
-  memcpy(_conditions,c,_dimZeroFunc*sizeof(bool));
+  memcpy(_conditions,c,_dimConditions*sizeof(bool));
 }
 
 void SystemDefaultImplementation::getConditions(bool* c)
 {
-  memcpy(c,_conditions,_dimZeroFunc*sizeof(bool));
+  memcpy(c,_conditions,_dimConditions*sizeof(bool));
 }
 void SystemDefaultImplementation::getClockConditions(bool* c)
 {

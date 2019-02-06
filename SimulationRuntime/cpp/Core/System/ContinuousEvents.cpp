@@ -64,8 +64,8 @@ void ContinuousEvents::initialize(IEvent* system)
 
    if(dimZero> 0)
   {
-	_conditions0 = new bool[_event_system->getDimZeroFunc()];
-	_conditions1 = new bool[_event_system->getDimZeroFunc()];
+	_conditions0 = new bool[_event_system->getDimConditions()];
+	_conditions1 = new bool[_event_system->getDimConditions()];
   }
   if(dimClock > 0)
   {
@@ -84,7 +84,7 @@ bool ContinuousEvents::startEventIteration(bool& state_vars_reinitialized)
   //save discrete variables
   //Deactivated: _event_system->saveDiscreteVars(); // store values of discrete vars vor next check
 
-  unsigned int dim = _event_system->getDimZeroFunc();
+  unsigned int dim = _event_system->getDimConditions();
   //unsigned int dimClock = _event_system->getDimClock();
 
   _event_system->getConditions(_conditions0);

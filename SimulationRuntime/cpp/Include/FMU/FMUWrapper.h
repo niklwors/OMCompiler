@@ -168,7 +168,7 @@ public:
       }
 
       _model->saveAll();
-       int dim = _model->getDimZeroFunc();
+       int dim = _model->getDimConditions();
        for(int i=0;i<dim;i++)
        {
          _model->getCondition(i);
@@ -211,12 +211,16 @@ public:
       bool conditions[NUMBER_OF_EVENT_INDICATORS];
       _model->getConditions(conditions);
       _model->getZeroFunc(eventIndicators);
+
+      /* disabled becaus dimension of conditions can be different to number of zero crossing functions,
+         getZeroFunc sets the zerocrossing function value by checking the corresponding condtions values
       for(int i = 0; i < ni; i++)
       {
         if(!conditions[i])
           eventIndicators[i] = -eventIndicators[i];
         //LOGGER_WRITE("  Get event indicator " + boost::lexical_cast<std::string>(i) + " with value " + boost::lexical_cast<std::string>(eventIndicators[i]),LC_OTHER,LL_DEBUG);
-      }
+      }*/
+
       //LOGGER_WRITE("Get event indicators finished",LC_OTHER,LL_DEBUG);
       return fmiOK;
     }

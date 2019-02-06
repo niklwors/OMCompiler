@@ -91,7 +91,7 @@ label_list_type Ranking::residuenRanking(ublas::matrix<double>& R, ublas::matrix
 
 				_init_system->setInitial(true);
 
-				int dim = event_system->getDimZeroFunc();
+				int dim = event_system->getDimConditions();
 				bool* conditions0 = new bool[dim];
 				bool* conditions1 = new bool[dim];
 				//bool restart=true;

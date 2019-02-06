@@ -368,8 +368,10 @@ fmi2Status FMU2Wrapper::getEventIndicators(fmi2Real eventIndicators[], size_t ni
   bool conditions[NUMBER_OF_EVENT_INDICATORS + 1];
   _model->getConditions(conditions);
   _model->getZeroFunc(eventIndicators);
+   /* disabled becaus dimension of conditions can be different to number of zero crossing functions,
+         getZeroFunc sets the zerocrossing function value by checking the corresponding condtions values
   for (int i = 0; i < ni; i++)
-    if (!conditions[i]) eventIndicators[i] = -eventIndicators[i];
+    if (!conditions[i]) eventIndicators[i] = -eventIndicators[i];*/
   return fmi2OK;
 }
 

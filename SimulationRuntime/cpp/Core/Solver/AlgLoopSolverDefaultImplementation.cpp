@@ -9,7 +9,7 @@
 
 
 AlgLoopSolverDefaultImplementation::AlgLoopSolverDefaultImplementation()
-:_dimZeroFunc(-1)
+:_dimConditions(-1)
 , _dimSys(-1)
 ,_algloopVars(NULL)
 ,_conditions0(NULL)
@@ -53,15 +53,15 @@ bool* AlgLoopSolverDefaultImplementation::getConditions2WorkArray()
 
  }
 
-void AlgLoopSolverDefaultImplementation::initialize(int dimZeroFunc,int dimSys)
+void AlgLoopSolverDefaultImplementation::initialize(int dimConditions,int dimSys)
 {
-  _dimZeroFunc = dimZeroFunc;
+  _dimConditions = dimConditions;
   if(_conditions0)
      delete [] _conditions0;
   if(_conditions1)
     delete [] _conditions1;
-    _conditions0 = new bool[_dimZeroFunc];
-    _conditions1 = new bool[_dimZeroFunc];
+    _conditions0 = new bool[_dimConditions];
+    _conditions1 = new bool[_dimConditions];
     _dimSys=dimSys;
   if(_algloopVars)
       delete [] _algloopVars;

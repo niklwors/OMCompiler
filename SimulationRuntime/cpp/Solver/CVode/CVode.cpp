@@ -551,7 +551,7 @@ void Cvode::CVodeCore()
 				_tLastEvent = _tCurrent;
 				_event_n++;
 			}
-			else if ((_abs < 1e-3) && (_event_n >= 1 && _event_n < 500))
+			else if ((_abs < 1e-3) && (_event_n >= 1 && _event_n < 5000))
 			{
 				_event_n++;
 			}
