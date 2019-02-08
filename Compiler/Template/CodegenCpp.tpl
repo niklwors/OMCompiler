@@ -12382,6 +12382,21 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
         f[<%index1%>] = (<%op%> <%rel1%>)? 1 : -1;
 
      >>
+   case CALL(path=IDENT(name="sample"), expLst={_, start, interval}) then
+    << >>
+   case CALL(path=IDENT(name="integer"), expLst={exp1, idx}) then
+    let e1 = daeExp(exp1, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
+    <<
+    f[<%index1%>] = 0 - 1e-6 - std::floor(<%e1%>);
+    >>
+   case CALL(path=IDENT(name="floor"), expLst={exp1, idx}) then
+    error(sourceInfo(), ' UNKNOWN ZERO CROSSING for <%index1%> floor ')
+   case CALL(path=IDENT(name="ceil"), expLst={exp1, idx}) then
+    error(sourceInfo(), ' UNKNOWN ZERO CROSSING for <%index1%> ceil ')
+   case CALL(path=IDENT(name="mod"), expLst={exp1, exp2, idx}) then
+    error(sourceInfo(), ' UNKNOWN ZERO CROSSING for <%index1%> mod ')
+   case CALL(path=IDENT(name="div"), expLst={exp1, exp2, idx}) then
+    error(sourceInfo(), ' UNKNOWN ZERO CROSSING for <%index1%> div ')
   else
     error(sourceInfo(), ' UNKNOWN ZERO CROSSING for <%index1%> ')
   end match
@@ -12423,6 +12438,19 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
 
          >>
          tmp
+
+      case EQUAL(__) then
+        let &preExp +=
+         <<
+          if(_conditions[<%zerocrossingIndex%>])
+            <%tmp%> = (<%e2%> - <%e1%> - 1e-6);
+          else
+            <%tmp%> = (<%e1%> - 1e-6 - <%e2%>);
+
+         >>
+         tmp
+      else
+         error(sourceInfo(), ' UNKNOWN ZERO CROSSING <%ExpressionDumpTpl.dumpExp(relation,"\"")%> ')
      end match
     case binary_rel as LBINARY(__) then
         let tmp = tempDecl('bool', &varDecls)
