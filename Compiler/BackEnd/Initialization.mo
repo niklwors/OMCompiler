@@ -155,6 +155,7 @@ algorithm
     if Util.isSome(inDAE.shared.dataReconciliationData) then
        datarecon := true;
     end if;
+
     ((vars, fixvars, eqns, _)) := BackendVariable.traverseBackendDAEVars(dae.shared.aliasVars, introducePreVarsForAliasVariables, (vars, fixvars, eqns, hs));
     ((vars, fixvars, eqns, _, _, _)) := BackendVariable.traverseBackendDAEVars(dae.shared.globalKnownVars, collectInitialVars, (vars, fixvars, eqns, hs, allPrimaryParameters,datarecon));
     ((vars, fixvars, eqns, _, _, _)) := BackendVariable.traverseBackendDAEVars(dae.shared.localKnownVars, collectInitialVars, (vars, fixvars, eqns, hs, allPrimaryParameters,datarecon));
@@ -2080,10 +2081,12 @@ algorithm
 
       else
         algorithm
+          (vars, fixVars, eqns) := collectInitialStateSets(eq.stateSets, vars, fixVars, eqns);
+          //BackendDump.dumpEquationArray(eqns, "Equations after collecting initial vars");
           (vars, fixVars, eqns, _, _, _) := BackendVariable.traverseBackendDAEVars(eq.orderedVars,
            collectInitialVars, (vars, fixVars, eqns, hs, allPrimaryParams, datareconFlag));
+          //BackendDump.dumpEquationArray(eqns, "Equations after collecting initial vars 2");
           (eqns, reEqns) := BackendEquation.traverseEquationArray(eq.orderedEqs, collectInitialEqns, (eqns, reEqns));
-          (vars, eqns) := collectInitialStateSets(eq.stateSets, vars, eqns);
         then
           ();
     end match;
@@ -2094,8 +2097,10 @@ end collectInitialVarsEqnsSystem;
 protected function collectInitialStateSets
   input BackendDAE.StateSets stateSets;
   input BackendDAE.Variables iVars;
+  input BackendDAE.Variables iFixVars;
   input BackendDAE.EquationArray iEqns;
   output BackendDAE.Variables oVars;
+  output BackendDAE.Variables oFixVars;
   output BackendDAE.EquationArray oEqns;
 
   protected
@@ -2113,7 +2118,7 @@ protected function collectInitialStateSets
   DAE.Operator op;
   DAE.ElementSource source;
 algorithm
-  (oVars, oEqns) := (iVars, iEqns);
+  (oVars, oFixVars, oEqns) := (iVars, iFixVars, iEqns);
   for stateSet in stateSets loop
     oVars := BackendVariable.addVars(stateSet.varA, oVars);
     lhs := Expression.crefToExp(stateSet.crA);
@@ -2145,11 +2150,12 @@ algorithm
       //if IndexReduction.isSelfDependent(stateSet) then
         statesToFix := SymbolicJacobian.getFixedStatesForSelfdependentSets(stateSet,toFix);
 	      oVars := BackendVariable.addVars(statesToFix, oVars);
+	      oFixVars := BackendVariable.addVars(statesToFix, oFixVars);
 	      for state in statesToFix loop
 	        lhs := Expression.crefToExp(state.varName);
 	        rhs := IndexReduction.makeStartExp(state.varName);
 	        initEqn := BackendDAE.EQUATION(exp=lhs,scalar=rhs,source=DAE.emptyElementSource,attr=BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
-	        oEqns := ExpandableArray.add(initEqn,oEqns);
+	        //oEqns := ExpandableArray.add(initEqn,oEqns);
 	      end for;
 	     /*
       else
@@ -2236,14 +2242,20 @@ algorithm
       AvlSetCR.Tree allPrimaryParameters;
       list<DAE.ComponentRef> parameters;
 
+    // special case for $StateSet vars
+    //case (var as BackendDAE.VAR(varName=cr, varKind=BackendDAE.STATE(), varType=ty), (vars, fixvars, eqns, hs, allPrimaryParameters,datarecon)) equation
+    // true = Util.stringStartsWith("$STATESET",ComponentReference.crefFirstIdent(cr));
+    //then (var, (vars, fixvars, eqns, hs, allPrimaryParameters, datarecon));
     // state
     case (var as BackendDAE.VAR(varName=cr, varKind=BackendDAE.STATE(), varType=ty), (vars, fixvars, eqns, hs, allPrimaryParameters,datarecon)) equation
       isFixed = BackendVariable.varFixed(var);
+
       //_ = BackendVariable.varStartValueOption(var);
       preUsed = BaseHashSet.has(cr, hs);
 
       crefExp = Expression.crefExp(cr);
 
+      //if not Util.stringStartsWith("$STATESET",ComponentReference.crefFirstIdent(cr)) then
       startCR = ComponentReference.crefPrefixStart(cr);
       startVar = BackendVariable.copyVarNewName(startCR, var);
       startVar = BackendVariable.setBindExp(startVar, NONE());
@@ -2266,7 +2278,7 @@ algorithm
         eqn = BackendDAE.EQUATION(crefExp, Expression.crefExp(startCR), DAE.emptyElementSource, BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
         eqns = BackendEquation.add(eqn, eqns);
       end if;
-
+     //end if;
       var = BackendVariable.setVarKind(var, BackendDAE.VARIABLE());
 
       derCR = ComponentReference.crefPrefixDer(cr);  // cr => $DER.cr

@@ -3832,7 +3832,6 @@ algorithm
       _:= match(syst)
       local
         BackendDAE.EquationArray eqnarray;
-
       case BackendDAE.EQSYSTEM(_,eqnarray,_,_,_,_,_,_) algorithm
         tpl := BackendEquation.traverseEquationArray(eqnarray,getNonlinearStateCount0,tpl);
       then 0;
@@ -3859,9 +3858,10 @@ algorithm
     Integer nonlinearCount;
     String matrixName;
     DAE.ComponentRef seedVar;
+    list<DAE.Subscript> subs;
   case BackendDAE.EQUATION(scalar=exp) algorithm
     (state,diffVars,nonlinearCount,matrixName) := inTpl;
-    seedVar := Differentiate.createSeedCrefName(state.varName,matrixName);
+    seedVar := Differentiate.createSeedCrefName(BackendVariable.varCref(state),matrixName);
     diffExp := Differentiate.differentiateExpSolve(exp,seedVar,NONE());
     for var in diffVars loop
       if not ComponentReference.crefEqual(var.varName, state.varName) and Expression.expContains(diffExp,Expression.crefExp(var.varName)) then
@@ -3879,7 +3879,12 @@ protected function fixedVarsFromNonlinearCount
 protected
   list<tuple<Integer,BackendDAE.Var>> sortedTplLst, strippedTplLst;
   BackendDAE.Var fixVar;
+  Integer fixInt;
 algorithm
+  for tpl in tplLst loop
+     (fixInt,fixVar) := tpl;
+  end for;
+
   sortedTplLst := List.sort(tplLst, Util.compareTupleIntGt);
   strippedTplLst := List.firstN(sortedTplLst,toFix);
   for tpl in strippedTplLst loop
