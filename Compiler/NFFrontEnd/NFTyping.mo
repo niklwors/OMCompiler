@@ -366,8 +366,11 @@ algorithm
       flows := c :: flows;
     elseif cty == ConnectorType.STREAM then
       streams := c :: streams;
-    else
+    elseif cty == ConnectorType.POTENTIAL then
       pots := c :: pots;
+    else
+      Error.addInternalError("Invalid connector type on component " + InstNode.name(c), InstNode.info(c));
+      fail();
     end if;
   end for;
 
@@ -432,13 +435,17 @@ algorithm
         // The Modelica specification forbids using stream outside connector
         // declarations, but has no such restriction for flow. To compromise we
         // print a warning for both flow and stream.
-        if cty <> ConnectorType.POTENTIAL and not checkConnectorType(component) then
-          Error.addSourceMessage(Error.CONNECTOR_PREFIX_OUTSIDE_CONNECTOR,
-            {Prefixes.connectorTypeString(cty)}, InstNode.info(component));
+        if not checkConnectorType(component) then
+          if (cty == ConnectorType.STREAM or cty == ConnectorType.FLOW) then
+            Error.addSourceMessage(Error.CONNECTOR_PREFIX_OUTSIDE_CONNECTOR,
+              {Prefixes.connectorTypeString(cty)}, InstNode.info(component));
+          end if;
           // Remove the prefix from the component, to avoid issues like a flow
           // equation being generated for it.
-          attr.connectorType := ConnectorType.POTENTIAL;
-          InstNode.componentApply(component, Component.setAttributes, attr);
+          if not (InstNode.isEmpty(component) or InstNode.isInnerOuterNode(component)) then
+            attr.connectorType := ConnectorType.NON_CONNECTOR;
+            InstNode.componentApply(component, Component.setAttributes, attr);
+          end if;
         end if;
       then
         ();
@@ -450,12 +457,14 @@ end checkComponentAttributes;
 function checkConnectorType
   input InstNode node;
   output Boolean isConnector;
+protected
+  InstNode dnode = InstNode.getDerivedNode(node);
 algorithm
-  if InstNode.isEmpty(node) then
+  if InstNode.isEmpty(dnode) or InstNode.isInnerOuterNode(dnode) then
     isConnector := false;
   else
-    isConnector := Class.isConnectorClass(InstNode.getClass(node)) or
-                   checkConnectorType(InstNode.parent(node));
+    isConnector := Class.isConnectorClass(InstNode.getClass(dnode)) or
+                   checkConnectorType(InstNode.parent(dnode));
   end if;
 end checkConnectorType;
 
@@ -1174,34 +1183,39 @@ function typeExpDim
   output Dimension dim;
   output Option<Expression> typedExp = NONE();
   output TypingError error;
+protected
+  Type ty;
+  Expression e;
 algorithm
-  (dim, error) := match exp
-    local
-      Type ty;
-      Expression e;
+  ty := Expression.typeOf(exp);
 
-    // An untyped array, use typeArrayDim to get the dimension.
-    case Expression.ARRAY(ty = Type.UNKNOWN())
-      then typeArrayDim(exp, dimIndex);
+  if Type.isKnown(ty) then
+    // If the expression has already been typed, just get the dimension from the type.
+    (dim, error) := nthDimensionBoundsChecked(ty, dimIndex);
+    typedExp := SOME(exp);
+  else
+    // Otherwise we try to type as little as possible of the expression to get
+    // the dimension we need, to avoid introducing unnecessary cycles.
+    (dim, error) := match exp
+      // An untyped array, use typeArrayDim to get the dimension.
+      case Expression.ARRAY(ty = Type.UNKNOWN())
+        then typeArrayDim(exp, dimIndex);
 
-    // A typed array, fetch the dimension from its type.
-    case Expression.ARRAY()
-      then nthDimensionBoundsChecked(exp.ty, dimIndex);
+      // A cref, use typeCrefDim to get the dimension.
+      case Expression.CREF()
+        then typeCrefDim(exp.cref, dimIndex, origin, info);
 
-    // A cref, use typeCrefDim to get the dimension.
-    case Expression.CREF()
-      then typeCrefDim(exp.cref, dimIndex, origin, info);
+      // Any other expression, type the whole expression and get the dimension
+      // from the type.
+      else
+        algorithm
+          (e, ty, _) := typeExp(exp, origin, info);
+          typedExp := SOME(e);
+        then
+          nthDimensionBoundsChecked(ty, dimIndex);
 
-    // Any other expression, type the whole expression and get the dimension
-    // from the type.
-    else
-      algorithm
-        (e, ty, _) := typeExp(exp, origin, info);
-        typedExp := SOME(e);
-      then
-        nthDimensionBoundsChecked(ty, dimIndex);
-
-  end match;
+    end match;
+  end if;
 end typeExpDim;
 
 function typeArrayDim

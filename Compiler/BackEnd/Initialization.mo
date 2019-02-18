@@ -1396,7 +1396,6 @@ algorithm
         //BackendDump.dumpEquationArray(eqns2, "remaining equations");
         DoubleEndedList.push_list_back(dumpVars, dumpVars2);
       end if;
-
       outEqSystem := BackendDAEUtil.setEqSystEqs(inEqSystem, eqns2);
       //print("index-" + intString(index) + " ende\n");
       //execStat("fixInitialSystem (initialization) [nEqns: " + intString(nEqns) + ", nAddEqs: " + intString(nAddEqs) + ", nAddVars: " + intString(nAddVars) + "]");
