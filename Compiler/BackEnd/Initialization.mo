@@ -2266,7 +2266,6 @@ algorithm
 
       crefExp = Expression.crefExp(cr);
 
-      if not Util.stringStartsWith("$STATESET",ComponentReference.crefFirstIdent(cr)) then
 	      startCR = ComponentReference.crefPrefixStart(cr);
 	      startVar = BackendVariable.copyVarNewName(startCR, var);
 	      startVar = BackendVariable.setBindExp(startVar, NONE());
@@ -2286,16 +2285,18 @@ algorithm
 	      end if;
 
 	      if isFixed then
-	        eqn = BackendDAE.EQUATION(crefExp, Expression.crefExp(startCR), DAE.emptyElementSource, BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
-	        eqns = BackendEquation.add(eqn, eqns);
-	      end if;
-	    elseif isFixed then
-	      stateSetSplit = Util.stringSplitAtChar(ComponentReference.crefFirstIdent(cr),".");
+          if Util.stringStartsWith("$STATESET",ComponentReference.crefFirstIdent(cr)) then
+	        stateSetSplit = Util.stringSplitAtChar(ComponentReference.crefFirstIdent(cr),".");
 	      stateSetIdxString::stateSetSplit = stateSetSplit;
 	      stateSetIdxString = substring(stateSetIdxString,10,stringLength(stateSetIdxString));
 	      stateSetIdx = stringInt(stateSetIdxString);
 	      arrayUpdate(stateSetFixCounts, stateSetIdx, arrayGet(stateSetFixCounts, stateSetIdx) + 1);
-	      //print("StateSetvar: " + intString(stateSetIdx) + " detected.\n\n");
+	      //print("StateSetvar: " + BackendDump.varString(var) + " From stateset " + intString(stateSetIdx) + " detected.\n\n");
+	        else
+	        eqn = BackendDAE.EQUATION(crefExp, Expression.crefExp(startCR), DAE.emptyElementSource, BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
+	        eqns = BackendEquation.add(eqn, eqns);
+	      end if;
+
       end if;
       var = BackendVariable.setVarKind(var, BackendDAE.VARIABLE());
 
