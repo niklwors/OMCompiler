@@ -3790,6 +3790,7 @@ end checkForNonLinearStrongComponents_work;
 // TODO: KAB
 public function getFixedStatesForSelfdependentSets
   input BackendDAE.StateSet stateSet;
+  input list<BackendDAE.Var> unfixedStates;
   input Integer toFix;
   output list<BackendDAE.Var> statesToFix;
 protected
@@ -3804,8 +3805,8 @@ algorithm
     String matrixName;
   case (BackendDAE.GENERIC_JACOBIAN(jacobian=SOME(sJac))) algorithm
     ((dae,matrixName,diffVars, _, _,_)) := sJac;
-    for var in diffVars loop
-      nonlinearCountLst := getNonlinearStateCount(var,diffVars,dae,matrixName)::nonlinearCountLst;
+    for var in unfixedStates loop
+      nonlinearCountLst := getNonlinearStateCount(var,unfixedStates,dae,matrixName)::nonlinearCountLst;
     end for;
   then 0;
   end match;
