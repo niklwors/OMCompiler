@@ -16,6 +16,7 @@ public:
   SystemStateSelection(IMixedSystem* system);
   ~SystemStateSelection();
 
+  bool stateSelectionSet(int switchStates, int i);
   bool stateSelection(int switchStates);
   void initialize();
 

@@ -11,7 +11,6 @@
 #include <Core/System/SystemDefaultImplementation.h>
 #include <Core/System/AlgLoopSolverFactory.h>
 
-
 template <class T>
 void InitVars<T>::setStartValue(T& variable,T val,bool overwriteOldValue)
 {

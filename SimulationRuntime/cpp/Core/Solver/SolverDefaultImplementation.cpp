@@ -108,7 +108,7 @@ bool SolverDefaultImplementation::stateSelection()
   return _state_selection->stateSelection(1);
 }
 
-bool SolverDefaultImplementation::stateSelectionSet(const double& i)
+bool SolverDefaultImplementation::stateSelectionSet(int i)
 {
   return _state_selection->stateSelectionSet(1,i);
 }

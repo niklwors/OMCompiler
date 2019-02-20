@@ -52,7 +52,7 @@ void SystemStateSelection::initialize()
 
 
   _initialized = true;
-#endifoldColPivot
+#endif
 }
 
 SystemStateSelection::~SystemStateSelection()
@@ -64,7 +64,7 @@ SystemStateSelection::~SystemStateSelection()
 #endif
 }
 
-bool SystemStateSelection::stateSelectionSet(int switchState, int i)
+bool SystemStateSelection::stateSelectionSet(int switchStates, int i)
 {
 	int res=0;
 	int changed = false;
@@ -116,7 +116,7 @@ return true;
   int changed = false;
   for(int i=0; i<_dimStateSets; i++)
   {
-	changed = changed || _state_selection->stateSelectionSet(switchStates, i);
+	changed = changed || stateSelectionSet(switchStates, i);
   }
   return changed;
 #endif

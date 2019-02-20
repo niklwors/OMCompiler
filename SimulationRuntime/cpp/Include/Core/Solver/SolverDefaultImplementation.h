@@ -55,6 +55,7 @@ public:
   /// Called by solver after every successful integration step (calls writeOutput)
   void writeToFile(const int& stp, const double& t, const double& h);
   virtual bool stateSelection();
+  virtual bool stateSelectionSet(int i);
 
 protected:
   // Member variables
