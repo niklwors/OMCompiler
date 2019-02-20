@@ -2142,7 +2142,6 @@ algorithm
     eqn := BackendDAE.ARRAY_EQUATION(dimSize={listLength(stateSet.varA)}, left=lhs, right=rhs,source=DAE.emptyElementSource,attr=BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
     oEqns := ExpandableArray.add(eqn,oEqns);
 
-    //print("Needed states: " + intString(arrayGet(stateSetFixCounts,stateSet.index)) + " number of candidates: " + intString(listLength(stateSet.statescandidates)) + ".\n");
     unfixedStates := {};
     for state in stateSet.statescandidates loop
        if not BackendVariable.varFixed(state) then
@@ -2152,6 +2151,8 @@ algorithm
     // If selfdependent -> heuristic, if not -> add new vars and write new pivot algorithm c
     //if listLength(stateSet.statescandidates) - listLength(unfixedStates) < stateSet.rang then
     if arrayLength(stateSetFixCounts) >= stateSet.index and arrayGet(stateSetFixCounts,stateSet.index) > 0 then
+      //print("Needed states: " + intString(arrayGet(stateSetFixCounts,stateSet.index)) + " number of candidates: " + intString(listLength(stateSet.statescandidates)) + ".\n");
+
       //toFix := stateSet.rang - listLength(stateSet.statescandidates) + listLength(unfixedStates);
       toFix := arrayGet(stateSetFixCounts,stateSet.index);
 	    statesToFix := {};

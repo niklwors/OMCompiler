@@ -116,7 +116,7 @@ return true;
   int changed = false;
   for(int i=0; i<_dimStateSets; i++)
   {
-	changed = changed || stateSelectionSet(switchStates, i);
+	changed = changed || _state_selection->stateSelectionSet(switchStates, i);
   }
   return changed;
 #endif
