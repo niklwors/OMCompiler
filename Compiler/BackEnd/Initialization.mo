@@ -117,7 +117,6 @@ algorithm
     //  BackendDump.dumpBackendDAE(dae, "inlineWhenForInitialization");
     //end if;
     execStat("inlineWhenForInitialization (initialization)");
-
     (dae, initVars, outAllPrimaryParameters, outGlobalKnownVars) := selectInitializationVariablesDAE(dae);
 
     if Flags.isSet(Flags.DUMP_INITIAL_SYSTEM) then
@@ -155,6 +154,7 @@ algorithm
     if Util.isSome(inDAE.shared.dataReconciliationData) then
        datarecon := true;
     end if;
+
 
     ((vars, fixvars, eqns, _)) := BackendVariable.traverseBackendDAEVars(dae.shared.aliasVars, introducePreVarsForAliasVariables, (vars, fixvars, eqns, hs));
     ((vars, fixvars, eqns, _, _, _, _)) := BackendVariable.traverseBackendDAEVars(dae.shared.globalKnownVars, collectInitialVars, (vars, fixvars, eqns,arrayCreate(0,0), hs, allPrimaryParameters,datarecon));
@@ -2088,8 +2088,10 @@ algorithm
           (vars, fixVars, eqns, stateSetFixCounts, _, _, _) := BackendVariable.traverseBackendDAEVars(eq.orderedVars,
            collectInitialVars, (vars, fixVars, eqns, stateSetFixCounts, hs, allPrimaryParams, datareconFlag));
           //BackendDump.dumpEquationArray(eqns, "Equations after collecting initial vars 2");
+
           (vars, fixVars, eqns) := collectInitialStateSets(eq.stateSets, stateSetFixCounts, vars, fixVars, eqns);
           GC.free(stateSetFixCounts);
+
 
           (eqns, reEqns) := BackendEquation.traverseEquationArray(eq.orderedEqs, collectInitialEqns, (eqns, reEqns));
         then
@@ -2140,24 +2142,24 @@ algorithm
     eqn := BackendDAE.ARRAY_EQUATION(dimSize={listLength(stateSet.varA)}, left=lhs, right=rhs,source=DAE.emptyElementSource,attr=BackendDAE.EQ_ATTR_DEFAULT_INITIAL);
     oEqns := ExpandableArray.add(eqn,oEqns);
 
-    //print("Needed states: " + intString(stateSet.rang) + " number of candidates: " + intString(listLength(stateSet.statescandidates)) + ".\n");
+    //print("Needed states: " + intString(arrayGet(stateSetFixCounts,stateSet.index)) + " number of candidates: " + intString(listLength(stateSet.statescandidates)) + ".\n");
     unfixedStates := {};
     for state in stateSet.statescandidates loop
        if not BackendVariable.varFixed(state) then
          unfixedStates := state::unfixedStates;
        end if;
     end for;
-
     // If selfdependent -> heuristic, if not -> add new vars and write new pivot algorithm c
     //if listLength(stateSet.statescandidates) - listLength(unfixedStates) < stateSet.rang then
-    if arrayGet(stateSetFixCounts,stateSet.index) > 0 then
+    if arrayLength(stateSetFixCounts) >= stateSet.index and arrayGet(stateSetFixCounts,stateSet.index) > 0 then
       //toFix := stateSet.rang - listLength(stateSet.statescandidates) + listLength(unfixedStates);
       toFix := arrayGet(stateSetFixCounts,stateSet.index);
 	    statesToFix := {};
 
       //if IndexReduction.isSelfDependent(stateSet) then
         statesToFix := SymbolicJacobian.getFixedStatesForSelfdependentSets(stateSet,unfixedStates,toFix);
-	      //oVars := BackendVariable.addVars(statesToFix, oVars);
+
+        //oVars := BackendVariable.addVars(statesToFix, oVars);
 	      //oFixVars := BackendVariable.addVars(statesToFix, oFixVars);
 	      for state in statesToFix loop
 	        lhs := Expression.crefToExp(state.varName);
@@ -2285,7 +2287,7 @@ algorithm
 	      end if;
 
 	      if isFixed then
-          if Util.stringStartsWith("$STATESET",ComponentReference.crefFirstIdent(cr)) then
+	        if Util.stringStartsWith("$STATESET",ComponentReference.crefFirstIdent(cr)) then
 	        stateSetSplit = Util.stringSplitAtChar(ComponentReference.crefFirstIdent(cr),".");
 	      stateSetIdxString::stateSetSplit = stateSetSplit;
 	      stateSetIdxString = substring(stateSetIdxString,10,stringLength(stateSetIdxString));
