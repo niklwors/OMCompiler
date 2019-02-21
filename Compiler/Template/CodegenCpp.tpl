@@ -12478,7 +12478,16 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
 
 
   else
-    error(sourceInfo(), ' UNKNOWN ZERO CROSSING <%ExpressionDumpTpl.dumpExp(relation,"\"")%> ')
+   let tmp = tempDecl('bool', &varDecls)
+   let e = daeExp(relation, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
+   let &preExp +=
+        <<
+           //binary inner zero crossing
+            <%tmp%> = <%e%> ? true : false;
+        >>
+        tmp
+
+   // error(sourceInfo(), ' UNKNOWN ZERO CROSSING <%ExpressionDumpTpl.dumpExp(relation,"\"")%> ')
   end match
 end giveZeroFunc4;
 
