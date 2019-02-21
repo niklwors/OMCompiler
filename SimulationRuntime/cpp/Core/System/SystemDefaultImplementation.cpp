@@ -151,8 +151,6 @@ SystemDefaultImplementation::~SystemDefaultImplementation()
   if(__daeResidual) delete [] __daeResidual;
 }
 
-shared_ptr<SystemStateSelection> _state_selection = shared_ptr<SystemStateSelection>();
-
 void SystemDefaultImplementation::Assert(bool cond,const string& msg)
 {
   if(!cond)
@@ -216,6 +214,7 @@ int SystemDefaultImplementation::getDimRHS() const
 /// (Re-) initialize the system of equations
 void SystemDefaultImplementation::initialize()
 {
+  _state_selection = shared_ptr<SystemStateSelection>(new SystemStateSelection(dynamic_cast<IMixedSystem*>(this)));
   _callType = IContinuous::CONTINUOUS;
 
   /*

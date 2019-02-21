@@ -24,6 +24,6 @@ public:
   virtual bool getAMatrix(unsigned int index, DynArrayDim1<int> & A) = 0 ;
   virtual void setAMatrix(unsigned int index, DynArrayDim1<int>& A) = 0;
   virtual bool stateSelection() = 0;
-  virtual bool stateSelectionSet(int index) = 0;
+  virtual bool stateSelectionSet(int i) = 0;
 };
 /** @} */ // end of coreSystem

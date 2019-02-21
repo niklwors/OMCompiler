@@ -5,7 +5,7 @@
 #include <Core/ModelicaDefine.h>
 #include <Core/Modelica.h>
 #include <Core/Solver/FactoryExport.h>
-#include <Core/Solver/SystemStateSelection.h>
+#include <Core/System/SystemStateSelection.h>
 #include <Core/Math/ArrayOperations.h>
 #include <Core/Math/Functions.h>
 
