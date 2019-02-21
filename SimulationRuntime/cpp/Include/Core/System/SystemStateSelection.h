@@ -1,11 +1,11 @@
 #pragma once
-/** @addtogroup coreSolver
+/** @addtogroup coreSystem
  *
  *  @{
  */
-#if defined(__TRICORE__) || defined(__vxworks)
+//#if defined(__TRICORE__) || defined(__vxworks)
 #define BOOST_EXTENSION_STATESELECT_DECL
-#endif
+//#endif
 
 #include <Core/System/IStateSelection.h>
 #include <boost/shared_array.hpp>

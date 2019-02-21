@@ -27,6 +27,7 @@ install(TARGETS ${SystemName} DESTINATION ${LIBINSTALLEXT})
 #install (TARGETS ${BasiLibName} DESTINATION ${LIBINSTALLEXT})
 #ENDIF (NOT ((${CMAKE_SYSTEM_NAME} MATCHES "Darwin") OR  MSVC))
 install(FILES
+  ${CMAKE_SOURCE_DIR}/Include/Core/System/SystemStateSelection.h
   ${CMAKE_SOURCE_DIR}/Include/Core/System/SystemDefaultImplementation.h
   ${CMAKE_SOURCE_DIR}/Include/Core/System/LinearAlgLoopDefaultImplementation.h
   ${CMAKE_SOURCE_DIR}/Include/Core/System/NonLinearAlgLoopDefaultImplementation.h

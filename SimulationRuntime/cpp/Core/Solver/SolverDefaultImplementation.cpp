@@ -43,7 +43,6 @@ SolverDefaultImplementation::SolverDefaultImplementation(IMixedSystem* system, I
     , _solverStatus         (ISolver::UNDEF_STATUS)
     , _outputCommand        (IWriteOutput::WRITEOUT)
 {
-  _state_selection = shared_ptr<SystemStateSelection>(new SystemStateSelection(system));
 
     #ifdef RUNTIME_PROFILING
     if(MeasureTime::getInstance() != NULL)
@@ -102,16 +101,6 @@ const ISolver::SOLVERSTATUS SolverDefaultImplementation::getSolverStatus()
 {
   return _solverStatus;
 };
-
-bool SolverDefaultImplementation::stateSelection()
-{
-  return _state_selection->stateSelection(1);
-}
-
-bool SolverDefaultImplementation::stateSelectionSet(int i)
-{
-  return _state_selection->stateSelectionSet(1,i);
-}
 
 void SolverDefaultImplementation::initialize()
 {

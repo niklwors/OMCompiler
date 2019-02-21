@@ -5,6 +5,7 @@
 #include <Core/ModelicaDefine.h>
 #include <Core/Modelica.h>
 
+#include <Core/System/SystemStateSelection.h>
 #include <Core/System/FactoryExport.h>
 #include <Core/Utils/extension/logger.hpp>
 #include <Core/System/EventHandling.h>
@@ -149,6 +150,8 @@ SystemDefaultImplementation::~SystemDefaultImplementation()
   if(_clockSubactive) delete [] _clockSubactive;
   if(__daeResidual) delete [] __daeResidual;
 }
+
+shared_ptr<SystemStateSelection> _state_selection = shared_ptr<SystemStateSelection>();
 
 void SystemDefaultImplementation::Assert(bool cond,const string& msg)
 {
@@ -801,6 +804,16 @@ double SystemDefaultImplementation::computeNextTimeEvents(double currTime, std::
     closestTimeEvent = std::min(closestTimeEvent, nextTimeEvent);
   }
   return closestTimeEvent;
+}
+
+bool SystemDefaultImplementation::stateSelection()
+{
+  return _state_selection->stateSelection(1);
+}
+
+bool SystemDefaultImplementation::stateSelectionSet(int i)
+{
+  return _state_selection->stateSelectionSet(1,i);
 }
 
 /** @} */ // end of coreSystem

@@ -23,7 +23,6 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/Include/Core/Solver/ISolverSettings.h
   ${CMAKE_SOURCE_DIR}/Include/Core/Solver/SolverSettings.h
   ${CMAKE_SOURCE_DIR}/Include/Core/Solver/SolverDefaultImplementation.h
-  ${CMAKE_SOURCE_DIR}/Include/Core/Solver/SystemStateSelection.h
   ${CMAKE_SOURCE_DIR}/Include/Core/Solver/SimulationMonitor.h
   ${CMAKE_SOURCE_DIR}/Include/Core/Solver/FactoryExport.h
   DESTINATION include/omc/cpp/Core/Solver)
