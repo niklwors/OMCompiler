@@ -73,6 +73,7 @@ SystemDefaultImplementation::SystemDefaultImplementation(IGlobalSettings *global
   , _modelName(modelName)
   , _freeVariablesLock(false)
 {
+	_state_selection = shared_ptr<SystemStateSelection>(new SystemStateSelection(this));
 }
 
 SystemDefaultImplementation::SystemDefaultImplementation(SystemDefaultImplementation& instance)
@@ -114,6 +115,8 @@ SystemDefaultImplementation::SystemDefaultImplementation(SystemDefaultImplementa
   , _modelName(instance.getModelName())
   , _freeVariablesLock(false)
 {
+
+	_state_selection = shared_ptr<SystemStateSelection>(new SystemStateSelection(this));
 }
 
 /*
@@ -214,7 +217,7 @@ int SystemDefaultImplementation::getDimRHS() const
 /// (Re-) initialize the system of equations
 void SystemDefaultImplementation::initialize()
 {
-  _state_selection = shared_ptr<SystemStateSelection>(new SystemStateSelection(dynamic_cast<IMixedSystem*>(this)));
+	_state_selection->initialize();
   _callType = IContinuous::CONTINUOUS;
 
   /*

@@ -4,8 +4,8 @@
  *  @{
  */
 
-#include <Core/System/SystemStateSelection.h>
-
+//#include <Core/System/SystemStateSelection.h>
+class SystemStateSelection;
 /*****************************************************************************/
 /**
 

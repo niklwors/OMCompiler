@@ -3746,12 +3746,8 @@ match simCode
 
         <%partitionInit%>
 
-        //Initialize the state vector
-        SystemDefaultImplementation::initialize();
-        //Instantiate auxiliary object for event handling functionality
-        //_event_handling.getCondition =  boost::bind(&<%className%>::getCondition, this, _1);
 
-        //Todo: reindex all arrays removed  // arrayReindex(modelInfo,useFlatArrayNotation)
+
 
         _functions = new Functions(_simTime,__z,__zDot,_initial,_terminate);
         >>
@@ -5766,6 +5762,8 @@ case SIMCODE(modelInfo = MODELINFO(__),makefileParams = MAKEFILE_PARAMS(__))  th
 
    void <%lastIdentOfPath(modelInfo.name)%>Initialize::initializeMemory()
    {
+
+      SystemDefaultImplementation::initialize();
       _discrete_events = _event_handling->initialize(this,getSimVars());
 
       //create and initialize Algloopsolvers

@@ -16,7 +16,7 @@ if(NOT BUILD_SHARED_LIBS)
   set_target_properties(${SystemName} PROPERTIES COMPILE_DEFINITIONS "RUNTIME_STATIC_LINKING;ENABLE_SUNDIALS_STATIC")
 endif(NOT BUILD_SHARED_LIBS)
 
-target_link_libraries(${SystemName} ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${OMCFactoryName} ${SimulationSettings} ${ExtensionUtilitiesName})
+target_link_libraries(${SystemName} ${Boost_LIBRARIES} ${LAPACK_LIBRARIES} ${MathName} ${OMCFactoryName} ${SimulationSettings} ${ExtensionUtilitiesName})
 add_precompiled_header(${SystemName} Include/Core/Modelica.h)
 
 install(FILES $<TARGET_PDB_FILE:${SystemName}> DESTINATION ${LIBINSTALLEXT} OPTIONAL)
