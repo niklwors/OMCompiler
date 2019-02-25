@@ -45,7 +45,7 @@ void ContinuousEvents::initialize(IEvent* system)
 {
   // _dimH=dim;
   _event_system=system;
-    unsigned int dimZero = _event_system->getDimZeroFunc();
+   unsigned int dimConditions = _event_system->getDimConditions();
    unsigned int dimClock = _event_system->getDimClock();
 
   _countinous_system = dynamic_cast<IContinuous*>(_event_system);
@@ -62,7 +62,7 @@ void ContinuousEvents::initialize(IEvent* system)
   if(_clockconditions1)
     delete[] _clockconditions1;
 
-   if(dimZero> 0)
+   if(dimConditions> 0)
   {
 	_conditions0 = new bool[_event_system->getDimConditions()];
 	_conditions1 = new bool[_event_system->getDimConditions()];
