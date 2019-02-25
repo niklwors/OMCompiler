@@ -12371,7 +12371,7 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
     let rel2 = giveZeroFunc4(exp2, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
     <<
         //binary zero crossing
-        f[<%index1%>] = (<%rel1%> <%op%> <%rel1%>) ? 1 : -1;
+        f[<%index1%>] = (<%rel1%> <%op%> <%rel2%>) ? 1 : -1;
 
     >>
    case binary_rel2 as LUNARY(__) then
@@ -12470,9 +12470,8 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
         let tmp1 = giveZeroFunc4(exp, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
         let &preExp +=
         <<
-            //unary inner zero crossing
-            <%tmp%> = <%op%> <%tmp1%>) ? true : false;
-
+            //negated unary inner  zero crossing
+            <%tmp%> = <%op%> <%tmp1%>) ? true : false \n;
         >>
         tmp
 
@@ -12482,7 +12481,7 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
    let e = daeExp(relation, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
    let &preExp +=
         <<
-           //binary inner zero crossing
+           //unary inner zero crossing
             <%tmp%> = <%e%> ? true : false;
         >>
         tmp
