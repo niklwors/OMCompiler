@@ -108,8 +108,6 @@ else # mingw64
 PLATFORM_ARCH = (64-bit)
 endif
 
-include Makefile.common
-
 getMSVCversion:
 	echo "Check for given VSVERSION (2010|2012|2013|2015) version: [VSVERSION=$(VSVERSION)]"
 ifeq ("$(VSVERSION)","")
