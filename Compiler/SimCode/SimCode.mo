@@ -427,31 +427,6 @@ uniontype SimEqSystem
     Integer index;
     Integer aliasOf;
   end SES_ALIAS;
-  
-  record SES_ALGEBRAIC_SYSTEM
-    Integer index;            // equation index
-    Integer algSysIndex;      // index of algebraic system
-
-    Integer dim_n;            // dimension of algebraic loop (after tearing)
-
-    Boolean partOfMixed;
-    Boolean tornSystem;
-    Boolean linearSystem;
-    
-    // residual.inputVars = dependentVars
-    // residual.innerVars = otherTearingVars
-    // residual.outputVars = iterationsVars
-    OMSIFunction residual; // linear: A*x-b = res 
-                           // non-linear: f(x) = res
-
-    Option<DerivativeMatrix> matrix;  // linear => A
-                                      // non-linear => f'(x)
-
-    list<Integer> zeroCrossingConditions;
-
-    list<DAE.ElementSource> sources;
-    BackendDAE.EquationAttributes eqAttr;
-  end SES_ALGEBRAIC_SYSTEM;
 
   record SES_ALGEBRAIC_SYSTEM
     Integer index "equation index";

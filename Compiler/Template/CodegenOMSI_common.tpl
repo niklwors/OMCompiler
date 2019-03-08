@@ -51,7 +51,6 @@ template generateEquationsCode (SimCode simCode, String FileNamePrefix)
  Code is generated directly into files"
 ::=
   let modelNameOMSIC = makeC89Identifier(FileNamePrefix)
->>>>>>> origin/master
   match simCode
   case SIMCODE(modelInfo = MODELINFO(__),fileNamePrefix=fileNamePrefix, fullPathPrefix=fullPathPrefix,
                omsiData=omsiData as SOME(OMSI_DATA(simulation=simulation as OMSI_FUNCTION(__),

@@ -289,16 +289,16 @@ end SimCodeVar;
 
 package HashTableCrefSimVar
 
-	type Key = DAE.ComponentRef;
-	type Value = SimCodeVar.SimVar;
+  type Key = DAE.ComponentRef;
+  type Value = SimCodeVar.SimVar;
 
-	type HashTableCrefFunctionsType = tuple<FuncHashCref,FuncCrefEqual,FuncCrefStr,FuncExpStr>;
-	type HashTable = tuple<
-	  array<list<tuple<Key,Integer>>>,
-	  tuple<Integer,Integer,array<Option<tuple<Key,Value>>>>,
-	  Integer,
-	  HashTableCrefFunctionsType
-	>;
+  type HashTableCrefFunctionsType = tuple<FuncHashCref,FuncCrefEqual,FuncCrefStr,FuncExpStr>;
+  type HashTable = tuple<
+    array<list<tuple<Key,Integer>>>,
+    tuple<Integer,Integer,array<Option<tuple<Key,Value>>>>,
+    Integer,
+    HashTableCrefFunctionsType
+  >;
 
   function FuncHashCref
     input Key cr;
@@ -459,44 +459,25 @@ package SimCode
       list<ExtAlias> aliases;
     end EXTOBJINFO;
   end ExtObjInfo;
-  
-  uniontype OMSIData
-  record OMSI_DATA
-    OMSIFunction initialization;
-    OMSIFunction simulation;
-  end OMSI_DATA;
-end OMSIData;
-
-uniontype OMSIFunction
-  record OMSI_FUNCTION
-    list<SimEqSystem> equations;
-    list<SimCodeVar.SimVar> inputVars;
-    list<SimCodeVar.SimVar> outputVars;
-    list<SimCodeVar.SimVar> innerVars;
-    Integer nAllVars;
-    SimCodeFunction.Context context;
-    Integer nAlgebraicSystems;
-  end OMSI_FUNCTION;
-end OMSIFunction;
 
   uniontype OMSIData
-  record OMSI_DATA
-    OMSIFunction initialization;
-    OMSIFunction simulation;
-  end OMSI_DATA;
-end OMSIData;
+    record OMSI_DATA
+      OMSIFunction initialization;
+      OMSIFunction simulation;
+    end OMSI_DATA;
+  end OMSIData;
 
-uniontype OMSIFunction
-  record OMSI_FUNCTION
-    list<SimEqSystem> equations;
-    list<SimCodeVar.SimVar> inputVars;
-    list<SimCodeVar.SimVar> outputVars;
-    list<SimCodeVar.SimVar> innerVars;
-    Integer nAllVars;
-    SimCodeFunction.Context context;
-    Integer nAlgebraicSystems;
-  end OMSI_FUNCTION;
-end OMSIFunction;
+  uniontype OMSIFunction
+    record OMSI_FUNCTION
+      list<SimEqSystem> equations;
+      list<SimCodeVar.SimVar> inputVars;
+      list<SimCodeVar.SimVar> outputVars;
+      list<SimCodeVar.SimVar> innerVars;
+      Integer nAllVars;
+      SimCodeFunction.Context context;
+      Integer nAlgebraicSystems;
+    end OMSI_FUNCTION;
+  end OMSIFunction;
 
   uniontype SimEqSystem
     record SES_RESIDUAL

@@ -389,7 +389,7 @@ if true then /* Suppress output */
     "../Template/CodegenFMUCommon.mo",
     "../Template/CodegenFMUCpp.mo",
     "../Template/CodegenOMSI_common.mo",
-	  "../Template/CodegenOMSICpp.mo",
+    "../Template/CodegenOMSICpp.mo",
     "../Template/CodegenOMSIC.mo",
     "../Template/CodegenOMSIC_Equations.mo",
     "../Template/CodegenFMUCppHpcom.mo",
