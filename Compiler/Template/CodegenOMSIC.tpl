@@ -102,7 +102,6 @@ end generateOMSIC;
 template createMakefile(SimCode simCode, String target, String makeflieName)
  "Generates contents of the makefile for simulation case."
 ::=
-
   let FMUVersion="2.0"
 
   let &InitAlgSystemFiles = buffer""
@@ -460,7 +459,7 @@ end createMakefileIn;
 
 
 template createFMIImportScript(String fileNamePrefix, String fmuTargetName)
-""
+"Generated script for building executable from OMSU using OM FMI-Import."
 ::=
   <<
   importFMU("<%fmuTargetName%>.fmu");
@@ -474,8 +473,9 @@ template createFMIImportScript(String fileNamePrefix, String fmuTargetName)
   >>
 end createFMIImportScript;
 
+
 template createOMSimulationScript(String fileNamePrefix, String fmuTargetName)
-""
+"Generate script for simulating OMSU with OMSimulator."
 ::=
   <<
   oms_setCommandLineOption("--suppressPath=true")

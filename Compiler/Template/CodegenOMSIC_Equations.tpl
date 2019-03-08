@@ -32,8 +32,8 @@
 package CodegenOMSIC_Equations
 " file:        CodegenOMSIC_Equations.tpl
   package:     CodegenOMSIC_Equations
-  description: Code generation using Susan templates for 
-               OpenModelica Simulation Inferface (OMSI) equation related templates
+  description: Code generation using Susan templates for
+               OpenModelica Simulation Inferface (OMSI) for equation related templates for C
 "
 
 import interface SimCodeTV;
@@ -46,7 +46,7 @@ import CodegenUtilSimulation;
 
 
 template equationFunctionPrototypes(SimEqSystem eq, String modelNamePrefixStr)
- "Generates prototype for an equation function"
+ "Generates prototype for an equation function."
 ::=
   let ix = CodegenUtilSimulation.equationIndex(eq)
   <<
@@ -56,7 +56,7 @@ end equationFunctionPrototypes;
 
 
 template generateEquationFunction(SimEqSystem eq, String modelNamePrefixStr,String modelFunctionnamePrefixStr, SimCodeFunction.Context context, Text &functionPrototypes)
- "Generates C-function for an equation evaluation"
+ "Generates C-function for an equation evaluation."
 ::=
   let ix = CodegenUtilSimulation.equationIndex(eq)
   let equationInfos = CodegenUtilSimulation.dumpEqs(fill(eq,1))
@@ -79,7 +79,6 @@ template generateEquationFunction(SimEqSystem eq, String modelNamePrefixStr,Stri
     end match
     )
 
-
   let funcArguments = (match eq
     case SES_RESIDUAL(__) then
       "omsi_function_t* this_function, const omsi_values* model_vars_and_params, omsi_real* res"
@@ -95,7 +94,6 @@ template generateEquationFunction(SimEqSystem eq, String modelNamePrefixStr,Stri
     case "omsicpp" then
        <<void <%funcName%>_<%ix%>(<%funcArguments%>);<%\n%>>>
     end match
-
 
   <<
   /*
@@ -119,6 +117,7 @@ template generateEquationFunction(SimEqSystem eq, String modelNamePrefixStr,Stri
   }<%"\n"%>
   >>
 end generateEquationFunction;
+
 
 template equationCStr(SimEqSystem eq, Text &varDecls, Text &auxFunction, Context context)
  "Generates an equation that is just a simple assignment."
@@ -152,7 +151,7 @@ end equationCStr;
 
 
 template equationCall(SimEqSystem eq, String modelNamePrefixStr,String modelFunctionnamePrefixStr, String input, String omsiName)
- "Generates call function for evaluating functions"
+ "Generates call function for evaluating functions."
 ::=
   match eq
   case SES_SIMPLE_ASSIGN(__)
@@ -160,13 +159,13 @@ template equationCall(SimEqSystem eq, String modelNamePrefixStr,String modelFunc
     let i = index
     match  Config.simCodeTarget()
     case "omsic" then
-    <<
-    <%CodegenUtil.symbolName(modelNamePrefixStr,"eqFunction")%>_<%i%>(<%input%>);
-    >>
+      <<
+      <%CodegenUtil.symbolName(modelNamePrefixStr,"eqFunction")%>_<%i%>(<%input%>);
+      >>
     case "omsicpp" then
-    <<
-    omsi_<%modelFunctionnamePrefixStr%>_<%i%>(<%input%>);
-    >>
+      <<
+      omsi_<%modelFunctionnamePrefixStr%>_<%i%>(<%input%>);
+      >>
     end match
   case SES_RESIDUAL(__) then
     <<
@@ -186,7 +185,7 @@ end equationCall;
 
 
 template generateMatrixInitialization(Option<DerivativeMatrix> matrix)
-"generates code for matrix initialization and evaluation"
+"Generates code for matrix initialization and evaluation."
 ::=
   let columnsString = ""
 
@@ -200,15 +199,14 @@ template generateMatrixInitialization(Option<DerivativeMatrix> matrix)
   <<
 
   <%columnsString%>
-  
+
   >>
 end generateMatrixInitialization;
 
 
 template generateMatrixColumnInitialization(OMSIFunction column)
-""
+"Helper function for template generateMatrixInitialization."
 ::=
-
   let &varDecls = buffer ""
   let &auxFunction = buffer ""
   let &body = buffer ""
@@ -220,8 +218,6 @@ template generateMatrixColumnInitialization(OMSIFunction column)
       <<>>
     )
 
-
-
   <<
   <%body%>
   >>
@@ -229,7 +225,7 @@ end generateMatrixColumnInitialization;
 
 
 template generateDerivativeMatrix(Option<DerivativeMatrix> matrix, String modelName, String index, Text &functionPrototypes, String omsiName)
-"generates equations for derivative matrix"
+"Generates equations for derivative matrix."
 ::=
   let &columnsString = buffer ""
   match matrix
@@ -249,7 +245,7 @@ end generateDerivativeMatrix;
 
 
 template generateDereivativeMatrixColumnFunction(OMSIFunction column, String modelName, String index, Text &functionPrototypes)
-"generates equations code for columns of derivative matrix"
+"Generates equations code for columns of derivative matrix."
 ::=
   let bodyBuffer = ""
   let &preExp = buffer ""
@@ -271,7 +267,7 @@ end generateDereivativeMatrixColumnFunction;
 
 
 template generateDereivativeMatrixColumnCall(OMSIFunction column, String modelName, String index, Text &functionPrototypes, String omsiName)
-"generate function call for derivative matrix evaluations"
+"Generate function call for derivative matrix evaluations."
 ::=
   let bodyBuffer = ""
   let &preExp = buffer ""
@@ -300,6 +296,7 @@ template generateDereivativeMatrixColumnCall(OMSIFunction column, String modelNa
   }
   >>
 end generateDereivativeMatrixColumnCall;
+
 
 /***************************************
 *

@@ -30,10 +30,10 @@
  */
 
  package CodegenOMSI_common
-" file:        CodegenOMSIC.tpl
-  package:     CodegenOMSIC
+" file:        CodegenOMSICcommon.tpl
+  package:     CodegenOMSIC_common
   description: Code generation using Susan templates for
-               OpenModelica Simulation Inferface (OMSI) for C and C++
+               OpenModelica Simulation Inferface (OMSI) used for generating C and C++ code
 "
 
 import interface SimCodeTV;
@@ -50,8 +50,8 @@ template generateEquationsCode (SimCode simCode, String FileNamePrefix)
 "Entrypoint to generate all Code for linear systems.
  Code is generated directly into files"
 ::=
-
-   let modelNameOMSIC = makeC89Identifier(FileNamePrefix)
+  let modelNameOMSIC = makeC89Identifier(FileNamePrefix)
+>>>>>>> origin/master
   match simCode
   case SIMCODE(modelInfo = MODELINFO(__),fileNamePrefix=fileNamePrefix, fullPathPrefix=fullPathPrefix,
                omsiData=omsiData as SOME(OMSI_DATA(simulation=simulation as OMSI_FUNCTION(__),
@@ -60,7 +60,7 @@ template generateEquationsCode (SimCode simCode, String FileNamePrefix)
     /* generate file for algebraic systems in simulation problem */
 
     let modeNameOMSICpp = lastIdentOfPath(modelInfo.name)
-    let modelNamePrefix =  match  Config.simCodeTarget()
+    let modelNamePrefix =  match Config.simCodeTarget()
     case "omsic" then
       modelNameOMSIC
     case "omsicpp" then
@@ -95,7 +95,7 @@ end generateEquationsCode;
 
 
 template generateOmsiFunctionCode(OMSIFunction omsiFunction, String FileNamePrefix, String modelFunctionnamePrefixStr, String omsiName)
-"Generates file for all equations, containing equation evaluations for all systems"
+"Generates content for file for all equations, containing equation evaluations for all systems"
 ::=
   let &includes = buffer ""
   let &evaluationCode = buffer ""
@@ -127,10 +127,8 @@ template generateOmsiFunctionCode(OMSIFunction omsiFunction, String FileNamePref
       ""
   end match
 
-
-
   match omsiFunction
-    case SimCode.OMSI_FUNCTION(__) then
+  case SimCode.OMSI_FUNCTION(__) then
 
   <<
   <%insertCopyrightOpenModelica()%>
@@ -192,15 +190,19 @@ template generateOmsiFunctionCode(OMSIFunction omsiFunction, String FileNamePref
   /* leave a newline at the end of file to get rid of the warning */
 end generateOmsiFunctionCode;
 
-template lastIdentOfPath(Path modelName) ::=
+
+template lastIdentOfPath(Path modelName)
+"Helper function. Returns last ident of given path."
+::=
   match modelName
   case QUALIFIED(__) then lastIdentOfPath(path)
   case IDENT(__)     then name
   case FULLYQUALIFIED(__) then lastIdentOfPath(path)
 end lastIdentOfPath;
 
+
 template generateOmsiFunctionCode_inner(OMSIFunction omsiFunction, String FileNamePrefix,String modelFunctionnamePrefixStr, String funcCallArgName, Text &includes, Text &evaluationCode, Text &functionCall, Text &residualCall, Text &functionPrototypes, String omsiName)
-""
+"Generates function code for each individual equation or system of equations using CodegenOMSIC_Equations."
 ::=
   let fileNamePrefix = CodegenUtilSimulation.fileNamePrefix(getSimCode())
   let fullPathPrefix = CodegenUtilSimulation.fullPathPrefix(getSimCode())
@@ -240,11 +242,11 @@ template generateOmsiFunctionCode_inner(OMSIFunction omsiFunction, String FileNa
   <<>>
 end generateOmsiFunctionCode_inner;
 
-template generateOmsiMemberFunction(OMSIFunction omsiFunction, String FileNamePrefix,String FunctionnamePrefix)
-""
-::=
- let &evaluationCode = buffer ""
 
+template generateOmsiMemberFunction(OMSIFunction omsiFunction, String FileNamePrefix,String FunctionnamePrefix)
+"Generates function code for each individual equation or system of equations using CodegenOMSIC_Equations for C++."
+::=
+  let &evaluationCode = buffer ""
   let &functionPrototypes = buffer ""
   match omsiFunction
   case OMSI_FUNCTION(context=context as SimCodeFunction.OMSI_CONTEXT(__)) then
@@ -255,14 +257,12 @@ template generateOmsiMemberFunction(OMSIFunction omsiFunction, String FileNamePr
         << >>
       case SES_RESIDUAL(__) then
         let &evaluationCode += CodegenOMSIC_Equations.generateEquationFunction(eqsystem, FileNamePrefix, FunctionnamePrefix,context, &functionPrototypes) +"\n"
-
         <<>>
       case algSystem as SES_ALGEBRAIC_SYSTEM(__) then
         "TODO: Equation  SES_ALGEBRAIC_SYSTEM not implemented yet"
 
       case whenEq as SES_WHEN(__) then
         let &evaluationCode += CodegenOMSIC_Equations.generateEquationFunction(eqsystem, FileNamePrefix,FunctionnamePrefix, context, &functionPrototypes) +"\n"
-
         <<>>
       else
         // NOT IMPLEMENTED YET
@@ -282,7 +282,7 @@ end generateOmsiMemberFunction;
 
 
 template generateOmsiAlgSystemCode (SimEqSystem equationSystem, String FileNamePrefix, String omsiName)
-"Returns Code for an algebraic system and creates associated derMat file and header files."
+"Returns code for an algebraic system and creates associated derMat file and header files."
 ::=
   let &includes = buffer ""
   let &evaluationCode = buffer ""
@@ -295,6 +295,7 @@ template generateOmsiAlgSystemCode (SimEqSystem equationSystem, String FileNameP
   let fullPathPrefix = CodegenUtilSimulation.fullPathPrefix(getSimCode())
 
   match equationSystem
+  // Case for an algebraic system without derivaitve matrix
   case algSystem as SES_ALGEBRAIC_SYSTEM(matrix = NONE()) then
     let &includes += <<#include <omsi_solve_alg_system.h><%\n%>>>
     let initlaizationFunction = generateInitalizationAlgSystem(equationSystem, FileNamePrefix, &functionPrototypes, &includes, omsiName)
@@ -314,58 +315,60 @@ template generateOmsiAlgSystemCode (SimEqSystem equationSystem, String FileNameP
     let headerFileName = fileNamePrefix+"_"+omsiName+"_algSyst_"+algSystem.algSysIndex
     let headerFileContent = generateCodeHeader(FileNamePrefix, &includes, headerFileName, &functionPrototypes)
     let () = textFile(headerFileContent, fullPathPrefix+"/"+headerFileName+".h")
-  <<
-  <%insertCopyrightOpenModelica()%>
+    <<
+    <%insertCopyrightOpenModelica()%>
 
-  /* Algebraic system code */
-  #include "<%headerFileName%>.h"
+    /* Algebraic system code */
+    #include "<%headerFileName%>.h"
 
-  #if defined(__cplusplus)
-  extern "C" {
-  #endif
+    #if defined(__cplusplus)
+    extern "C" {
+    #endif
 
-  /* Instantiation and initialization */
-  <%initlaizationFunction%>
+    /* Instantiation and initialization */
+    <%initlaizationFunction%>
 
-  <%matrixString%>
+    <%matrixString%>
 
-  /* Evaluation functions for <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> */
-  <%evaluationCode%>
+    /* Evaluation functions for <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> */
+    <%evaluationCode%>
 
-  omsi_status <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> (omsi_function_t* this_function, const omsi_values* model_vars_and_params, omsi_real* res) {
-    omsi_unsigned_int i=0;
-    <%functionCall%>
-    <%residualCall%>
+    omsi_status <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> (omsi_function_t* this_function, const omsi_values* model_vars_and_params, omsi_real* res) {
+      omsi_unsigned_int i=0;
+      <%functionCall%>
+      <%residualCall%>
 
-    return omsi_ok;
-  }
+      return omsi_ok;
+    }
 
-  /* Algebraic system evaluation */
-  /*
-  <%equationInfos%>
-  */
-  omsi_status <%FileNamePrefix%>_<%omsiName%>_algSystFunction_<%algSystem.algSysIndex%>(omsi_algebraic_system_t* this_alg_system,
-                            const omsi_values* model_vars_and_params,
-                            void* data){
+    /* Algebraic system evaluation */
+    /*
+    <%equationInfos%>
+    */
+    omsi_status <%FileNamePrefix%>_<%omsiName%>_algSystFunction_<%algSystem.algSysIndex%>(omsi_algebraic_system_t* this_alg_system,
+                              const omsi_values* model_vars_and_params,
+                              void* data){
 
-    /* Variables */
-    omsi_status status;
+      /* Variables */
+      omsi_status status;
 
-    /* Log function call */
-    filtered_base_logger(global_logCategories, log_all, omsi_ok,
-        "fmi2Evaluate: Solve algebraic system <%algSystem.algSysIndex%>.");
+      /* Log function call */
+      filtered_base_logger(global_logCategories, log_all, omsi_ok,
+          "fmi2Evaluate: Solve algebraic system <%algSystem.algSysIndex%>.");
 
-    /* call API function something */
-    status = omsi_solve_algebraic_system(this_alg_system, model_vars_and_params);
+      /* call API function something */
+      status = omsi_solve_algebraic_system(this_alg_system, model_vars_and_params);
 
-    return status;
-  }
+      return status;
+    }
 
-  #if defined(__cplusplus)
-  }
-  #endif
-  <%\n%>
-  >>
+    #if defined(__cplusplus)
+    }
+    #endif
+    <%\n%>
+    >>
+
+  // Case for an algebraic system with derivaitve matrix
   case algSystem as SES_ALGEBRAIC_SYSTEM(matrix = matrix as SOME(DERIVATIVE_MATRIX(__))) then
     let &includes += <<#include <omsi_solve_alg_system.h><%\n%>>>
     let initlaizationFunction = generateInitalizationAlgSystem(equationSystem, FileNamePrefix, &functionPrototypes, &includes, omsiName)
@@ -387,59 +390,59 @@ template generateOmsiAlgSystemCode (SimEqSystem equationSystem, String FileNameP
     let headerFileName = fileNamePrefix+"_"+omsiName+"_algSyst_"+algSystem.algSysIndex
     let headerFileContent = generateCodeHeader(FileNamePrefix, &includes, headerFileName, &functionPrototypes)
     let () = textFile(headerFileContent, fullPathPrefix+"/"+headerFileName+".h")
-  <<
-  <%insertCopyrightOpenModelica()%>
+    <<
+    <%insertCopyrightOpenModelica()%>
 
-  /* Algebraic system code */
-  #include "<%headerFileName%>.h"
+    /* Algebraic system code */
+    #include "<%headerFileName%>.h"
 
-  #if defined(__cplusplus)
-  extern "C" {
-  #endif
+    #if defined(__cplusplus)
+    extern "C" {
+    #endif
 
-  /* Instantiation and initialization */
-  <%initlaizationFunction%>
+    /* Instantiation and initialization */
+    <%initlaizationFunction%>
 
-  <%matrixString%>
+    <%matrixString%>
 
-  /* Evaluation functions for <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> */
-  <%evaluationCode%>
+    /* Evaluation functions for <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> */
+    <%evaluationCode%>
 
-  omsi_status <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> (omsi_function_t* this_function, const omsi_values* model_vars_and_params, omsi_real* res) {
-    omsi_unsigned_int i=0;
-    <%functionCall%>
-    <%residualCall%>
+    omsi_status <%FileNamePrefix%>_<%omsiName%>_resFunction_<%algSystem.algSysIndex%> (omsi_function_t* this_function, const omsi_values* model_vars_and_params, omsi_real* res) {
+      omsi_unsigned_int i=0;
+      <%functionCall%>
+      <%residualCall%>
 
-    return omsi_ok;
-  }
+      return omsi_ok;
+    }
 
-  /* Algebraic system evaluation */
-  /*
-  <%equationInfos%>
-  */
-  omsi_status <%FileNamePrefix%>_<%omsiName%>_algSystFunction_<%algSystem.algSysIndex%>(omsi_algebraic_system_t* this_alg_system,
-                            const omsi_values* model_vars_and_params,
-                            void* data){
+    /* Algebraic system evaluation */
+    /*
+    <%equationInfos%>
+    */
+    omsi_status <%FileNamePrefix%>_<%omsiName%>_algSystFunction_<%algSystem.algSysIndex%>(omsi_algebraic_system_t* this_alg_system,
+                              const omsi_values* model_vars_and_params,
+                              void* data){
 
-    /* Variables */
-    omsi_status status;
+      /* Variables */
+      omsi_status status;
 
-    /* Log function call */
-    filtered_base_logger(global_logCategories, log_all, omsi_ok,
-        "fmi2Evaluate: Solve algebraic system <%algSystem.algSysIndex%>.");
+      /* Log function call */
+      filtered_base_logger(global_logCategories, log_all, omsi_ok,
+          "fmi2Evaluate: Solve algebraic system <%algSystem.algSysIndex%>.");
 
-    /* call API function something */
-    status = omsi_solve_algebraic_system(this_alg_system, model_vars_and_params);
+      /* call API function something */
+      status = omsi_solve_algebraic_system(this_alg_system, model_vars_and_params);
 
-    return status;
-  }
+      return status;
+    }
 
-  #if defined(__cplusplus)
-  }
-  #endif
-  <%\n%>
-  >>
-  /* leave a newline at the end of file to get rid of the warning */
+    #if defined(__cplusplus)
+    }
+    #endif
+    <%\n%>
+    >>
+    /* leave a newline at the end of file to get rid of the warning */
 end generateOmsiAlgSystemCode;
 
 
@@ -542,11 +545,10 @@ end generateDerivativeFile;
 
 
 template generateInitalizationAlgSystem (SimEqSystem equationSystem, String FileNamePrefix, Text &functionPrototypes, Text &includes, String omsiName)
-""
+"Generates code for omsi_algebraic_system_t initialization"
 ::=
   match equationSystem
   case SES_ALGEBRAIC_SYSTEM(dim_n=dim_n, residual=residual as OMSI_FUNCTION(__),matrix=matrix) then
-
     let &functionPrototypes += <<omsi_status <%FileNamePrefix%>_<%omsiName%>_instantiate_AlgSystem_<%algSysIndex%>(omsi_algebraic_system_t* algSystem, omsi_values* function_vars, omsi_values* pre_vars);<%\n%>>>
 
     let zeroCrossingIndices = (zeroCrossingConditions |> cond =>
@@ -597,7 +599,6 @@ template generateInitalizationAlgSystem (SimEqSystem equationSystem, String File
     <%generateInitalizationOMSIFunction (residual, 'resFunction_<%algSysIndex%>', FileNamePrefix,"", &functionPrototypes, &includes, false, omsiName)%>
     >>
 end generateInitalizationAlgSystem;
-
 
 
 template generateOmsiIndexTypeInitialization (list<SimVar> variables, String StrucPrefix, String targetName, String omsiFuncName)
@@ -793,8 +794,8 @@ end functionInitSample;
 
 
 template insertCopyrightOpenModelica()
-"Insert copyright notive as c comment.
- Should be used in every generated c or cpp file."
+"Insert copyright notice as C comment.
+ Should be used in every generated C or C++ file."
 ::=
   <<
   /*

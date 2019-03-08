@@ -713,7 +713,7 @@ uniontype Call
               Function.name(call.fn),
               Absyn.COMBINE(),
               Type.toDAE(call.ty),
-              SOME(Expression.toDAEValue(reductionDefaultValue(call))),
+              Expression.toDAEValueOpt(reductionDefaultValue(call)),
               fold_id,
               res_id,
               Expression.toDAEOpt(reductionFoldExpression(call.fn, call.ty, call.var, fold_id, res_id))),
@@ -730,19 +730,30 @@ uniontype Call
 
   function reductionDefaultValue
     input Call call;
-    output Expression defaultValue;
+    output Option<Expression> defaultValue;
   protected
     Function fn;
     Type ty;
   algorithm
     TYPED_REDUCTION(fn = fn, ty = ty) := call;
 
-    defaultValue := match Absyn.pathFirstIdent(Function.name(fn))
-      case "sum" then Expression.makeZero(ty);
-      case "product" then Expression.makeOne(ty);
-      case "min" then Expression.makeMaxValue(ty);
-      case "max" then Expression.makeMinValue(ty);
-    end match;
+    if Type.isArray(ty) then
+      defaultValue := NONE();
+    else
+      defaultValue := match Absyn.pathFirstIdent(Function.name(fn))
+        case "sum" then SOME(Expression.makeZero(ty));
+        case "product" then SOME(Expression.makeOne(ty));
+        case "min" then SOME(Expression.makeMaxValue(ty));
+        case "max" then SOME(Expression.makeMinValue(ty));
+        else
+          algorithm
+            Error.addSourceMessage(Error.INTERNAL_ERROR,
+              {getInstanceName() + " got unknown reduction name " + Absyn.pathFirstIdent(Function.name(fn))},
+              sourceInfo());
+          then
+            fail();
+      end match;
+    end if;
   end reductionDefaultValue;
 
   function reductionFoldExpression
@@ -833,6 +844,47 @@ uniontype Call
       else ();
     end match;
   end retype;
+
+  function typeCast
+    input output Expression callExp;
+    input Type ty;
+  protected
+    Call call;
+    Type cast_ty;
+  algorithm
+    Expression.CALL(call = call) := callExp;
+
+    callExp := match call
+      case TYPED_CALL() guard Function.isBuiltin(call.fn)
+        algorithm
+          cast_ty := Type.setArrayElementType(call.ty, ty);
+        then
+          match Absyn.pathFirstIdent(Function.name(call.fn))
+            // For 'fill' we can type cast the first argument rather than the
+            // whole array that 'fill' constructs.
+            case "fill"
+              algorithm
+                call.arguments := Expression.typeCast(listHead(call.arguments), ty) ::
+                                  listRest(call.arguments);
+                call.ty := cast_ty;
+              then
+                Expression.CALL(call);
+
+            // For diagonal we can type cast the argument rather than the
+            // matrix that diagonal constructs.
+            case "diagonal"
+              algorithm
+                call.arguments := {Expression.typeCast(listHead(call.arguments), ty)};
+                call.ty := cast_ty;
+              then
+                Expression.CALL(call);
+
+            else Expression.CAST(cast_ty, callExp);
+          end match;
+
+      else Expression.CAST(Type.setArrayElementType(typeOf(call), ty), callExp);
+    end match;
+  end typeCast;
 
 protected
   function instNormalCall
@@ -990,10 +1042,11 @@ protected
           variability := Variability.CONSTANT;
           // The size of the expression must be known unless we're in a function.
           is_structural := ExpOrigin.flagNotSet(origin, ExpOrigin.FUNCTION);
+          next_origin := ExpOrigin.setFlag(origin, ExpOrigin.SUBEXPRESSION);
 
           for i in call.iters loop
             (iter, range) := i;
-            (range, iter_ty, iter_var) := Typing.typeIterator(iter, range, origin, is_structural);
+            (range, iter_ty, iter_var) := Typing.typeIterator(iter, range, next_origin, is_structural);
 
             if is_structural then
               range := Ceval.evalExp(range, Ceval.EvalTarget.RANGE(info));
@@ -1007,7 +1060,7 @@ protected
           iters := listReverseInPlace(iters);
 
           // ExpOrigin.FOR is used here as a marker that this expression may contain iterators.
-          next_origin := intBitOr(origin, ExpOrigin.FOR);
+          next_origin := intBitOr(next_origin, ExpOrigin.FOR);
           (arg, ty) := Typing.typeExp(call.exp, next_origin, info);
           ty := Type.liftArrayLeftList(ty, dims);
         then
@@ -1039,6 +1092,7 @@ protected
       case UNTYPED_REDUCTION()
         algorithm
           variability := Variability.CONSTANT;
+          next_origin := ExpOrigin.setFlag(origin, ExpOrigin.SUBEXPRESSION);
 
           for i in call.iters loop
             (iter, range) := i;
@@ -1050,7 +1104,7 @@ protected
           iters := listReverseInPlace(iters);
 
           // ExpOrigin.FOR is used here as a marker that this expression may contain iterators.
-          next_origin := intBitOr(origin, ExpOrigin.FOR);
+          next_origin := intBitOr(next_origin, ExpOrigin.FOR);
           (arg, ty) := Typing.typeExp(call.exp, next_origin, info);
           {fn} := Function.typeRefCache(call.ref);
           TypeCheck.checkReductionType(ty, Function.name(fn), call.exp, info);
@@ -1198,21 +1252,6 @@ protected
       Type.toDAE(InstNode.getType(iter_node)));
   end iteratorToDAE;
 
-  function matchFunction
-    input Function func;
-    input list<TypedArg> args;
-    input list<TypedNamedArg> named_args;
-    input SourceInfo info;
-    output list<TypedArg> out_args;
-    output Boolean matched;
-    output FunctionMatchKind matchKind;
-  algorithm
-    (out_args, matched) := Function.fillArgs(args, named_args, func, info);
-    if matched then
-      (out_args, matched, matchKind) := Function.matchArgs(func, out_args, info);
-    end if;
-  end matchFunction;
-
   function vectorizeCall
     input Call base_call;
     input FunctionMatchKind mk;
@@ -1224,21 +1263,19 @@ protected
     Expression exp;
     list<tuple<InstNode, Expression>> iters;
     InstNode iter;
-    Integer i;
-    list<Dimension> vect_dims;
-    list<Boolean> arg_is_vected, b_list;
+    Integer i, vect_idx;
     Boolean b;
-    list<Expression> vect_args;
+    list<Expression> call_args, vect_args;
     Subscript sub;
+    list<Integer> vect_idxs;
   algorithm
-    vectorized_call := match base_call
-      case TYPED_CALL()
+    vectorized_call := match (base_call, mk)
+      case (TYPED_CALL(arguments = call_args), FunctionMatchKind.VECTORIZED())
         algorithm
-          FunctionMatchKind.VECTORIZED(vect_dims, arg_is_vected) := mk;
           iters := {};
           i := 1;
 
-          for dim in vect_dims loop
+          for dim in mk.vectDims loop
             Error.assertion(Dimension.isKnown(dim, allowExp = true), getInstanceName() +
               " got unknown dimension for vectorized call", info);
 
@@ -1257,21 +1294,22 @@ protected
             exp := Expression.CREF(Type.INTEGER(), ComponentRef.makeIterator(iter, Type.INTEGER()));
             sub := Subscript.INDEX(exp);
 
-            vect_args := {};
-            b_list := arg_is_vected;
-            for arg in base_call.arguments loop
-              // If the argument is supposed to be vectorized
-              b :: b_list := b_list;
-              vect_args := (if b then Expression.applySubscript(sub, arg) else arg) :: vect_args;
-            end for;
+            call_args := List.mapIndices(call_args, mk.vectorizedArgs,
+              function Expression.applySubscript(subscript = sub, restSubscripts = {}));
 
-            base_call.arguments := listReverse(vect_args);
             i := i + 1;
           end for;
 
-          vect_ty := Type.liftArrayLeftList(base_call.ty, vect_dims);
+          vect_ty := Type.liftArrayLeftList(base_call.ty, mk.vectDims);
+          base_call.arguments := call_args;
         then
           TYPED_ARRAY_CONSTRUCTOR(vect_ty, base_call.var, Expression.CALL(base_call), iters);
+
+      else
+        algorithm
+          Error.addInternalError(getInstanceName() + " got unknown call", info);
+        then
+          fail();
 
      end match;
   end vectorizeCall;

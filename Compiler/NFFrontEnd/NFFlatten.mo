@@ -89,6 +89,8 @@ import Restriction = NFRestriction;
 import EvalConstants = NFEvalConstants;
 import SimplifyModel = NFSimplifyModel;
 import InstNodeType = NFInstNode.InstNodeType;
+import ExpandableConnectors = NFExpandableConnectors;
+
 
 public
 type FunctionTree = FunctionTreeImpl.Tree;
@@ -314,6 +316,11 @@ algorithm
     //cond := flattenBinding(condition, prefix);
     exp := Binding.getTypedExp(cond);
     exp := Ceval.evalExp(exp, Ceval.EvalTarget.CONDITION(Binding.getInfo(cond)));
+
+    // Hack to make arrays work when all elements have the same value.
+    if Expression.arrayAllEqual(exp) then
+      exp := Expression.arrayFirstScalar(exp);
+    end if;
 
     isDeleted := match exp
       case Expression.BOOLEAN() then not exp.value;
@@ -921,9 +928,8 @@ algorithm
       algorithm
         e1 := flattenExp(eq.lhs, prefix);
         e2 := flattenExp(eq.rhs, prefix);
-        eql := flattenEquations(eq.broken, prefix);
       then
-        Equation.CONNECT(e1, e2, eql, eq.source) :: equations;
+        Equation.CONNECT(e1, e2, eq.source) :: equations;
 
     case Equation.IF()
       then flattenIfEquation(eq, prefix, equations);
@@ -1165,16 +1171,18 @@ protected
   CardinalityTable.Table ctable;
   Connections.BrokenEdges broken = {};
 algorithm
+  // get the connections from the model
+  (flatModel, conns) := Connections.collect(flatModel);
+  // Elaborate expandable connectors.
+  (flatModel, conns) := ExpandableConnectors.elaborate(flatModel, conns);
   // handle overconstrained connections
   // - build the graph
   // - evaluate the Connections.* operators
   // - generate the equations to replace the broken connects
   // - return the broken connects + the equations
   if  System.getHasOverconstrainedConnectors() then
-    (flatModel, broken) := NFOCConnectionGraph.handleOverconstrainedConnections(flatModel, name);
+    (flatModel, broken) := NFOCConnectionGraph.handleOverconstrainedConnections(flatModel, conns, name);
   end if;
-  // get the connections from the model
-  (flatModel, conns) := Connections.collect(flatModel);
   // add the broken connections
   conns := Connections.addBroken(broken, conns);
   // build the sets, check the broken connects
@@ -1190,6 +1198,7 @@ algorithm
 
   // add the equations to the flat model
   flatModel.equations := listAppend(conn_eql, flatModel.equations);
+  flatModel.variables := list(v for v guard Variable.isPresent(v) in flatModel.variables);
 
   ctable := CardinalityTable.fromConnections(conns);
 
@@ -1281,11 +1290,19 @@ end collectBindingFuncs;
 function collectTypeFuncs
   input Type ty;
   input output FunctionTree funcs;
+protected
 algorithm
-  () := match Type.arrayElementType(ty)
+  () := match ty
     local
       InstNode con, de;
       Function fn;
+
+    case Type.ARRAY()
+      algorithm
+        funcs := Dimension.foldExpList(ty.dimensions, collectExpFuncs_traverse, funcs);
+        funcs := collectTypeFuncs(ty.elementType, funcs);
+      then
+        ();
 
     case Type.FUNCTION(fn = fn)
       algorithm

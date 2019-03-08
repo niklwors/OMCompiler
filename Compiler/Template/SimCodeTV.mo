@@ -185,6 +185,12 @@ package builtin
     output TypeVar head;
   end listHead;
 
+  function stringHashDjb2Mod
+    input String str;
+    input Integer mod;
+    output Integer hash;
+  end stringHashDjb2Mod;
+
   uniontype SourceInfo "The Info attribute provides location information for elements and classes."
     record SOURCEINFO
       String fileName;
@@ -454,6 +460,25 @@ package SimCode
     end EXTOBJINFO;
   end ExtObjInfo;
   
+  uniontype OMSIData
+  record OMSI_DATA
+    OMSIFunction initialization;
+    OMSIFunction simulation;
+  end OMSI_DATA;
+end OMSIData;
+
+uniontype OMSIFunction
+  record OMSI_FUNCTION
+    list<SimEqSystem> equations;
+    list<SimCodeVar.SimVar> inputVars;
+    list<SimCodeVar.SimVar> outputVars;
+    list<SimCodeVar.SimVar> innerVars;
+    Integer nAllVars;
+    SimCodeFunction.Context context;
+    Integer nAlgebraicSystems;
+  end OMSI_FUNCTION;
+end OMSIFunction;
+
   uniontype OMSIData
   record OMSI_DATA
     OMSIFunction initialization;
@@ -1341,7 +1366,7 @@ end SimCodeFunctionUtil;
 
 package BackendDAE
 
-  uniontype VarKind "- Variabile kind"
+  uniontype VarKind "variabile kind"
     record VARIABLE end VARIABLE;
     record STATE
       Integer index;
@@ -1369,12 +1394,18 @@ package BackendDAE
     record OPT_LOOP_INPUT
       DAE.ComponentRef replaceExp;
     end OPT_LOOP_INPUT;
-  record ALG_STATE  end ALG_STATE; // algebraic state used by inline solver
-  record ALG_STATE_OLD  end ALG_STATE_OLD; // algebraic state old value used by inline solver
-  record DAE_RESIDUAL_VAR end DAE_RESIDUAL_VAR; // variable kind used for DAEmode
-  record DAE_AUX_VAR end DAE_AUX_VAR; // auxiliary variable used for DAEmode
-  record LOOP_ITERATION end LOOP_ITERATION; // used in SIMCODE, iteration variables in algebraic loops
-  record LOOP_SOLVED end LOOP_SOLVED; // used in SIMCODE, inner variables of a torn algebraic loop
+    record ALG_STATE        "algebraic state used by inline solver"
+    end ALG_STATE;
+    record ALG_STATE_OLD    "algebraic state old value used by inline solver"
+    end ALG_STATE_OLD;
+    record DAE_RESIDUAL_VAR "variable kind used for DAEmode"
+    end DAE_RESIDUAL_VAR;
+    record DAE_AUX_VAR      "auxiliary variable used for DAEmode"
+    end DAE_AUX_VAR;
+    record LOOP_ITERATION   "used in SIMCODE, iteration variables in algebraic loops"
+    end LOOP_ITERATION;
+    record LOOP_SOLVED      "used in SIMCODE, inner variables of a torn algebraic loop"
+    end LOOP_SOLVED;
   end VarKind;
 
   uniontype SubClock
@@ -1568,12 +1599,6 @@ package System
     input String s;
     output Integer result;
   end unescapedStringLength;
-
-  function stringHashDjb2Mod
-    input String str;
-    input Integer mod;
-    output Integer hash;
-  end stringHashDjb2Mod;
 
   function escapedString
     input String unescapedString;

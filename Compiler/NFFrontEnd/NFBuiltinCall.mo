@@ -99,53 +99,55 @@ public
     Expression first;
     list<Expression> rest;
     String name;
+    ExpOrigin.Type next_origin;
   algorithm
     Call.UNTYPED_CALL(ref = cref) := call;
+    next_origin := ExpOrigin.setFlag(origin, ExpOrigin.SUBEXPRESSION);
 
     (callExp, ty, variability) := match ComponentRef.firstName(cref)
-      case "String" then typeStringCall(call, origin, info);
-      case "branch" then typeBranchCall(call, origin, info);
-      case "cardinality" then typeCardinalityCall(call, origin, info);
-      case "cat" then typeCatCall(call, origin, info);
-      case "change" then typeChangeCall(call, origin, info);
-      case "der" then typeDerCall(call, origin, info);
-      case "diagonal" then typeDiagonalCall(call, origin, info);
-      case "edge" then typeEdgeCall(call, origin, info);
-      case "fill" then typeFillCall(call, origin, info);
+      case "String" then typeStringCall(call, next_origin, info);
+      case "branch" then typeBranchCall(call, next_origin, info);
+      case "cardinality" then typeCardinalityCall(call, next_origin, info);
+      case "cat" then typeCatCall(call, next_origin, info);
+      case "change" then typeChangeCall(call, next_origin, info);
+      case "der" then typeDerCall(call, next_origin, info);
+      case "diagonal" then typeDiagonalCall(call, next_origin, info);
+      case "edge" then typeEdgeCall(call, next_origin, info);
+      case "fill" then typeFillCall(call, next_origin, info);
       case "getInstanceName" then typeGetInstanceName(call);
-      case "initial" then typeDiscreteCall(call, origin, info);
-      case "isRoot" then typeIsRootCall(call, origin, info);
-      case "matrix" then typeMatrixCall(call, origin, info);
-      case "max" then typeMinMaxCall("max", call, origin, info);
-      case "min" then typeMinMaxCall("min", call, origin, info);
-      case "ndims" then typeNdimsCall(call, origin, info);
-      case "noEvent" then typeNoEventCall(call, origin, info);
-      case "ones" then typeZerosOnesCall("ones", call, origin, info);
-      case "potentialRoot" then typePotentialRootCall(call, origin, info);
-      case "pre" then typePreCall(call, origin, info);
-      case "product" then typeProductCall(call, origin, info);
-      case "root" then typeRootCall(call, origin, info);
-      case "rooted" then typeRootedCall(call, origin, info);
-      case "scalar" then typeScalarCall(call, origin, info);
-      case "smooth" then typeSmoothCall(call, origin, info);
-      case "sum" then typeSumCall(call, origin, info);
-      case "symmetric" then typeSymmetricCall(call, origin, info);
-      case "terminal" then typeDiscreteCall(call, origin, info);
-      case "transpose" then typeTransposeCall(call, origin, info);
-      case "vector" then typeVectorCall(call, origin, info);
-      case "zeros" then typeZerosOnesCall("zeros", call, origin, info);
-      case "Clock" guard Config.synchronousFeaturesAllowed() then typeClockCall(call, origin, info);
-      case "sample" then typeSampleCall(call, origin, info);
+      case "initial" then typeDiscreteCall(call, next_origin, info);
+      case "isRoot" then typeIsRootCall(call, next_origin, info);
+      case "matrix" then typeMatrixCall(call, next_origin, info);
+      case "max" then typeMinMaxCall("max", call, next_origin, info);
+      case "min" then typeMinMaxCall("min", call, next_origin, info);
+      case "ndims" then typeNdimsCall(call, next_origin, info);
+      case "noEvent" then typeNoEventCall(call, next_origin, info);
+      case "ones" then typeZerosOnesCall("ones", call, next_origin, info);
+      case "potentialRoot" then typePotentialRootCall(call, next_origin, info);
+      case "pre" then typePreCall(call, next_origin, info);
+      case "product" then typeProductCall(call, next_origin, info);
+      case "root" then typeRootCall(call, next_origin, info);
+      case "rooted" then typeRootedCall(call, next_origin, info);
+      case "scalar" then typeScalarCall(call, next_origin, info);
+      case "smooth" then typeSmoothCall(call, next_origin, info);
+      case "sum" then typeSumCall(call, next_origin, info);
+      case "symmetric" then typeSymmetricCall(call, next_origin, info);
+      case "terminal" then typeDiscreteCall(call, next_origin, info);
+      case "transpose" then typeTransposeCall(call, next_origin, info);
+      case "vector" then typeVectorCall(call, next_origin, info);
+      case "zeros" then typeZerosOnesCall("zeros", call, next_origin, info);
+      case "Clock" guard Config.synchronousFeaturesAllowed() then typeClockCall(call, next_origin, info);
+      case "sample" then typeSampleCall(call, next_origin, info);
       /*
-      case "hold" guard Config.synchronousFeaturesAllowed() then typeHoldCall(call, origin, info);
-      case "shiftSample" guard Config.synchronousFeaturesAllowed() then typeShiftSampleCall(call, origin, info);
-      case "backSample" guard Config.synchronousFeaturesAllowed() then typeBackSampleCall(call, origin, info);
-      case "noClock" guard Config.synchronousFeaturesAllowed() then typeNoClockCall(call, origin, info);
-      case "transition" guard Config.synchronousFeaturesAllowed() then typeTransitionCall(call, origin, info);
-      case "initialState" guard Config.synchronousFeaturesAllowed() then typeInitialStateCall(call, origin, info);
-      case "activeState" guard Config.synchronousFeaturesAllowed() then typeActiveStateCall(call, origin, info);
-      case "ticksInState" guard Config.synchronousFeaturesAllowed() then typeTicksInStateCall(call, origin, info);
-      case "timeInState" guard Config.synchronousFeaturesAllowed() then typeTimeInStateCall(call, origin, info);
+      case "hold" guard Config.synchronousFeaturesAllowed() then typeHoldCall(call, next_origin, info);
+      case "shiftSample" guard Config.synchronousFeaturesAllowed() then typeShiftSampleCall(call, next_origin, info);
+      case "backSample" guard Config.synchronousFeaturesAllowed() then typeBackSampleCall(call, next_origin, info);
+      case "noClock" guard Config.synchronousFeaturesAllowed() then typeNoClockCall(call, next_origin, info);
+      case "transition" guard Config.synchronousFeaturesAllowed() then typeTransitionCall(call, next_origin, info);
+      case "initialState" guard Config.synchronousFeaturesAllowed() then typeInitialStateCall(call, next_origin, info);
+      case "activeState" guard Config.synchronousFeaturesAllowed() then typeActiveStateCall(call, next_origin, info);
+      case "ticksInState" guard Config.synchronousFeaturesAllowed() then typeTicksInStateCall(call, next_origin, info);
+      case "timeInState" guard Config.synchronousFeaturesAllowed() then typeTimeInStateCall(call, next_origin, info);
       */
       else
         algorithm
@@ -591,7 +593,7 @@ protected
 
     if Type.isInteger(ety) then
       ty := Type.setArrayElementType(ty, Type.REAL());
-      arg := Expression.typeCastElements(arg, Type.REAL());
+      arg := Expression.typeCast(arg, Type.REAL());
     elseif not Type.isReal(ety) then
       Error.addSourceMessageAndFail(Error.ARG_TYPE_MISMATCH,
         {"1", ComponentRef.toString(fn_ref), "", Expression.toString(arg),
@@ -1279,6 +1281,15 @@ protected
     Function fn;
     InstNode node;
   algorithm
+    // cardinality may only be used in a condition of an assert or
+    // if-statement/equation (the specification says only if-statement,
+    // but e.g. the MSL only uses them in if-equations and asserts).
+    if not (ExpOrigin.flagSet(origin, ExpOrigin.CONDITION) and
+       (ExpOrigin.flagSet(origin, ExpOrigin.IF) or
+        ExpOrigin.flagSet(origin, ExpOrigin.ASSERT))) then
+      Error.addSourceMessageAndFail(Error.INVALID_CARDINALITY_CONTEXT, {}, info);
+    end if;
+
     Call.UNTYPED_CALL(ref = fn_ref, arguments = args, named_args = named_args) := call;
     assertNoNamedParams("cardinality", named_args, info);
 

@@ -182,6 +182,20 @@ public
     CREF(ty = ty) := cref;
   end nodeType;
 
+  function updateNodeType
+    input output ComponentRef cref;
+  algorithm
+    () := match cref
+      case CREF()
+        algorithm
+          cref.ty := InstNode.getType(cref.node);
+        then
+          ();
+
+      else ();
+    end match;
+  end updateNodeType;
+
   function firstName
     input ComponentRef cref;
     output String name;
@@ -248,7 +262,7 @@ public
       case CREF()
         then getSubscriptedType2(cref.restCref, Type.subscript(cref.ty, cref.subscripts));
       case EMPTY() then Type.UNKNOWN();
-      case WILD() then Type.ANY();
+      case WILD() then Type.UNKNOWN();
     end match;
   end getSubscriptedType;
 
@@ -464,7 +478,7 @@ public
         then
           dstCref;
 
-      case (CREF(), CREF()) guard referenceEq(srcCref.node, dstCref.node)
+      case (CREF(), CREF()) guard InstNode.refEqual(srcCref.node, dstCref.node)
         algorithm
           cref := transferSubscripts(srcCref.restCref, dstCref.restCref);
         then
@@ -646,7 +660,7 @@ public
   function hash
     input ComponentRef cref;
     input Integer mod;
-    output Integer hash = System.stringHashDjb2Mod(toString(cref), mod);
+    output Integer hash = stringHashDjb2Mod(toString(cref), mod);
   end hash;
 
   function toPath

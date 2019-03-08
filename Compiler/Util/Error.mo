@@ -472,7 +472,7 @@ public constant Message CIRCULAR_COMPONENTS = MESSAGE(170, TRANSLATION(), ERROR(
 public constant Message FAILURE_TO_DEDUCE_DIMS_FROM_MOD = MESSAGE(171, TRANSLATION(), WARNING(),
   Util.gettext("Failed to deduce dimensions of %s due to unknown dimensions of modifier %s."));
 public constant Message REPLACEABLE_BASE_CLASS = MESSAGE(172, TRANSLATION(), ERROR(),
-  Util.gettext("Class %s in extends %s is replaceable."));
+  Util.gettext("Class '%s' in 'extends %s' is replaceable, the base class name must be transitively non-replaceable."));
 public constant Message NON_REPLACEABLE_CLASS_EXTENDS = MESSAGE(173, TRANSLATION(), ERROR(),
   Util.gettext("Non-replaceable base class %s in class extends."));
 public constant Message ERROR_FROM_HERE = MESSAGE(174, TRANSLATION(), NOTIFICATION(),
@@ -816,6 +816,14 @@ public constant Message NO_SUCH_INPUT_PARAMETER = MESSAGE(343, TRANSLATION(), ER
   Util.gettext("Function %s has no input parameter named %s."));
 public constant Message INVALID_REDUCTION_TYPE = MESSAGE(344, TRANSLATION(), ERROR(),
   Util.gettext("Invalid expression ‘%s‘ of type %s in %s reduction, expected %s."));
+public constant Message INVALID_COMPONENT_PREFIX = MESSAGE(345, TRANSLATION(), ERROR(),
+  Util.gettext("Prefix ‘%s‘ on component ‘%s‘ not allowed in class specialization ‘%s‘."));
+public constant Message INVALID_CARDINALITY_CONTEXT = MESSAGE(346, TRANSLATION(), ERROR(),
+  Util.gettext("cardinality may only be used in the condition of an if-statement/equation or an assert."));
+public constant Message VARIABLE_BINDING_DIMS_MISMATCH = MESSAGE(347, TRANSLATION(), ERROR(),
+  Util.gettext("Type mismatch in binding ‘%s = %s‘, expected array dimensions %s, got %s."));
+public constant Message MODIFIER_NON_ARRAY_TYPE_ERROR = MESSAGE(348, TRANSLATION(), ERROR(),
+  Util.gettext("Non-array modification ‘%s‘ for array component ‘%s‘, possibly due to missing ‘each‘."));
 public constant Message INITIALIZATION_NOT_FULLY_SPECIFIED = MESSAGE(496, TRANSLATION(), WARNING(),
   Util.gettext("The initial conditions are not fully specified. %s."));
 public constant Message INITIALIZATION_OVER_SPECIFIED = MESSAGE(497, TRANSLATION(), WARNING(),

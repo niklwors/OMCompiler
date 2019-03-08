@@ -345,6 +345,16 @@ public
     end match;
   end isCref;
 
+  function isWildCref
+    input Expression exp;
+    output Boolean wild;
+  algorithm
+    wild := match exp
+      case CREF(cref = ComponentRef.WILD()) then true;
+      else false;
+    end match;
+  end isWildCref;
+
   function isCall
     input Expression exp;
     output Boolean isCall;
@@ -806,12 +816,6 @@ public
   end setType;
 
   function typeCast
-    input Expression exp;
-    input Type castTy;
-    output Expression castExp = CAST(castTy, exp);
-  end typeCast;
-
-  function typeCastElements
     input output Expression exp;
     input Type ty;
   algorithm
@@ -828,18 +832,19 @@ public
       case (ARRAY(ty = t, elements = el), _)
         algorithm
           ety := Type.arrayElementType(ty);
-          el := list(typeCastElements(e, ety) for e in el);
+          el := list(typeCast(e, ety) for e in el);
           t := Type.setArrayElementType(t, ty);
         then
           ARRAY(t, el, exp.literal);
 
       case (UNARY(), _)
-        then UNARY(exp.operator, typeCastElements(exp.exp, ty));
+        then UNARY(exp.operator, typeCast(exp.exp, ty));
 
       case (IF(), _)
-        then IF(exp.condition,
-                typeCastElements(exp.trueBranch, ty),
-                typeCastElements(exp.falseBranch, ty));
+        then IF(exp.condition, typeCast(exp.trueBranch, ty), typeCast(exp.falseBranch, ty));
+
+      case (CALL(), _)
+        then Call.typeCast(exp, ty);
 
       else
         algorithm
@@ -849,7 +854,7 @@ public
           CAST(t, exp);
 
     end match;
-  end typeCastElements;
+  end typeCast;
 
   function realValue
     input Expression exp;
@@ -1680,6 +1685,11 @@ public
 
     end match;
   end toDAE;
+
+  function toDAEValueOpt
+    input Option<Expression> exp;
+    output Option<Values.Value> value = Util.applyOption(exp, toDAEValue);
+  end toDAEValueOpt;
 
   function toDAEValue
     input Expression exp;

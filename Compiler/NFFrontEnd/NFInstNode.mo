@@ -362,6 +362,16 @@ uniontype InstNode
     end match;
   end isUserdefinedClass;
 
+  function isDerivedClass
+    input InstNode node;
+    output Boolean isDerived;
+  algorithm
+    isDerived := match node
+      case CLASS_NODE(nodeType = InstNodeType.DERIVED_CLASS()) then true;
+      else false;
+    end match;
+  end isDerivedClass;
+
   function isFunction
     input InstNode node;
     output Boolean isFunc;
@@ -413,12 +423,23 @@ uniontype InstNode
     end match;
   end isImplicit;
 
+  function isName
+    input InstNode node;
+    output Boolean isName;
+  algorithm
+    isName := match node
+      case NAME_NODE() then true;
+      else false;
+    end match;
+  end isName;
+
   function isConnector
     input InstNode node;
     output Boolean isConnector;
   algorithm
     isConnector := match node
       case COMPONENT_NODE() then Component.isConnector(component(node));
+      case NAME_NODE() then true;
       else false;
     end match;
   end isConnector;
@@ -489,7 +510,7 @@ uniontype InstNode
     "Returns the name of a scope, which in the case of a component is the name
      of the component's type, and for a class simply the name of the class."
     input InstNode node;
-    output String outName = name(classScope(node));
+    output String outName = name(classScope(explicitScope(node)));
   end scopeName;
 
   function typeName
@@ -755,7 +776,10 @@ uniontype InstNode
     input InstNode node;
     output InstNodeType nodeType;
   algorithm
-    CLASS_NODE(nodeType = nodeType) := node;
+    nodeType := match node
+      case CLASS_NODE() then node.nodeType;
+      case COMPONENT_NODE() then node.nodeType;
+    end match;
   end nodeType;
 
   function setNodeType
@@ -1211,6 +1235,12 @@ uniontype InstNode
     end match;
   end refEqual;
 
+  function nameEqual
+    input InstNode node1;
+    input InstNode node2;
+    output Boolean equal = InstNode.name(node1) == InstNode.name(node2);
+  end nameEqual;
+
   function isSame
     input InstNode node1;
     input InstNode node2;
@@ -1525,6 +1555,26 @@ uniontype InstNode
       else accumCmts;
     end match;
   end getComments;
+
+  function copyInstancePtr
+    input InstNode srcNode;
+    input output InstNode dstNode;
+  algorithm
+    () := match (srcNode, dstNode)
+      case (COMPONENT_NODE(), COMPONENT_NODE())
+        algorithm
+          dstNode.component := srcNode.component;
+        then
+          ();
+
+      case (CLASS_NODE(), CLASS_NODE())
+        algorithm
+          dstNode.cls := srcNode.cls;
+        then
+          ();
+
+    end match;
+  end copyInstancePtr;
 end InstNode;
 
 annotation(__OpenModelica_Interface="frontend");

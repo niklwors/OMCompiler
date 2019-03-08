@@ -135,6 +135,7 @@ package ExpOrigin
   constant Type SUBEXPRESSION   = intBitLShift(1, 16); // Part of a larger expression.
   constant Type CONNECT         = intBitLShift(1, 17); // Part of connect argument.
   constant Type NOEVENT         = intBitLShift(1, 18); // Part of noEvent argument.
+  constant Type ASSERT          = intBitLShift(1, 19); // Part of assert argument.
 
   // Combined flags:
   constant Type EQ_SUBEXPRESSION = intBitOr(EQUATION, SUBEXPRESSION);
@@ -288,13 +289,14 @@ protected
   Class cls, ty_cls;
   InstNode node;
   Function fn;
+  Boolean is_expandable;
 algorithm
   cls := InstNode.getClass(clsNode);
 
   ty := match cls
-    case Class.INSTANCED_CLASS(restriction = Restriction.CONNECTOR())
+    case Class.INSTANCED_CLASS(restriction = Restriction.CONNECTOR(isExpandable = is_expandable))
       algorithm
-        ty := Type.COMPLEX(clsNode, makeConnectorType(cls.elements));
+        ty := Type.COMPLEX(clsNode, makeConnectorType(cls.elements, is_expandable));
         cls.ty := ty;
         InstNode.updateClass(cls, clsNode);
       then
@@ -354,27 +356,42 @@ end typeClassType;
 
 function makeConnectorType
   input ClassTree ctree;
+  input Boolean isExpandable;
   output ComplexType connectorTy;
 protected
-  list<InstNode> pots = {}, flows = {}, streams = {};
-  ConnectorType cty;
+  list<InstNode> pots = {}, flows = {}, streams = {}, exps = {};
+  ConnectorType.Type cty;
 algorithm
-  for c in ClassTree.enumerateComponents(ctree) loop
-    cty := Component.connectorType(InstNode.component(c));
+  if isExpandable then
+    for c in ClassTree.enumerateComponents(ctree) loop
+      cty := Component.connectorType(InstNode.component(c));
 
-    if cty == ConnectorType.FLOW then
-      flows := c :: flows;
-    elseif cty == ConnectorType.STREAM then
-      streams := c :: streams;
-    elseif cty == ConnectorType.POTENTIAL then
-      pots := c :: pots;
-    else
-      Error.addInternalError("Invalid connector type on component " + InstNode.name(c), InstNode.info(c));
-      fail();
-    end if;
-  end for;
+      if intBitAnd(cty, ConnectorType.EXPANDABLE) > 0 then
+        exps := c :: exps;
+      else
+        pots := c :: pots;
+      end if;
+    end for;
 
-  connectorTy := ComplexType.CONNECTOR(pots, flows, streams, false);
+    connectorTy := ComplexType.EXPANDABLE_CONNECTOR(pots, exps);
+  else
+    for c in ClassTree.enumerateComponents(ctree) loop
+      cty := Component.connectorType(InstNode.component(c));
+
+      if intBitAnd(cty, ConnectorType.FLOW) > 0 then
+        flows := c :: flows;
+      elseif intBitAnd(cty, ConnectorType.STREAM) > 0 then
+        streams := c :: streams;
+      elseif intBitAnd(cty, ConnectorType.POTENTIAL) > 0 then
+        pots := c :: pots;
+      else
+        Error.addInternalError("Invalid connector type on component " + InstNode.name(c), InstNode.info(c));
+        fail();
+      end if;
+    end for;
+
+    connectorTy := ComplexType.CONNECTOR(pots, flows, streams);
+  end if;
 end makeConnectorType;
 
 function typeComponent
@@ -397,9 +414,6 @@ algorithm
         ty := Type.liftArrayLeftList(ty, arrayList(c.dimensions));
         InstNode.updateComponent(Component.setType(ty, c), node);
 
-        // Check that the component's attributes are valid.
-        checkComponentAttributes(c.attributes, component);
-
         // Type the component's children.
         typeComponents(c.classInst, origin);
       then
@@ -419,40 +433,6 @@ algorithm
 
   end match;
 end typeComponent;
-
-// TODO: Make this check part of the check that a class adheres to its
-//       restriction.
-function checkComponentAttributes
-  input Component.Attributes attributes;
-  input InstNode component;
-protected
-  Component.Attributes attr = attributes;
-  ConnectorType cty;
-algorithm
-  () := match attr
-    case Component.ATTRIBUTES(connectorType = cty)
-      algorithm
-        // The Modelica specification forbids using stream outside connector
-        // declarations, but has no such restriction for flow. To compromise we
-        // print a warning for both flow and stream.
-        if not checkConnectorType(component) then
-          if (cty == ConnectorType.STREAM or cty == ConnectorType.FLOW) then
-            Error.addSourceMessage(Error.CONNECTOR_PREFIX_OUTSIDE_CONNECTOR,
-              {Prefixes.connectorTypeString(cty)}, InstNode.info(component));
-          end if;
-          // Remove the prefix from the component, to avoid issues like a flow
-          // equation being generated for it.
-          if not (InstNode.isEmpty(component) or InstNode.isInnerOuterNode(component)) then
-            attr.connectorType := ConnectorType.NON_CONNECTOR;
-            InstNode.componentApply(component, Component.setAttributes, attr);
-          end if;
-        end if;
-      then
-        ();
-
-    else ();
-  end match;
-end checkComponentAttributes;
 
 function checkConnectorType
   input InstNode node;
@@ -2042,6 +2022,10 @@ protected
 algorithm
   cond_exp := Ceval.evalExp(condExp, Ceval.EvalTarget.GENERIC(info));
 
+  if Expression.arrayAllEqual(cond_exp) then
+    cond_exp := Expression.arrayFirstScalar(cond_exp);
+  end if;
+
   condBool := match cond_exp
     case Expression.BOOLEAN() then cond_exp.value;
     else
@@ -2423,9 +2407,11 @@ algorithm
     case Equation.ASSERT()
       algorithm
         info := ElementSource.getInfo(eq.source);
-        e1 := typeOperatorArg(eq.condition, Type.BOOLEAN(), origin, "assert", "condition", 1, info);
-        e2 := typeOperatorArg(eq.message, Type.STRING(), origin, "assert", "message", 2, info);
-        e3 := typeOperatorArg(eq.level, NFBuiltin.ASSERTIONLEVEL_TYPE, origin, "assert", "level", 3, info);
+        next_origin := ExpOrigin.setFlag(origin, ExpOrigin.ASSERT);
+        e1 := typeOperatorArg(eq.condition, Type.BOOLEAN(),
+          ExpOrigin.setFlag(next_origin, ExpOrigin.CONDITION), "assert", "condition", 1, info);
+        e2 := typeOperatorArg(eq.message, Type.STRING(), next_origin, "assert", "message", 2, info);
+        e3 := typeOperatorArg(eq.level, NFBuiltin.ASSERTIONLEVEL_TYPE, next_origin, "assert", "level", 3, info);
       then
         Equation.ASSERT(e1, e2, e3, eq.source);
 
@@ -2479,144 +2465,53 @@ algorithm
   end if;
 
   next_origin := ExpOrigin.setFlag(origin, ExpOrigin.CONNECT);
+  (lhs, lhs_ty) := typeConnector(lhsConn, next_origin, info);
+  (rhs, rhs_ty) := typeConnector(rhsConn, next_origin, info);
 
-  try // try the normal stuff first!
-    (lhs, lhs_ty, lhs_var) := typeExp(lhsConn, next_origin, info);
-    (rhs, rhs_ty, rhs_var) := typeExp(rhsConn, next_origin, info);
-  else // either is an error or there are expandable connectors in there
-    // check if any of them are expandable connectors!
-    if InstNode.hasParentExpandableConnector(ComponentRef.node(Expression.toCref(lhsConn))) or
-       InstNode.hasParentExpandableConnector(ComponentRef.node(Expression.toCref(rhsConn)))
-    then // handle expandable
-      (lhs, rhs, lhs_ty, lhs_var, rhs_ty, rhs_var) := typeExpandableConnectors(lhsConn, rhsConn, next_origin, info);
+  // Check that the connectors have matching types, but only if they're not expandable.
+  // Expandable connectors can only be type checked after they've been augmented during
+  // the connection handling.
+  if not (Type.isExpandableConnector(lhs_ty) or Type.isExpandableConnector(rhs_ty)) then
+    (lhs, rhs, _, mk) := TypeCheck.matchExpressions(lhs, lhs_ty, rhs, rhs_ty, allowUnknown = true);
+
+    if TypeCheck.isIncompatibleMatch(mk) then
+      // TODO: Better error message.
+      Error.addSourceMessage(Error.INVALID_CONNECTOR_VARIABLE,
+        {Expression.toString(lhsConn), Expression.toString(rhsConn)}, info);
+      fail();
     end if;
-  end try;
-
-  checkConnector(lhs, info);
-  checkConnector(rhs, info);
-
-  (lhs, rhs, _, mk) := TypeCheck.matchExpressions(lhs, lhs_ty, rhs, rhs_ty);
-
-  if TypeCheck.isIncompatibleMatch(mk) then
-    // TODO: Better error message.
-    Error.addSourceMessage(Error.INVALID_CONNECTOR_VARIABLE,
-      {Expression.toString(lhsConn), Expression.toString(rhsConn)}, info);
-    fail();
   end if;
 
-  // TODO: No point in doing this here since connectors aren't allowed to have
-  //       variability prefixes. We should check each individual connection once
-  //       the connections have been expanded during flattening instead.
-  // It's an error if either connector is constant/parameter while the other isn't.
-  //if (lhs_var <= Variability.PARAMETER) <> (rhs_var <= Varibility.PARAMETER then
-  //  if lhs_var > Variability.PARAMETER then
-  //    (lhs, rhs, lhs_var) := (rhs, lhs, rhs_var);
-  //  end if;
-
-  //  Error.addSourceMessage(Error.INCOMPATIBLE_CONNECTOR_VARIABILITY,
-  //    {Expression.toString(lhs), Prefixes.variabilityString(lhs_var),
-  //     Expression.toString(rhs)}, info);
-  //  fail();
-  //end if;
-
-  connEq := Equation.CONNECT(lhs, rhs, {}, source);
+  connEq := Equation.CONNECT(lhs, rhs, source);
 end typeConnect;
 
-function typeExpandableConnectors
-  input output Expression lhs;
-  input output Expression rhs;
+function typeConnector
+  input output Expression connExp;
   input ExpOrigin.Type origin;
   input SourceInfo info;
-        output Type tyLHS;
-        output Variability variabilityLHS;
-        output Type tyRHS;
-        output Variability variabilityRHS;
+        output Type ty;
 algorithm
-  // first, try to type both of them, they might already exist
-  try
-    (lhs, tyLHS, variabilityLHS) := typeExp(lhs, origin, info);
-    (rhs, tyRHS, variabilityRHS) := typeExp(rhs, origin, info);
-    return;
-  else
-    // do nothing, continue
-  end try;
-
-  // lhs existing, type it and use it!
-  if InstNode.isConnector(ComponentRef.node(Expression.toCref(lhs))) then
-    (lhs, tyLHS, variabilityLHS) := typeExp(lhs, origin, info);
-    tyRHS := tyLHS;
-    variabilityRHS := variabilityLHS;
-    rhs := updateVirtualCrefExp(rhs, lhs, tyLHS, variabilityLHS);
-    return;
-  end if;
-
-  // rhs existing, reuse the case above
-  (rhs, lhs, tyRHS, variabilityRHS, tyLHS, variabilityLHS) := typeExpandableConnectors(rhs, lhs, origin, info);
-
-  if InstNode.hasParentExpandableConnector(ComponentRef.node(Expression.toCref(rhs))) or
-     InstNode.hasParentExpandableConnector(ComponentRef.node(Expression.toCref(rhs)))
-  then
-    // error, we don't handle this case yet!
-  end if;
-end typeExpandableConnectors;
-
-function updateVirtualCrefExp
-  input output Expression virtual;
-  input Expression existing;
-  input Type ty;
-  input Variability var;
-protected
-  ComponentRef v, e;
-algorithm
-  virtual := match(virtual, existing)
-    case (Expression.CREF(_, v), Expression.CREF(_, e)) then Expression.CREF(ty, updateVirtualCref(v, e, ty, var));
-  end match;
-end updateVirtualCrefExp;
-
-function updateVirtualCref
-  input output ComponentRef virtual;
-  input ComponentRef existing;
-  input Type ty;
-  input Variability var;
-protected
-  InstNode e;
-algorithm
- virtual := match (virtual, existing)
-      case (ComponentRef.CREF(), ComponentRef.CREF())
-        algorithm
-          virtual.ty := existing.ty;
-          // set the correct parrent
-          e := InstNode.setParent(existing.node, ComponentRef.node(virtual.restCref));
-          // change the name!
-          e := InstNode.rename(InstNode.name(virtual.node), e);
-          virtual.node := e;
-          virtual.origin := existing.origin;
-        then
-          virtual;
-
-    end match;
-end updateVirtualCref;
+  (connExp, ty, _) := typeExp(connExp, origin, info);
+  checkConnector(connExp, info);
+end typeConnector;
 
 function checkConnector
   input Expression connExp;
   input SourceInfo info;
 protected
-  ComponentRef cr, rest_cr;
+  ComponentRef cr;
 algorithm
   () := match connExp
     case Expression.CREF(cref = cr as ComponentRef.CREF(origin = Origin.CREF))
       algorithm
         if not InstNode.isConnector(cr.node) then
-          if not InstNode.hasParentExpandableConnector(cr.node) then
-            Error.addSourceMessage(Error.INVALID_CONNECTOR_TYPE,
-              {ComponentRef.toString(cr)}, info);
-            fail();
-          end if;
+          Error.addSourceMessageAndFail(Error.INVALID_CONNECTOR_TYPE,
+            {ComponentRef.toString(cr)}, info);
         end if;
 
-        // expandable connectors can have the form eC.C.m, eC.m
-        if not InstNode.hasParentExpandableConnector(cr.node) then
-          checkConnectorForm(cr, info);
+        if not checkConnectorForm(cr) then
+          Error.addSourceMessageAndFail(Error.INVALID_CONNECTOR_FORM,
+            {ComponentRef.toString(cr)}, info);
         end if;
       then
         ();
@@ -2634,25 +2529,17 @@ function checkConnectorForm
   "Helper function for checkConnector. Checks that a connector cref uses the
    correct form, i.e. either c1.c2...cn or m.c."
   input ComponentRef cref;
-  input SourceInfo info;
-  input Boolean foundConnector = true;
+  input Boolean isConnector = true;
+  output Boolean valid;
 algorithm
-  () := match cref
+  valid := match cref
+    // The only part of the connector reference allowed to not be a
+    // non-connector is the very last part.
     case ComponentRef.CREF(origin = Origin.CREF)
-      algorithm
-        // The only part of the connector reference allowed to not be a
-        // non-connector is the very last part.
-        if not foundConnector then
-          Error.addSourceMessage(Error.INVALID_CONNECTOR_FORM,
-            {ComponentRef.toString(cref)}, info);
-          fail();
-        end if;
+      then if isConnector then
+        checkConnectorForm(cref.restCref, InstNode.isConnector(cref.node)) else false;
 
-        checkConnectorForm(cref.restCref, info, InstNode.isConnector(cref.node));
-      then
-        ();
-
-    else ();
+    else true;
   end match;
 end checkConnectorForm;
 
@@ -2682,7 +2569,7 @@ algorithm
       list<tuple<Expression, list<Statement>>> tybrs;
       InstNode iterator;
       MatchKind mk;
-      Integer next_origin;
+      ExpOrigin.Type next_origin, cond_origin;
       SourceInfo info;
 
     case Statement.ASSIGNMENT()
@@ -2722,11 +2609,14 @@ algorithm
 
     case Statement.IF()
       algorithm
+        next_origin := ExpOrigin.setFlag(origin, ExpOrigin.IF);
+        cond_origin := ExpOrigin.setFlag(next_origin, ExpOrigin.CONDITION);
+
         tybrs := list(
           match br case(cond, body)
             algorithm
-              e1 := typeCondition(cond, origin, st.source, Error.IF_CONDITION_TYPE_ERROR);
-              sts1 := list(typeStatement(bst, origin) for bst in body);
+              e1 := typeCondition(cond, cond_origin, st.source, Error.IF_CONDITION_TYPE_ERROR);
+              sts1 := list(typeStatement(bst, next_origin) for bst in body);
             then (e1, sts1);
           end match
         for br in st.branches);
@@ -2751,9 +2641,11 @@ algorithm
     case Statement.ASSERT()
       algorithm
         info := ElementSource.getInfo(st.source);
-        e1 := typeOperatorArg(st.condition, Type.BOOLEAN(), origin, "assert", "condition", 1, info);
-        e2 := typeOperatorArg(st.message, Type.STRING(), origin, "assert", "message", 2, info);
-        e3 := typeOperatorArg(st.level, NFBuiltin.ASSERTIONLEVEL_TYPE, origin, "assert", "level", 3, info);
+        next_origin := ExpOrigin.setFlag(origin, ExpOrigin.ASSERT);
+        e1 := typeOperatorArg(st.condition, Type.BOOLEAN(),
+          ExpOrigin.setFlag(next_origin, ExpOrigin.CONDITION), "assert", "condition", 1, info);
+        e2 := typeOperatorArg(st.message, Type.STRING(), next_origin, "assert", "message", 2, info);
+        e3 := typeOperatorArg(st.level, NFBuiltin.ASSERTIONLEVEL_TYPE, next_origin, "assert", "level", 3, info);
       then
         Statement.ASSERT(e1, e2, e3, st.source);
 
@@ -2838,12 +2730,13 @@ protected
   list<Equation> eql;
   Variability accum_var = Variability.CONSTANT, var;
   list<Equation.Branch> bl = {}, bl2 = {};
-  Integer next_origin = origin;
+  ExpOrigin.Type next_origin = ExpOrigin.setFlag(origin, ExpOrigin.IF);
+  ExpOrigin.Type cond_origin = ExpOrigin.setFlag(next_origin, ExpOrigin.CONDITION);
 algorithm
   // Type the conditions of all the branches.
   for b in branches loop
     Equation.Branch.BRANCH(cond, _, eql) := b;
-    (cond, var) := typeCondition(cond, origin, source, Error.IF_CONDITION_TYPE_ERROR);
+    (cond, var) := typeCondition(cond, cond_origin, source, Error.IF_CONDITION_TYPE_ERROR);
 
     if var > Variability.PARAMETER or isNonExpandableExp(cond) then
       // If the condition doesn't fulfill the requirements for allowing

@@ -5434,7 +5434,7 @@ case rel as RELATION(__) then
         case GREATEREQ(__) then
           let &preExp += '<%res%> = <%e1%> >= <%e2%>;<%\n%>'
           <<>>
-        end match 
+        end match
       if intEq(rel.index,-1) then
         res
       else
@@ -6077,13 +6077,11 @@ simple_alloc_1d_base_array(&<%tvar%>, <%nElts%>, <%tvardata%>);
     let &preExp += 'identity_alloc_<%arr_tp_str%>(<%var1%>, &<%tvar%>);<%\n%>'
     tvar
 
-  case CALL(path=IDENT(name="diagonal"), expLst={A as ARRAY(__)}) then
+  case CALL(path=IDENT(name="diagonal"), expLst={A}) then
+    let var1 = daeExpAsLValue(A, context, &preExp, &varDecls, &auxFunction)
     let arr_tp_str = expTypeFromExpArray(A)
     let tvar = tempDecl(arr_tp_str, &varDecls)
-    let params = (A.array |> e =>
-      daeExp(e, context, &preExp, &varDecls, &auxFunction)
-    ;separator=", ")
-    let &preExp += 'diagonal_alloc_<%arr_tp_str%>(&<%tvar%>, <%listLength(A.array)%>, <%params%>);<%\n%>'
+    let &preExp += 'diagonal_alloc_<%arr_tp_str%>(&<%var1%>, &<%tvar%>);<%\n%>'
     tvar
 
   case CALL(path=IDENT(name="String"), expLst={s, format}) then
@@ -7187,7 +7185,6 @@ end crefShortType;
 
 template varArrayNameValues(SimVar var, Integer ix, Boolean isPre, Boolean isStart)
 ::=
-
   match Config.simCodeTarget()
     case "omsic"
     case "omsicpp" then
@@ -7209,7 +7206,7 @@ template varArrayNameValues(SimVar var, Integer ix, Boolean isPre, Boolean isSta
       match var
         case SIMVAR(varKind=PARAM())
         case SIMVAR(varKind=OPT_TGRID()) then
-          'data->simulationInfo-><%crefShortType(name)%>Parameter[<%index%>]'
+          'data->simulationInfo-><%crefShortType(name)%>Parameter[<%index%>] /* <%escapeCComments(crefStrNoUnderscore(name))%> <%variabilityString(varKind)%> */'
         case SIMVAR(varKind=EXTOBJ()) then
           'data->simulationInfo->extObjs[<%index%>]'
         case SIMVAR(__) then
