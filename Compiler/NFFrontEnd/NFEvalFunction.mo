@@ -881,6 +881,7 @@ function isKnownLibraryExp
 algorithm
   isKnown := match exp
     case Absyn.STRING("ModelicaExternalC") then true;
+    case Absyn.STRING("ModelicaIO") then true;
     case Absyn.ARRAY() then List.exist(exp.arrayExp, isKnownLibraryExp);
     else false;
   end match;
@@ -920,6 +921,7 @@ algorithm
       Integer i, i2;
       Boolean b;
       Real r;
+      Integer dims[2];
 
     case ("ModelicaInternal_countLines", {Expression.STRING(s1)})
       then Expression.INTEGER(ModelicaExternalC.Streams_countLines(s1));
@@ -976,6 +978,16 @@ algorithm
 
     case ("OpenModelica_regex", _) then evaluateOpenModelicaRegex(args);
 
+    case ("ModelicaIO_readMatrixSizes", {Expression.STRING(s1), Expression.STRING(s2)})
+      algorithm
+        dims := ModelicaExternalC.ModelicaIO_readMatrixSizes(s1, s2);
+      then
+        Expression.ARRAY(Type.INTEGER(), {Expression.INTEGER(dims[1]), Expression.INTEGER(dims[2])}, true);
+
+    case ("ModelicaIO_readRealMatrix",
+        {Expression.STRING(s1), Expression.STRING(s2), Expression.INTEGER(i), Expression.INTEGER(i2), Expression.BOOLEAN(b)})
+      then evaluateModelicaIO_readRealMatrix(s1, s2, i, i2, b);
+
     else
       algorithm
         Error.assertion(false, getInstanceName() + ": failed to evaluate " + name, sourceInfo());
@@ -1016,6 +1028,33 @@ algorithm
         fail();
   end match;
 end evaluateOpenModelicaRegex;
+
+function evaluateModelicaIO_readRealMatrix
+  input String fileName;
+  input String matrixName;
+  input Integer nrow;
+  input Integer ncol;
+  input Boolean verboseRead;
+  output Expression result;
+protected
+  Real[nrow, ncol] matrix;
+  list<Expression> row, rows = {};
+  Type ty;
+algorithm
+  matrix := ModelicaExternalC.ModelicaIO_readRealMatrix(fileName, matrixName, nrow, ncol, verboseRead);
+  ty := Type.ARRAY(Type.REAL(), {Dimension.fromInteger(ncol)});
+
+  for r in 1:nrow loop
+    row := {};
+    for c in 1:ncol loop
+      row := Expression.REAL(matrix[r, c]) :: row;
+    end for;
+    rows := Expression.ARRAY(ty, row, literal = true) :: rows;
+  end for;
+
+  ty := Type.liftArrayLeft(ty, Dimension.fromInteger(nrow));
+  result := Expression.ARRAY(ty, rows, literal = true);
+end evaluateModelicaIO_readRealMatrix;
 
 function evaluateExternal2
   input String name;

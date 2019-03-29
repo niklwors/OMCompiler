@@ -781,7 +781,7 @@ algorithm
 
     case (cache,_,"list",_,_) then (cache,Values.STRING(""));
 
-    case (cache,_,"listFile",{Values.CODE(Absyn.C_TYPENAME(className))},_)
+    case (cache,_,"listFile",{Values.CODE(Absyn.C_TYPENAME(className)),Values.BOOL(b)},_)
       equation
         path = match className
           case Absyn.FULLYQUALIFIED() then className.path;
@@ -790,6 +790,7 @@ algorithm
         // handle encryption
         Values.ENUM_LITERAL(index=access) = Interactive.checkAccessAnnotationAndEncryption(path, SymbolTable.getAbsyn());
         (absynClass as Absyn.CLASS(restriction=restriction, info=SOURCEINFO(fileName=str))) = Interactive.getPathedClassInProgram(className, SymbolTable.getAbsyn());
+        absynClass = if b then absynClass else Absyn.filterNestedClasses(absynClass);
         /* If the class has Access.packageText annotation or higher
          * If the class has Access.nonPackageText annotation or higher and class is not a package
          */
@@ -1485,11 +1486,11 @@ algorithm
               s1 = System.basename(filename);
               s2 = Util.removeLast4Char(s1);
               // possible .moc files to look for
-              filename1 = workdir + "/" + s2 + "/" + s2 + ".moc";
+              filename1 = workdir + "/" + s2 + ".moc";
               filename2 = workdir + "/" + s2 + "/package.moc";
               filename_1 = if System.regularFileExists(filename1) then filename1 else filename2;
               // possible .mo files to look for
-              str1 = workdir + "/" + s2 + "/" + s2 + ".mo";
+              str1 = workdir + "/" + s2 + ".mo";
               str2 = workdir + "/" + s2 + "/package.mo";
               str = if System.regularFileExists(str1) then str1 else str2;
               // check if .mol contains .moc or .mo files

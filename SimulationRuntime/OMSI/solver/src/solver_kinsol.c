@@ -39,6 +39,7 @@
 
 #include <solver_kinsol.h>
 
+#define UNUSED(x) (void)(x)     /* ToDo: delete later */
 
 /*
  * ============================================================================
@@ -152,11 +153,12 @@ solver_real* solver_kinsol_get_start_vector (solver_data*  general_solver_data)
 /**
  * Set dimension `dim_n` of function `f` in kinsol specific solver data.
  *
- * \param [in,out]  general_solver_data     Solver instance.
- * \param [in]      user_data               Pointer to user_data needed in user provided
- *                                          residual wrapper function. Can be `NULL`.
- * \return          solver_status           solver_ok on success and
- *                                          solver_error on failure.
+ * \param [in,out]  general_solver_data         Solver instance.
+ * \param [in]      user_wrapper_res_function   User provided residual wrapper function.
+ * \param [in]      user_data                   Pointer to `user_data` needed in user provided
+ *                                              residual wrapper function. Can be `NULL`.
+ * \return          solver_status               `solver_ok` on success and
+ *                                              `solver_error` on failure.
  */
 solver_status solver_kinsol_init_data(solver_data*              general_solver_data,
                                       residual_wrapper_func     user_wrapper_res_function,
@@ -295,9 +297,9 @@ solver_status solver_kinsol_free_data(solver_data* general_solver_data)
  * This function is of type `KINSysFn` and will be used by Kinsol solver
  * to evaluate `f(x)`
  *
- * \param [in]      x           Dependent variable vector `x`
- * \param [out]     fval        Set fval to `f(x)`.
- * \param [in,out]  userData
+ * \param [in]      x               Dependent variable vector `x`
+ * \param [out]     fval            Set fval to `f(x)`.
+ * \param [in,out]  user_data_in
  * \return          solver_int  Return value is ignored from Kinsol.
  */
 solver_int solver_kinsol_residual_wrapper(N_Vector  x,
@@ -351,7 +353,13 @@ solver_int solver_kinsol_jacobian_wrapper(long int N,
 {
 
     /* ToDo: Insert smart stuff here */
-
+    UNUSED(N);
+    UNUSED(u);
+    UNUSED(fu);
+    UNUSED(J);
+    UNUSED(user_data);
+    UNUSED(tmp1);
+    UNUSED(tmp2);
 
     return -1;
 }

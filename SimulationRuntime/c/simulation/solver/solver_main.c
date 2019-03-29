@@ -512,6 +512,7 @@ int finishSimulation(DATA* data, threadData_t *threadData, SOLVER_INFO* solverIn
 
   int retValue = 0;
   int ui;
+  double t, total100;
 
   SIMULATION_INFO *simInfo = data->simulationInfo;
 
@@ -545,22 +546,23 @@ int finishSimulation(DATA* data, threadData_t *threadData, SOLVER_INFO* solverIn
 
     infoStreamPrint(LOG_STATS, 1, "### STATISTICS ###");
 
+    total100 = rt_accumulated(SIM_TIMER_TOTAL)/100.0;
+
     infoStreamPrint(LOG_STATS, 1, "timer");
     infoStreamPrint(LOG_STATS, 0, "%12gs          reading init.xml", rt_accumulated(SIM_TIMER_INIT_XML));
     infoStreamPrint(LOG_STATS, 0, "%12gs          reading info.xml", rt_accumulated(SIM_TIMER_INFO_XML));
-    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] pre-initialization", rt_accumulated(SIM_TIMER_PREINIT), rt_accumulated(SIM_TIMER_PREINIT)/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
-    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] initialization", rt_accumulated(SIM_TIMER_INIT), rt_accumulated(SIM_TIMER_INIT)/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
-    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] steps", rt_accumulated(SIM_TIMER_STEP), rt_accumulated(SIM_TIMER_STEP)/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
-    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] creating output-file", rt_accumulated(SIM_TIMER_OUTPUT), rt_accumulated(SIM_TIMER_OUTPUT)/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
-    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] event-handling", rt_accumulated(SIM_TIMER_EVENT), rt_accumulated(SIM_TIMER_EVENT)/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
-    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] overhead", rt_accumulated(SIM_TIMER_OVERHEAD), rt_accumulated(SIM_TIMER_OVERHEAD)/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] pre-initialization", rt_accumulated(SIM_TIMER_PREINIT), rt_accumulated(SIM_TIMER_PREINIT)/total100);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] initialization", rt_accumulated(SIM_TIMER_INIT), rt_accumulated(SIM_TIMER_INIT)/total100);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] steps", rt_accumulated(SIM_TIMER_STEP), rt_accumulated(SIM_TIMER_STEP)/total100);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] solver (excl. callbacks)", rt_accumulated(SIM_TIMER_SOLVER), rt_accumulated(SIM_TIMER_SOLVER)/total100);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] creating output-file", rt_accumulated(SIM_TIMER_OUTPUT), rt_accumulated(SIM_TIMER_OUTPUT)/total100);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] event-handling", rt_accumulated(SIM_TIMER_EVENT), rt_accumulated(SIM_TIMER_EVENT)/total100);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] overhead", rt_accumulated(SIM_TIMER_OVERHEAD), rt_accumulated(SIM_TIMER_OVERHEAD)/total100);
 
-    if(S_OPTIMIZATION != solverInfo->solverMethod)
-      infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] simulation", rt_accumulated(SIM_TIMER_TOTAL)-rt_accumulated(SIM_TIMER_OVERHEAD)-rt_accumulated(SIM_TIMER_EVENT)-rt_accumulated(SIM_TIMER_OUTPUT)-rt_accumulated(SIM_TIMER_STEP)-rt_accumulated(SIM_TIMER_INIT)-rt_accumulated(SIM_TIMER_PREINIT), (rt_accumulated(SIM_TIMER_TOTAL)-rt_accumulated(SIM_TIMER_OVERHEAD)-rt_accumulated(SIM_TIMER_EVENT)-rt_accumulated(SIM_TIMER_OUTPUT)-rt_accumulated(SIM_TIMER_STEP)-rt_accumulated(SIM_TIMER_INIT)-rt_accumulated(SIM_TIMER_PREINIT))/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
-    else
-      infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] optimization", rt_accumulated(SIM_TIMER_TOTAL)-rt_accumulated(SIM_TIMER_OVERHEAD)-rt_accumulated(SIM_TIMER_EVENT)-rt_accumulated(SIM_TIMER_OUTPUT)-rt_accumulated(SIM_TIMER_STEP)-rt_accumulated(SIM_TIMER_INIT)-rt_accumulated(SIM_TIMER_PREINIT), (rt_accumulated(SIM_TIMER_TOTAL)-rt_accumulated(SIM_TIMER_OVERHEAD)-rt_accumulated(SIM_TIMER_EVENT)-rt_accumulated(SIM_TIMER_OUTPUT)-rt_accumulated(SIM_TIMER_STEP)-rt_accumulated(SIM_TIMER_INIT)-rt_accumulated(SIM_TIMER_PREINIT))/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
+    t = rt_accumulated(SIM_TIMER_TOTAL)-rt_accumulated(SIM_TIMER_OVERHEAD)-rt_accumulated(SIM_TIMER_EVENT)-rt_accumulated(SIM_TIMER_OUTPUT)-rt_accumulated(SIM_TIMER_STEP)-rt_accumulated(SIM_TIMER_INIT)-rt_accumulated(SIM_TIMER_PREINIT)-rt_accumulated(SIM_TIMER_SOLVER);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] %s", t, t/total100, S_OPTIMIZATION == solverInfo->solverMethod ? "optimization" : "simulation");
 
-    infoStreamPrint(LOG_STATS, 0, "%12gs [%5.1f%%] total", rt_accumulated(SIM_TIMER_TOTAL), rt_accumulated(SIM_TIMER_TOTAL)/rt_accumulated(SIM_TIMER_TOTAL)*100.0);
+    infoStreamPrint(LOG_STATS, 0, "%12gs [100.0%%] total", rt_accumulated(SIM_TIMER_TOTAL));
     messageClose(LOG_STATS);
 
     infoStreamPrint(LOG_STATS, 1, "events");
@@ -580,27 +582,52 @@ int finishSimulation(DATA* data, threadData_t *threadData, SOLVER_INFO* solverIn
 
       infoStreamPrint(LOG_STATS, 1, "solver: %s", SOLVER_METHOD_NAME[solverInfo->solverMethod]);
       infoStreamPrint(LOG_STATS, 0, "%5d steps taken", solverInfo->solverStats[0]);
+
       infoStreamPrint(LOG_STATS, 0, "%5d calls of functionODE", solverInfo->solverStats[1]);
+
       infoStreamPrint(LOG_STATS, 0, "%5d evaluations of jacobian", solverInfo->solverStats[2]);
+
       infoStreamPrint(LOG_STATS, 0, "%5d error test failures", solverInfo->solverStats[3]);
       infoStreamPrint(LOG_STATS, 0, "%5d convergence test failures", solverInfo->solverStats[4]);
-      infoStreamPrint(LOG_STATS, 0, "%gs time of jacobian evaluation", rt_accumulated(SIM_TIMER_JACOBIAN));
       messageClose(LOG_STATS);
     }
 
     infoStreamPrint(LOG_STATS_V, 1, "function calls");
     if (compiledInDAEMode)
     {
-      infoStreamPrint(LOG_STATS_V, 0, "%5ld calls of functionDAE", data->simulationInfo->callStatistics.functionEvalDAE);
+      infoStreamPrint(LOG_STATS_V, 1, "%5ld calls of functionDAE", rt_ncall(SIM_TIMER_DAE));
+      infoStreamPrint(LOG_STATS_V, 0, "%12gs [%5.1f%%]", rt_accumulated(SIM_TIMER_DAE), rt_accumulated(SIM_TIMER_DAE)/total100);
+      messageClose(LOG_STATS_V);
     }
-    else
-    {
-      infoStreamPrint(LOG_STATS_V, 0, "%5ld calls of functionODE", data->simulationInfo->callStatistics.functionODE);
+    if (data->simulationInfo->callStatistics.functionODE) {
+      infoStreamPrint(LOG_STATS_V, 1, "%5ld calls of functionODE", data->simulationInfo->callStatistics.functionODE);
+      infoStreamPrint(LOG_STATS_V, 0, "%12gs [%5.1f%%]", rt_accumulated(SIM_TIMER_FUNCTION_ODE), rt_accumulated(SIM_TIMER_FUNCTION_ODE)/total100);
+      messageClose(LOG_STATS_V);
     }
-    infoStreamPrint(LOG_STATS_V, 0, "%5ld calls of functionAlgebraics", data->simulationInfo->callStatistics.functionAlgebraics);
+
+    if (rt_ncall(SIM_TIMER_RESIDUALS)) {
+      infoStreamPrint(LOG_STATS_V, 1, "%5d calls of functionODE_residual", rt_ncall(SIM_TIMER_RESIDUALS));
+      infoStreamPrint(LOG_STATS_V, 0, "%12gs [%5.1f%%]", rt_accumulated(SIM_TIMER_RESIDUALS), rt_accumulated(SIM_TIMER_RESIDUALS)/total100);
+      messageClose(LOG_STATS_V);
+    }
+
+    if (data->simulationInfo->callStatistics.functionAlgebraics) {
+      infoStreamPrint(LOG_STATS_V, 1, "%5d calls of functionAlgebraics", data->simulationInfo->callStatistics.functionAlgebraics);
+      infoStreamPrint(LOG_STATS_V, 0, "%12gs [%5.1f%%]", rt_accumulated(SIM_TIMER_ALGEBRAICS), rt_accumulated(SIM_TIMER_ALGEBRAICS)/total100);
+      messageClose(LOG_STATS_V);
+    }
+
+    infoStreamPrint(LOG_STATS_V, 1, "%5d evaluations of jacobian", rt_ncall(SIM_TIMER_JACOBIAN));
+    infoStreamPrint(LOG_STATS_V, 0, "%12gs [%5.1f%%]", rt_accumulated(SIM_TIMER_JACOBIAN), rt_accumulated(SIM_TIMER_JACOBIAN)/total100);
+    messageClose(LOG_STATS_V);
+
     infoStreamPrint(LOG_STATS_V, 0, "%5ld calls of updateDiscreteSystem", data->simulationInfo->callStatistics.updateDiscreteSystem);
     infoStreamPrint(LOG_STATS_V, 0, "%5ld calls of functionZeroCrossingsEquations", data->simulationInfo->callStatistics.functionZeroCrossingsEquations);
-    infoStreamPrint(LOG_STATS_V, 0, "%5ld calls of functionZeroCrossings", data->simulationInfo->callStatistics.functionZeroCrossings);
+
+    infoStreamPrint(LOG_STATS_V, 1, "%5ld calls of functionZeroCrossings", data->simulationInfo->callStatistics.functionZeroCrossings);
+    infoStreamPrint(LOG_STATS_V, 0, "%12gs [%5.1f%%]", rt_accumulated(SIM_TIMER_ZC), rt_accumulated(SIM_TIMER_ZC)/total100);
+    messageClose(LOG_STATS_V);
+
     messageClose(LOG_STATS_V);
 
     infoStreamPrint(LOG_STATS_V, 1, "linear systems");
@@ -815,6 +842,8 @@ static int euler_ex_step(DATA* data, SOLVER_INFO* solverInfo)
   SIMULATION_DATA *sDataOld = (SIMULATION_DATA*)data->localData[1];
   modelica_real* stateDer = sDataOld->realVars + data->modelData->nStates;
 
+  if (measure_time_flag) rt_tick(SIM_TIMER_SOLVER);
+
   solverInfo->currentTime = sDataOld->timeValue + solverInfo->currentStepSize;
 
   for(i = 0; i < data->modelData->nStates; i++)
@@ -828,6 +857,8 @@ static int euler_ex_step(DATA* data, SOLVER_INFO* solverInfo)
   solverInfo->solverStatsTmp[0] += 1;
   /* function ODE evaluation is done directly after this function */
   solverInfo->solverStatsTmp[1] += 1;
+
+  if (measure_time_flag) rt_accumulate(SIM_TIMER_SOLVER);
 
   return 0;
 }
@@ -1030,6 +1061,8 @@ static int rungekutta_step(DATA* data, threadData_t *threadData, SOLVER_INFO* so
   modelica_real* stateDer = sData->realVars + data->modelData->nStates;
   modelica_real* stateDerOld = sDataOld->realVars + data->modelData->nStates;
 
+  if (measure_time_flag) rt_tick(SIM_TIMER_SOLVER);
+
   solverInfo->currentTime = sDataOld->timeValue + solverInfo->currentStepSize;
 
   /* We calculate k[0] before returning from this function.
@@ -1043,11 +1076,13 @@ static int rungekutta_step(DATA* data, threadData_t *threadData, SOLVER_INFO* so
       sData->realVars[i] = sDataOld->realVars[i] + solverInfo->currentStepSize * rk->c[j] * k[j - 1][i];
     }
     sData->timeValue = sDataOld->timeValue + rk->c[j] * solverInfo->currentStepSize;
+    if (measure_time_flag) rt_accumulate(SIM_TIMER_SOLVER);
     /* read input vars */
     externalInputUpdate(data);
     data->callback->input_function(data, threadData);
     /* eval ode equations */
     data->callback->functionODE(data, threadData);
+    if (measure_time_flag) rt_tick(SIM_TIMER_SOLVER);
     memcpy(k[j], stateDer, data->modelData->nStates*sizeof(modelica_real));
 
   }
@@ -1068,6 +1103,7 @@ static int rungekutta_step(DATA* data, threadData_t *threadData, SOLVER_INFO* so
   solverInfo->solverStatsTmp[0] += 1;
   /* function ODE evaluation is done directly after this */
   solverInfo->solverStatsTmp[1] += rk->work_states_ndims+1;
+  if (measure_time_flag) rt_accumulate(SIM_TIMER_SOLVER);
 
   return 0;
 }

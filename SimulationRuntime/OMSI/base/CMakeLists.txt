@@ -16,6 +16,7 @@ ENDIF(MSVC)
 include_directories ("${CMAKE_SOURCE_DIR}/base/include" "${CMAKE_SOURCE_DIR}/solver/include")
 add_library(${OSUBaseName}
   src/omsi_event_helper.c
+  src/omsi_getters_and_setters.c
   src/omsi_initialization.c
   src/omsi_input_json.c
   src/omsi_input_model_variables.c
@@ -31,13 +32,14 @@ include_directories ("${OMSI_SOURCE_DIR}/solver/include")
 IF(WIN32)
     target_link_libraries(${OSUBaseName} ${OMSISolverName} ${CMAKE_DL_LIBS} wsock32 ws2_32 ${expat_lib})
 ELSE(WIN32)
-    target_link_libraries(${OSUBaseName} ${OMSISolverName} ${CMAKE_DL_LIBS} )
+    target_link_libraries(${OSUBaseName} ${OMSISolverName} ${CMAKE_DL_LIBS} ${expat_lib})
 ENDIF(WIN32)
 
 install(TARGETS ${OSUBaseName} DESTINATION ${LIBINSTALLEXT})
 
 install(FILES
   ${CMAKE_SOURCE_DIR}/base/include/omsi_event_helper.h
+  ${CMAKE_SOURCE_DIR}/base/include/omsi_getters_and_setters.h
   ${CMAKE_SOURCE_DIR}/base/include/omsi_global.h
   ${CMAKE_SOURCE_DIR}/base/include/omsi_initialization.h
   ${CMAKE_SOURCE_DIR}/base/include/omsi_input_json.h

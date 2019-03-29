@@ -1045,10 +1045,10 @@ template simulationFile(SimCode simCode, String guid, String isModelExchangeFMU)
     <<
     #define prefixedName_performSimulation <%symbolName(modelNamePrefixStr,"performSimulation")%>
     #define prefixedName_updateContinuousSystem <%symbolName(modelNamePrefixStr,"updateContinuousSystem")%>
-    #include <simulation/solver/perform_simulation.c>
+    #include <simulation/solver/perform_simulation.c.inc>
 
     #define prefixedName_performQSSSimulation <%symbolName(modelNamePrefixStr,"performQSSSimulation")%>
-    #include <simulation/solver/perform_qss_simulation.c>
+    #include <simulation/solver/perform_qss_simulation.c.inc>
     >>
     %>
 
@@ -4023,7 +4023,9 @@ template functionODE(list<list<SimEqSystem>> derivativEquations, Text method, Op
   int <%symbolName(modelNamePrefix,"functionODE")%>(DATA *data, threadData_t *threadData)
   {
     TRACE_PUSH
-    <% if profileFunctions() then "rt_tick(SIM_TIMER_FUNCTION_ODE);" %>
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_tick(SIM_TIMER_FUNCTION_ODE);
+  #endif !defined(OMC_MINIMAL_RUNTIME)
 
     <%varDecls%>
 
@@ -4033,7 +4035,9 @@ template functionODE(list<list<SimEqSystem>> derivativEquations, Text method, Op
     <%if Flags.isSet(Flags.PARMODAUTO) then 'PM_functionODE(<%nrfuncs%>, data, threadData, functionODE_systems);'
     else fncalls %>
 
-    <% if profileFunctions() then "rt_accumulate(SIM_TIMER_FUNCTION_ODE);" %>
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_accumulate(SIM_TIMER_FUNCTION_ODE);
+  #endif
 
     TRACE_POP
     return 0;
@@ -4061,12 +4065,19 @@ template functionAlgebraic(list<list<SimEqSystem>> algebraicEquations, String mo
     TRACE_PUSH
     <%varDecls%>
 
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_tick(SIM_TIMER_ALGEBRAICS);
+  #endif
     data->simulationInfo->callStatistics.functionAlgebraics++;
 
     <%if Flags.isSet(Flags.PARMODAUTO) then 'PM_functionAlg(<%nrfuncs%>, data, threadData, functionAlg_systems);'
     else fncalls %>
 
     <%symbolName(modelNamePrefix,"function_savePreSynchronous")%>(data, threadData);
+
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_accumulate(SIM_TIMER_ALGEBRAICS);
+  #endif
 
     TRACE_POP
     return 0;
@@ -4093,7 +4104,15 @@ template evaluateDAEResiduals(list<list<SimEqSystem>> resEquations, String model
     int evalStages;
     data->simulationInfo->callStatistics.functionEvalDAE++;
 
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_tick(SIM_TIMER_DAE);
+  #endif
+
     <%eqCalls%>
+
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_accumulate(SIM_TIMER_DAE);
+  #endif
 
     TRACE_POP
     return 0;
@@ -4218,6 +4237,9 @@ template functionDAE(list<SimEqSystem> allEquationsPlusWhen, String modelNamePre
     TRACE_PUSH
     int equationIndexes[1] = {0};<%/*reinits may use equation indexes, even though it has no equation...*/%>
     <%addRootsTempArray()%>
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_tick(SIM_TIMER_DAE);
+  #endif !defined(OMC_MINIMAL_RUNTIME)
 
     data->simulationInfo->needToIterate = 0;
     data->simulationInfo->discreteCall = 1;
@@ -4226,6 +4248,9 @@ template functionDAE(list<SimEqSystem> allEquationsPlusWhen, String modelNamePre
     else fncalls %>
     data->simulationInfo->discreteCall = 0;
 
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_accumulate(SIM_TIMER_DAE);
+  #endif !defined(OMC_MINIMAL_RUNTIME)
     TRACE_POP
     return 0;
   }
@@ -4314,9 +4339,16 @@ template functionZeroCrossing(list<ZeroCrossing> zeroCrossings, list<SimEqSystem
     TRACE_PUSH
     <%varDecls2%>
 
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_tick(SIM_TIMER_ZC);
+  #endif
     data->simulationInfo->callStatistics.functionZeroCrossings++;
 
     <%zeroCrossingsCode%>
+
+  #if !defined(OMC_MINIMAL_RUNTIME)
+    <% if profileFunctions() then "" else "if (measure_time_flag) " %>rt_accumulate(SIM_TIMER_ZC);
+  #endif
 
     TRACE_POP
     return 0;
@@ -5717,6 +5749,7 @@ end simulationLiteralsFile;
   used in Compiler/Template/CodegenFMU.tpl"
 ::=
   <<
+  #include "omc_simulation_settings.h"
   #include "<%filePrefix%>_functions.h"
   #ifdef __cplusplus
   extern "C" {

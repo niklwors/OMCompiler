@@ -31,9 +31,9 @@
 /** \file omsi_callbacks.h
  */
 
-/** @addtogroup OMSIBase OMSI Base Library
+/** \addtogroup OMSIBase OMSI Base Library
   * \ingroup OMSI
-  *  @{ */
+  *  \{ */
 
 #ifndef OMSI_CALLBACKS_H
 #define OMSI_CALLBACKS_H
@@ -173,4 +173,4 @@ typedef struct omsi_template_callback_functions_t {
 
 #endif
 
-/** @} */
+/** \} */

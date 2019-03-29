@@ -753,7 +753,7 @@ algorithm
     result := {Expression.REAL(start)};
   else
     result := {Expression.REAL(stop)};
-    for i in steps-1:-1:1 loop
+    for i in steps-2:-1:1 loop
       result := Expression.REAL(start + i * step) :: result;
     end for;
     result := Expression.REAL(start) :: result;
@@ -1537,7 +1537,7 @@ function evalCast
   input Type castTy;
   output Expression exp;
 algorithm
-  exp := Expression.typeCast(castExp, Type.elementType(castTy));
+  exp := Expression.typeCast(castExp, castTy);
 
   // Expression.typeCast will just create a CAST if it can't typecast
   // the expression, so make sure we actually got something else back.

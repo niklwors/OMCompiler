@@ -31,7 +31,7 @@
 
 #include "integer_array.h"
 #include "index_spec.h"
-#include "gc/omc_gc.h"
+#include "../gc/omc_gc.h"
 #include "division.h"
 
 #include <stdio.h>
@@ -40,7 +40,7 @@
 #include <math.h>
 
 #include "omc_error.h"
-#include "meta/meta_modelica.h"
+#include "../meta/meta_modelica.h"
 
 static OMC_INLINE modelica_integer *integer_ptrget(const integer_array_t *a, size_t i)
 {
@@ -1596,6 +1596,56 @@ void unpack_integer_array(integer_array_t *a)
 
     for(i = n - 1; i >= 0; --i) {
       integer_set(a, i, int_data[i]);
+    }
+  }
+}
+
+/* Returns a modelica_integer array that can be treated as an int array. If the
+ * size of int and modelica_integer is the same this means simply returning the
+ * given array, but if int is smaller than modelica_integer a new array is
+ * allocated and filled with the data from given array as if it was an int array.
+ *
+ * I.e. if int is 32 bit and modelica_integer is 64 bit then the data will be
+ * packed into the first half of the new array.
+ *
+ * The case where int is larger than modelica_integer is not implemented. */
+void pack_alloc_integer_array(integer_array_t *a, integer_array_t *dest)
+{
+  if (sizeof(int) == sizeof(modelica_integer)) {
+    *dest = *a;
+  } else {
+    /* We only handle the case where int is smaller than modelica_integer. */
+    omc_assert_macro(sizeof(int) < sizeof(modelica_integer));
+
+    /* Allocate a new array. */
+    clone_integer_array_spec(a, dest);
+    alloc_integer_array_data(dest);
+
+    /* Pretend that the new array is an int array and fill it with the values
+     * from the given array. */
+    int *int_data = (int*)dest->data;
+    long i;
+    size_t n = base_array_nr_of_elements(*a);
+
+    for (i = 0; i < n; ++i) {
+      int_data[i] = (int)integer_get(*a, i);
+    }
+  }
+}
+
+/* Unpacks an integer_array that was packed with pack_integer_array into the
+ * destination array. If packing hasn't been done, i.e. if the size of int and
+ * modelica_integer is the same, then the function does nothing since both the
+ * source and destination is assumed to be the same array. */
+void unpack_copy_integer_array(const integer_array_t *a, integer_array_t *dest)
+{
+  if(sizeof(int) != sizeof(modelica_integer)) {
+    long i;
+    const int * int_data = (const int*)a->data;
+    long n = (long)base_array_nr_of_elements(*a);
+
+    for(i = n - 1; i >= 0; --i) {
+      integer_set(dest, i, int_data[i]);
     }
   }
 }

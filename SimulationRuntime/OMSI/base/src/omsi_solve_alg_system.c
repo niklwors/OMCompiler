@@ -29,6 +29,7 @@
  */
 
 /** \file omsi_solve_alg_system.c
+ *  \brief Contains functions for algebraic system evaluation using OMSISolver library.
  */
 
 /** \defgroup AlgSyst Algebraic system evaluation
@@ -38,8 +39,8 @@
  * generated code functions.
  */
 
-/** @addtogroup AlgSyst
-  *  @{ */
+/** \addtogroup AlgSyst
+  *  \{ */
 
 #include <omsi_global.h>
 #include <omsi_solve_alg_system.h>
@@ -48,7 +49,7 @@
 /**
  * \brief Solve algebraic system defined in `omsi_algebraic_system_t alg_system`
  *
- * Evaluates jacobi matrix and residual function to get all informations needed
+ * Evaluate jacobian matrix and residual function to get all informations needed
  * for linear or non-linear solver.
  * Gets called from generated code equation evaluation function.
  *
@@ -106,7 +107,6 @@ omsi_status omsi_solve_algebraic_system (omsi_algebraic_system_t*   alg_system,
     } else if (status == solver_warning) {
         return omsi_warning;
     }
-
 
     /* Save results */
     status = omsi_get_loop_results(alg_system, read_only_model_vars_and_params, alg_system->functions->function_vars);
@@ -315,12 +315,15 @@ omsi_status omsi_set_up_solver (omsi_algebraic_system_t* alg_system) {
 /**
  * \brief Callback function for OMSISolver of function type `evaluate_res_func`.
  *
- * Maps input vector `x_data` to `alg_system->residual->function_vars` and vice
+ * Map input vector `x_data` to `alg_system->residual->function_vars` and vice
  * versa residual to `fval_data`.
  *
- * @param x_data
- * @param fval_data
- * @return
+ * \param [in,out]  x_data      Gets mapped to`alg_system->residual->function_vars`.
+ *                              Input for residuum function.
+ * \param [out]     fval_data   Contains result of residuum evaluation.
+ * \param [in,out]  data        Contains `omsi_algebraic_system_t* alg_system_data`.
+ * \return                      Return `omsi_ok` on success and `omsi_error` otherwise,
+ *                              returning as `omsi_int`.
  */
 omsi_int omsi_residual_wrapper (omsi_real*   x_data,
                                 omsi_real*   fval_data,
@@ -353,11 +356,17 @@ omsi_int omsi_residual_wrapper (omsi_real*   x_data,
     /* Evaluate residum */
     residual->evaluate(residual, residual->function_vars, fval_data);
 
-
     return omsi_ok;
 }
 
 
+/**
+ * \brief Update initial guess for iterative solvers to last solution.
+ *
+ * \param [in,out]  solver          Solver initial guess should be updated for.
+ * \param [in]      alg_system_data Containing solution of last time step.
+ * \return                          Return `0` on success and `-1` on failure.
+ */
 omsi_int omsi_update_guess (solver_data*                solver,
                             omsi_algebraic_system_t*    alg_system_data) {
 
@@ -386,12 +395,7 @@ omsi_int omsi_update_guess (solver_data*                solver,
 
     solver_set_start_vector(solver, initial_guess);
 
-
     return 0;
 }
 
-
-
-
-
-/** @} */
+/** \} */

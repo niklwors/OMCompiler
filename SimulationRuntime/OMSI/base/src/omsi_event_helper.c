@@ -31,23 +31,36 @@
 /** \file omsi_event_helper.c
  */
 
+/** \defgroup EventHelper Base event functions.
+ *  \ingroup OMSIBase
+ *
+ * \brief Event helper functions provided for OMSIC and OMSICpp.
+ *
+ * Defines basic functionalities for event handling.
+ */
+
+/** \addtogroup EventHelper
+  *  \{ */
+
 #include <omsi_global.h>
 
 #include <omsi_event_helper.h>
 
 
 /**
- * \brief
+ * \brief Evaluate zero crossing.
  *
- * Returns preValue of zeroCrossing in `modelContinuousTimeMode` and value of
- * the zeroCrossing in `modelEventMode` and sets `pre_zerocrossing_vars` in
+ * Return preValue of zeroCrossing in `modelContinuousTimeMode` and value of
+ * the zeroCrossing in `modelEventMode` and set `pre_zerocrossing_vars` in
  * `modelInitializationMode`.
  *
- * @param this_function
- * @param new_zero_crossing
- * @param index
- * @param is_event_mode
- * @return
+ * \param [in]  this_function       OMSI function containing zero crossing.
+ * \param [in]  new_zero_crossing   New value for zero_crossing. Only used in eventMode.
+ * \param [in]  index               Index of zero crossing to evaluate.
+ * \param [in]  model_state         Event mode or continuous-time mode.
+ * \return `omsi_bool`              Return preValue of zeroCrossing in `modelContinuousTimeMode` and value of
+ *                                  the zeroCrossing in `modelEventMode` and set `pre_zerocrossing_vars` in
+ *                                  `modelInitializationMode`.
  */
 omsi_bool omsi_function_zero_crossings (omsi_function_t*    this_function,
                                         omsi_bool           new_zero_crossing,
@@ -83,15 +96,15 @@ omsi_bool omsi_function_zero_crossings (omsi_function_t*    this_function,
 
 
 /**
- * \brief Helper function for sample events
+ * \brief Helper function for sample events.
  *
- * Returns true at time instants `start + i*interval, (i=0, 1, ...)` if in
- * `modelEventMode` and false else.
+ * Check if on sample event.
  *
- * \param [in]  this_function
- * \param [in]  sample_id
- * \param [in]  model_state
- * \return      omsi_bool
+ * \param [in]  this_function   OMSI function containing sample.
+ * \param [in]  sample_id       ID of sample to check for.
+ * \param [in]  model_state     State of Model.
+ * \return      omsi_bool       Return `omsi_true` at time instants `start + i*interval, (i=0, 1, ...)`
+ *                              if in `modelEventMode` and `omsi_false` else.
  */
 omsi_bool omsi_on_sample_event (omsi_function_t*    this_function,
                                 omsi_unsigned_int   sample_id,
@@ -128,6 +141,15 @@ omsi_bool omsi_on_sample_event (omsi_function_t*    this_function,
 }
 
 
+/**
+ * \brief Compute next sample time for given sample.
+ *
+ * Helper function for omsi_compute_next_event_time
+ *
+ * \param [in]  time            Current model time.
+ * \param [in]  sample_event    Struct with sample event informations.
+ * \return      `omsi_real`     Return time for next sample event for this sample.
+ */
 omsi_real omsi_next_sample(omsi_real    time,
                            omsi_sample* sample_event)
 {
@@ -148,6 +170,13 @@ omsi_real omsi_next_sample(omsi_real    time,
 }
 
 
+/**
+ * \brief Compute next event time from samples.
+ * \param [in]  time            Current model time.
+ * \param [in]  sample_events   Array of samples.
+ * \param [in]  n_sample_events Length of array `ample_events`.
+ * \return      `omsi_real`     Return time for next sample event.
+ */
 omsi_real omsi_compute_next_event_time (omsi_real           time,
                                         omsi_sample*        sample_events,
                                         omsi_unsigned_int   n_sample_events)
@@ -164,7 +193,7 @@ omsi_real omsi_compute_next_event_time (omsi_real           time,
     }
 
     for (i=1; i<n_sample_events; i++) {
-        next_event_time = (omsi_real) fmin(omsi_next_sample(time, &sample_events[i]), next_event_time);
+        next_event_time = (omsi_real) __builtin_fmin(omsi_next_sample(time, &sample_events[i]), next_event_time);
     }
 
     return next_event_time;
@@ -177,8 +206,10 @@ omsi_real omsi_compute_next_event_time (omsi_real           time,
  * Compares discrete real, integer and boolean variables to their pre values.
  * Returns true if the values are different.
  *
- * \param omsi_data
- * @return
+ * \param [in]  omsi_data       OMSI data containing model variables and pre values.
+ * \return      `omsi_boolen`   Return `omsi_true` if some discrete variable
+ *                              changed compared to its pre-value. Otherwise
+ *                              return `omsi_false`.
  */
 omsi_bool omsi_check_discrete_changes (omsi_t* omsi_data)
 {
@@ -218,4 +249,4 @@ omsi_bool omsi_check_discrete_changes (omsi_t* omsi_data)
     return omsi_false;
 }
 
-
+/** \} */

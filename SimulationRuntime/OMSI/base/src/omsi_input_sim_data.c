@@ -51,16 +51,16 @@
 
 
 /**
- * \brief Allocates memory and initializes sim_data_t struct with functions from generated code.
+ * \brief Allocates memory and initializes inner sim_data_t struct with functions from generated code.
  *
  * Assumes memory is already allocated for omsi_data->sim_data.
  *
- * \param omsi_data             Pointer to OMSU data
- * \param template_function     Pointer to struct of callback functions in generated code.
- * \param callback_functions    Callback functions to be used from OMSI functions, e.g for
- *                              memory management or logging.
- * \return                      `omsi_status omsi_ok` if successful <br>
- *                              `omsi_status omsi_error` if something went wrong.
+ * \param [in,out]  omsi_data           Pointer to OMSU data
+ * \param [in]      template_function   Pointer to struct of callback functions in generated code.
+ * \param [in]      callback_functions  Callback functions to be used from OMSI functions, e.g for
+ *                                      memory management or logging.
+ * \return                              `omsi_status omsi_ok` if successful <br>
+ *                                      `omsi_status omsi_error` if something went wrong.
  */
 omsi_status omsu_setup_sim_data(omsi_t*                             omsi_data,
                                 omsi_template_callback_functions_t* template_function,
@@ -89,8 +89,6 @@ omsi_status omsu_setup_sim_data(omsi_t*                             omsi_data,
         return omsi_error;
     }
 
-
-
     return omsi_ok;
 }
 
@@ -98,11 +96,12 @@ omsi_status omsu_setup_sim_data(omsi_t*                             omsi_data,
 /**
  * \brief Set up omsi_function_t struct for initialization or simulation problem.
  *
- * \param sim_data
- * \param function_name
- * \param template_instantiate_function
- * \param function_vars
- * \return
+ * \param [in,out]  sim_data                        Pointer to simulation data.
+ * \param [in]      function_name                   Name of omsi_function to set up. Possible values are
+ *                                                  "initialization" and "simulation".
+ * \param [in]      template_instantiate_function   Callback for instantiation function from generated code.
+ * \return                                          `omsi_status omsi_ok` if successful <br>
+ *                                                  `omsi_status omsi_error` if something went wrong.
  */
 omsi_status omsu_setup_sim_data_omsi_function(sim_data_t*                   sim_data,
                                               omsi_string                   function_name,
@@ -150,10 +149,16 @@ omsi_status omsu_setup_sim_data_omsi_function(sim_data_t*                   sim_
 }
 
 
-
-/*
- * Allocates memory for sim_data_t struct.
+/**
+ * \brief Allocate memory for `sim_data_t` struct.
+ *
  * Gets called from function omsu_setup_sim_data.
+ *
+ * \param [in,out]      omsu                Pointer to OMSU data
+ * \param [in]          callback_functions  pointer to callback functions used for memory management and logging.
+ * \param [in]          instanceName        Name of OMSU instance.
+ * \return                                  `omsi_status omsi_ok` if successful <br>
+ *                                          `omsi_status omsi_error` if something went wrong.
  */
 omsi_status omsu_allocate_sim_data(omsi_t*                          omsu,
                                    const omsi_callback_functions*   callback_functions,
@@ -230,8 +235,14 @@ omsi_status omsu_allocate_sim_data(omsi_t*                          omsu,
 }
 
 
-/*
- * Instantiate omsi_function_t function_vars.
+/**
+ * \brief Instantiate `function_vars` recursive for an `omsi_function_t`.
+ *
+ * \param [in,out]  omsi_function       OMSI function to instantiate.
+ * \param [in]      function_vars       Pointer to function variables to be set in `omsi_function`.
+ * \param [in]      pre_vars            Pointer to pre variables to be set in `omsi_function`.
+ * \return                              `omsi_status omsi_ok` if successful <br>
+ *                                      `omsi_status omsi_error` if something went wrong.
  */
 omsi_status omsu_instantiate_omsi_function_func_vars (omsi_function_t*    omsi_function,
                                                       omsi_values*        function_vars,
@@ -261,6 +272,16 @@ omsi_status omsu_instantiate_omsi_function_func_vars (omsi_function_t*    omsi_f
 }
 
 
+/**
+ * \brief Set pointer to zero-crossing variables in `omsi_function` recursive.
+ *
+ * \param [in,out]  omsi_function                       OMSI function to set zero_crossings for.
+ * \param [in]      pointer_to_zerocrossings_vars       Pointer to function zero-crossing variables to be set in `omsi_function`.
+ * \param [in]      pointer_to_pre_zerocrossings_vars   Pointer to function zero-crossing pre-variables to be set in `omsi_function`.
+ * \param [in]      sample_events                       Sample event to set in `omsi_function`.
+ * \return                                              `omsi_status omsi_ok` if successful <br>
+ *                                                      `omsi_status omsi_error` if something went wrong.
+ */
 omsi_status omsu_set_zerocrossings_omsi_functions (omsi_function_t* omsi_function,
                                                    omsi_real*       pointer_to_zerocrossings_vars,
                                                    omsi_real*       pointer_to_pre_zerocrossings_vars,
@@ -291,13 +312,18 @@ omsi_status omsu_set_zerocrossings_omsi_functions (omsi_function_t* omsi_functio
                 sample_events);
     }
 
-
     return omsi_ok;
 }
 
-/*
- * Allocates memory for omsi_function_t struct without inner algebraic system.
- * Called from generated code.
+
+/**
+ * \brief Create new `omsi_function_t` `function`.
+ *
+ * Allocate memory except for algebraic system parts.
+ *
+ * \param [in]  function_vars       Values for variables of created function.
+ * \param [in]  pre_vars            Values for pre-variables of created function.
+ * \return                          `omsi_function_t function`
  */
 omsi_function_t* omsu_instantiate_omsi_function (omsi_values*   function_vars,
                                                  omsi_values*   pre_vars) {
@@ -320,9 +346,16 @@ omsi_function_t* omsu_instantiate_omsi_function (omsi_values*   function_vars,
 }
 
 
-/*
- * Allocates memory for omsi_algebraic_system_t struct.
- * Since n_conditions is unknown memory for zerocrossing_indices is not allocated!
+/**
+ * \brief Create new instantiated `omsi_algebraic_system_t` array.
+ *
+ * Allocates memory for `omsi_algebraic_system` struct.
+ * Since `algebraic_system->n_conditions` is unknown memory for
+ * `algebraic_system->zerocrossing_indices` is not allocated!
+ *
+ * \param [in]  n_algebraic_system  Number of algebraic systems to create.
+ * \return                          New created `omsi_algebraic_system_t* algebraic_system`
+ *                                  or `NULL` in error case.
  */
 omsi_algebraic_system_t* omsu_instantiate_alg_system_array (omsi_unsigned_int n_algebraic_system) {
 
@@ -346,19 +379,28 @@ omsi_algebraic_system_t* omsu_instantiate_alg_system_array (omsi_unsigned_int n_
 }
 
 
-/*
- * Allocates memory for omsi_values struct.
+/**
+ * \brief Create `values` struct of type `omsi_values`.
+ *
  * Needs length for arrays reals, ints, bools and externs as input.
- * Returns NULL in error case.
+ * Returns `NULL` in error case.
+ *
+ * \param [in]  n_reals     Length of array `values->reals`.
+ * \param [in]  n_ints      Length of array `values->ints`.
+ * \param [in]  n_bools     Length of array `values->bools`.
+ * \param [in]  n_externs   Length of array `values->externs`.
+ * \return                  New created `omsi_values* values`
+ *                          or `NULL` in error case.
  */
-omsi_values* instantiate_omsi_values (omsi_unsigned_int   n_reals,    /* length of array reals */
-                                      omsi_unsigned_int   n_ints,     /* length of array ints */
-                                      omsi_unsigned_int   n_bools,    /* length of array bools */
-                                      omsi_unsigned_int   n_externs){ /* length of array externs */
+omsi_values* instantiate_omsi_values (omsi_unsigned_int   n_reals,
+                                      omsi_unsigned_int   n_ints,
+                                      omsi_unsigned_int   n_bools,
+                                      omsi_unsigned_int   n_externs){
 
+    /* Variables */
     omsi_values* values;
 
-    /* catch not implemented case*/
+    /* catch not implemented case */
     if (n_externs > 0) {
         /* ToDo: Log error, not implemented yet */
         return NULL;
@@ -406,6 +448,15 @@ omsi_values* instantiate_omsi_values (omsi_unsigned_int   n_reals,    /* length 
 }
 
 
+/**
+ * \brief Allocate memory for input and output variables of `omsi_function`
+ *
+ * \param [in,out]  omsi_function   OMSI function to instantiate input and output indices for.
+ * \param [in]      n_input_vars    Length or input variables array.
+ * \param [in]      n_output_vars   Length or output variables array.
+ * \return                          `omsi_status omsi_ok` if successful <br>
+ *                                  `omsi_status omsi_error` if something went wrong.
+ */
 omsi_status instantiate_input_inner_output_indices (omsi_function_t*    omsi_function,
                                                     omsi_unsigned_int   n_input_vars,
                                                     omsi_unsigned_int   n_output_vars) {
@@ -418,15 +469,25 @@ omsi_status instantiate_input_inner_output_indices (omsi_function_t*    omsi_fun
     }
 
     omsi_function->input_vars_indices = (omsi_index_type*) global_callback->allocateMemory(n_input_vars, sizeof(omsi_index_type));
-    /* CHECK_MEMORY_ERROR(omsi_function->input_vars_indices) */
+    /* TODO CHECK_MEMORY_ERROR(omsi_function->input_vars_indices) */
 
     omsi_function->output_vars_indices = (omsi_index_type*) global_callback->allocateMemory(n_output_vars, sizeof(omsi_index_type));
-    /* CHECK_MEMORY_ERROR(omsi_function->output_vars_indices) */
+    /* TODO CHECK_MEMORY_ERROR(omsi_function->output_vars_indices) */
 
     return omsi_ok;
 }
 
 
+/**
+ * \brief Set default solver for all algebraic systems in given `omsi_function`.
+ *
+ * Set LAPACK solver for linear systems and kinsol solver for non-linear systems.
+ *
+ * \param [in,out]  omsi_function       OMSI function to set default solvers for.
+ * \param [in]      omsi_function_name  Name of OMSI function for logging.
+ * \return                              `omsi_status omsi_ok` if successful <br>
+ *                                      `omsi_status omsi_error` if something went wrong.
+ */
 omsi_status omsu_set_default_solvers (omsi_function_t*  omsi_function,
                                       omsi_string       omsi_function_name) {
 
@@ -494,6 +555,14 @@ omsi_status omsu_set_default_solvers (omsi_function_t*  omsi_function,
     return status;
 }
 
+
+/**
+ * \brief Set start values for iterative solvers.
+ *
+ * Needed for non-linear algebraic systems.
+ *
+ * \param [in,out]  algebraic_system    Algebraic system to set initial guess for.
+ */
 void omsu_set_initial_guess (omsi_algebraic_system_t* algebraic_system)
 {
     /* Variables */
@@ -512,3 +581,5 @@ void omsu_set_initial_guess (omsi_algebraic_system_t* algebraic_system)
     /* Set initial guess in solver data */
     solver_set_start_vector(algebraic_system->solver_data, initial_guess);
 }
+
+/** \} */

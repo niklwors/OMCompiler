@@ -33,8 +33,8 @@
  * Application interface for OMSI solver.
  */
 
-/** @addtogroup SOLVER OMSI Solver Library
-  *  @{ */
+/** \addtogroup SOLVER OMSI Solver Library
+  *  \{ */
 
 #include <solver_api.h>
 
@@ -154,7 +154,7 @@ solver_data* solver_allocate(solver_name            name,
 }
 
 
-/** \brief Frees memory of struct solver_data.
+/** \brief Free memory of struct solver_data.
  *
  * \param [in,out] solver   Pointer to solver instance.
  */
@@ -185,9 +185,13 @@ void solver_free(solver_data* solver) {
  *
  * E.g. set dimensions for matrices or functions.
  *
- * \param [in]  solver  Pointer to solver instance.
- * \return              Returns `solver_status` `solver_okay` if solved successful,
- *                      otherwise `solver_error`.
+ * \param [in]  solver                      Pointer to solver instance.
+ * \param [in]  user_wrapper_res_function   Pointer to wrapper function for residual function.<br>
+ *                                          Only used for kinsol solver.
+ * \param [in]  user_data                   Pointer to user supplied data.<br>
+ *                                          Only used by kinsol solver.
+ * \return                                  Returns `solver_status` `solver_okay` if solved successful,
+ *                                          otherwise `solver_error`.
  */
 solver_status solver_prepare_specific_data (solver_data*            solver,
                                             residual_wrapper_func   user_wrapper_res_function,
@@ -244,7 +248,7 @@ solver_status solver_set_start_vector (solver_data* solver,
 
 
 /**
- * \brief Gets pointer to initial guess for start vector for non-linear solver.
+ * \brief Get pointer to initial guess for start vector for non-linear solver.
  *
  * \param [in]  solver          Pointer to solver instance.
  * \return      `solver_real *` Returns pointer to initial_guess if successful,
@@ -267,7 +271,7 @@ solver_real* solver_get_start_vector (solver_data* solver)
 }
 
 
-/** \brief Sets matrix A with values from array value.
+/** \brief Set matrix A with values from array value.
  *
  * Sets specified columns and rows of matrix A in solver specific data to
  * values from array value. If no columns and/or rows are specified (set to
@@ -348,7 +352,7 @@ void solver_set_matrix_A(const solver_data*            solver,
 }
 
 
-/** \brief Reads matrix A and saves result in array value.
+/** \brief Read matrix A and saves result in array value.
  *
  *  Used for linear solvers, to get values of matrix A stored in its solver
  *  specific data.
@@ -417,7 +421,7 @@ void solver_get_matrix_A(solver_data*          solver,
 
 
 
-/** \brief Sets values of vector b with values from `value`.
+/** \brief Set values of vector b with values from `value`.
  *
  * Used for right hand side vector `b` of linear systems `A*x=b`.
  *
@@ -430,9 +434,9 @@ void solver_get_matrix_A(solver_data*          solver,
  *                              of size `n_index`.
  */
 void solver_set_vector_b (solver_data*          solver,
-                   solver_unsigned_int*  index,
-                   solver_unsigned_int   size_of_b,
-                   solver_real*          value) {
+                          solver_unsigned_int*  index,
+                          solver_unsigned_int   n_index,
+                          solver_real*          value) {
 
     /* Variables */
     solver_unsigned_int i;
@@ -441,19 +445,19 @@ void solver_set_vector_b (solver_data*          solver,
     lin_callbacks = solver->solver_callbacks;
 
     if (index==NULL) {
-        for (i=0; i<size_of_b; i++) {
+        for (i=0; i<n_index; i++) {
             lin_callbacks->set_b_element(solver->specific_data, i, &value[i]);
         }
     }
     else {
-        for (i=0; i<size_of_b; i++) {
+        for (i=0; i<n_index; i++) {
             lin_callbacks->set_b_element(solver->specific_data, index[i], &value[i]);
         }
     }
 }
 
 
-/** \brief Gets values of vector b with values from `value`.
+/** \brief Get values of vector b with values from `value`.
  *
  * Used for right hand side vector `b` of linear systems `A*x=b`.
  *
@@ -462,7 +466,7 @@ void solver_set_vector_b (solver_data*          solver,
  * \param [in]      index       Array of indices of `b` to set. If `NULL` for all
  *                              indices up to `n_index` vector b will be set.
  * \param [in]      n_index     Size of index array `index`.
- * \param [in,out]  value       On input: Pointer to allocated memory of size
+ * \param [in,out]  values      On input: Pointer to allocated memory of size
  *                              `n_index`. <br>
  *                              On output: Pointer to array containing specified
  *                              values of vector `b`.
@@ -491,25 +495,25 @@ void solver_get_vector_b (solver_data*          solver,
 }
 
 
-/** \brief Sets Jacobian matrix with values from array value.
+/** \brief Set jacobian matrix with values from array value.
  *
- * Sets specified columns and rows of Jacobian matrix in solver specific data to
+ * Sets specified columns and rows of jacobian matrix in solver specific data to
  * values from array value. If no columns and/or rows are specified (set to
  * NULL) all elements in those rows / columns are set to given values.
  *
- * \param [in,out]  solver      Struct with used solver, containing Jacobian matrix in
+ * \param [in,out]  solver      Struct with used solver, containing jacobian matrix in
  *                              solver specific format. Has to be a linear solver.
  * \param [in]      column      Array of dimension `n_column` of unsigned integers,
- *                              specifying which columns of Jacobian matrix to get. If
+ *                              specifying which columns of jacobian matrix to get. If
  *                              column equals `NULL`, get the first `n_column`
- *                              columns of Jacobian.
+ *                              columns of jacobian.
  * \param [in]      n_column    Size of array `column`. Must be greater then 0
- *                              and less or equal to number of columns of Jacobian matrix.
+ *                              and less or equal to number of columns of jacobian matrix.
  * \param [in]      row         Array of dimension `n_row` of unsigned integers,
- *                              specifying which rows of Jacobian matrix to get. If rows
- *                              equals `NULL`, get the first `n_row` rows of Jacobian.
+ *                              specifying which rows of jacobian matrix to get. If rows
+ *                              equals `NULL`, get the first `n_row` rows of jacobian.
  * \param [in]      n_row       Size of array `row`. Must be greater then 0 and
- *                              less or equal to number of rows of Jacobian matrix.
+ *                              less or equal to number of rows of jacobian matrix.
  * \param [in]      value       Pointer to matrix with values, stored as array
  *                              in column-major order of size `n_column*n_row`.
  */
@@ -525,7 +529,7 @@ void solver_set_Jacobian(const solver_data*            solver,
     solver_non_linear_callbacks* non_lin_callbacks;
 
     if (solver->linear) {
-        /* ToDo: log error, no Jacobian in linear case */
+        /* ToDo: log error, no jacobian in linear case */
         return;
     }
 
@@ -565,14 +569,14 @@ void solver_set_Jacobian(const solver_data*            solver,
 
 
 /**
- * \brief Gets solution `x` of `A*x=b`.
+ * \brief Get solution `x` of linear problem `A*x=b`.
  *
- * \param [in]      solver      Struct with used solver, containing solution in
- *                              solver specific format. Has to be a linear solver.
- * \param [in]      index       Array of indices of `x` to get. If `NULL` for all
- *                              indices up to `n_index` vector b will be set.
+ * \param [in]      solver      Struct containing solution in solver specific
+ *                              format. Has to be a linear solver.
+ * \param [in]      index       Array of indices of `x` to get. If `NULL` get
+ *                              solution for all indices up to `n_index`.
  * \param [in]      n_index     Size of index array `index`.
- * \param [in,out]  value       On input: Pointer to allocated memory of size
+ * \param [in,out]  values      On input: Pointer to allocated memory of size
  *                              `n_index`. <br>
  *                              On output: Pointer to array containing specified
  *                              values of vector `x`.
@@ -601,6 +605,20 @@ void solver_get_lin_solution(solver_data*           solver,
 }
 
 
+
+/**
+ * \brief Get solution `x` of non-linear problem `f(x)=0`.
+ *
+ * \param [in]      solver      Struct with used solver, containing solution in
+ *                              solver specific format. Has to be a non-linear solver.
+ * \param [in]      index       Array of indices of `x` to get. If `NULL` get
+ *                              solution for all indices up to `n_index`.
+ * \param [in]      n_index     Size of index array `index`.
+ * \param [in,out]  values      On input: Pointer to allocated memory of size
+ *                              `n_index`. <br>
+ *                              On output: Pointer to array containing specified
+ *                              values of vector `x`.
+ */
 void solver_get_nonlin_solution(solver_data*           solver,
                                 solver_unsigned_int*   index,
                                 solver_unsigned_int    n_index,
@@ -627,7 +645,7 @@ void solver_get_nonlin_solution(solver_data*           solver,
 
 
 /**
- * \brief Returns solver name as string.
+ * \brief Return solver name as string.
  *
  * \param [in] solver   Pointer to solver instance.
  * \return              String with solver name.
@@ -723,9 +741,10 @@ void solver_print_data (solver_data*    solver,
  */
 
 /**
- * \brief Calls solve function for registered linear solver.
+ * \brief Call solve function for registered linear solver.
  *
- * Checks if all necessary data is already set.
+ * Checks if all necessary data is already set and solves linear equation system
+ * with registered linear solver.
  *
  * \param solver    Solver instance.
  * \return          Returns `solver_status` `solver_okay` if solved successful,
@@ -750,9 +769,10 @@ solver_status solver_linear_solve(solver_data* solver) {
 
 
 /**
- * \brief Calls solve function for registered non-linear solver.
+ * \brief Call solve function for registered non-linear solver.
  *
- * Checks if all necessary data is already set.
+ * Checks if all necessary data is already set and solves linear or non-linear
+ * equation system with the registered non-linear solver.
  *
  * \param solver    Solver instance.
  * \return          Returns `solver_status` `solver_okay` if solved successful,
@@ -780,4 +800,4 @@ solver_status solver_non_linear_solve(solver_data* solver) {
 #endif
 
 
-/** @} */
+/** \} */

@@ -28,6 +28,10 @@
  *
  */
 
+/** \file omsi_mmap.c
+ *  \brief Helper functions for omc mmap.
+ */
+
 #if !defined(OMS_NO_FILESYSTEM)
 #include <omsi_global.h>
 #include <omsi_mmap.h>

@@ -56,12 +56,6 @@ typedef struct modelDescriptionData {
 } modelDescriptionData;
 
 
-/*! \fn omsi_me_instantiate
- *
- *  This function instantiates the osu instance.
- *
- *  \param [ref] [data]
- */
 omsi_t* omsi_instantiate(omsi_string                            instanceName,
                          omsu_type                              fmuType,
                          omsi_string                            fmuGUID,

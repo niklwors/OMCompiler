@@ -31,10 +31,10 @@
 /** \file omsi_utils.c
  */
 
-
-/** @addtogroup OMSIBase OMSI Base Library
+/** \addtogroup OMSIBase OMSI Base Library
   * \ingroup OMSI
-  *  @{ */
+  *  \{ */
+
 #include <omsi_callbacks.h>
 #include <omsi_utils.h>
 
@@ -165,7 +165,7 @@ void wrapper_alg_system_logger (solver_log_level    log_level,
 
 
 /*
- * Returns true, if categoryIndex should be logged or OSU was not set.
+ * Return true, if categoryIndex should be logged or OSU was not set.
  */
 omsi_bool isCategoryLogged(omsi_bool*       logCategories,
                            log_categories   categoryIndex) {
@@ -183,8 +183,8 @@ omsi_bool isCategoryLogged(omsi_bool*       logCategories,
 
 
 /*
- * Returns true if vr is out of range of end and emits error message.
- * Otherwise it returns false.
+ * Return true if vr is out of range of end and emit error message.
+ * Otherwise return false.
  */
 omsi_bool omsi_vr_out_of_range(omsi_t*              omsu,
                                omsi_string          function_name,
@@ -203,6 +203,9 @@ omsi_bool omsi_vr_out_of_range(omsi_t*              omsu,
 }
 
 
+/*
+ * Helper function to get negated alias for negative alias IDs.
+ */
 omsi_int omsi_get_negated_index (model_variable_info_t* model_var_info,
                                  omsi_unsigned_int      value_reference)
 {
@@ -255,7 +258,7 @@ void omsu_free_osu_data(omsi_t* omsi_data) {
 
 
 /*
- * Frees memory for model_data_t structure and all its components.
+ * Free memory for model_data_t structure and all its components.
  */
 void omsu_free_model_data (model_data_t* model_data) {
 
@@ -284,7 +287,9 @@ void omsu_free_model_data (model_data_t* model_data) {
 }
 
 
-/* Frees array of model_variable_info struct. */
+/*
+ * Free array of model_variable_info struct.
+ */
 void omsu_free_model_variable_info(model_variable_info_t*   model_vars_info,
                                    omsi_unsigned_int        size) {
 
@@ -307,6 +312,9 @@ void omsu_free_model_variable_info(model_variable_info_t*   model_vars_info,
 }
 
 
+/*
+ * Free modelica_attributes of real variables.
+ */
 void omsu_free_modelica_attributes(void*            modelica_attribute,
                                    omsi_data_type  type) {
 
@@ -327,7 +335,7 @@ void omsu_free_modelica_attributes(void*            modelica_attribute,
 
 
 /*
- * Frees memory of array of equation_info_t structs.
+ * Free memory of array of equation_info_t structs.
  */
 void omsu_free_equation_info(equation_info_t*   eq_info,
                              omsi_unsigned_int  n_equations ) {
@@ -353,7 +361,7 @@ void omsu_free_equation_info(equation_info_t*   eq_info,
 
 
 /*
- * Frees memory for sim_data_t structure and all its components.
+ * Free memory for sim_data_t structure and all its components.
  */
 void omsu_free_sim_data (sim_data_t* sim_data) {
 
@@ -376,7 +384,7 @@ void omsu_free_sim_data (sim_data_t* sim_data) {
 
 
 /*
- * frees memory for omsi_function struct and all its components
+ * Free memory for omsi_function struct and all its components.
  */
 void omsu_free_omsi_function(omsi_function_t*   omsi_function,
                              omsi_bool          shared_vars) {
@@ -401,13 +409,12 @@ void omsu_free_omsi_function(omsi_function_t*   omsi_function,
     global_callback->freeMemory(omsi_function->input_vars_indices);
     global_callback->freeMemory(omsi_function->output_vars_indices);
 
-
     global_callback->freeMemory(omsi_function);
 }
 
 
 /*
- * Deallocates memory of omsi_algebraic_system_t struct.
+ * Deallocate memory of omsi_algebraic_system_t struct.
  */
 void omsu_free_alg_system (omsi_algebraic_system_t* algebraic_system,
                            omsi_bool                shared_vars) {
@@ -424,8 +431,8 @@ void omsu_free_alg_system (omsi_algebraic_system_t* algebraic_system,
 
 
 /*
- * frees memory for omsi_values struct and all its components
-*/
+ * Free memory for omsi_values struct and all its components
+ */
 void omsu_free_omsi_values(omsi_values* values) {
 
     if (values==NULL) {
@@ -459,9 +466,13 @@ void omsu_free_omsi_values(omsi_values* values) {
  * ============================================================================
  */
 
-/*
- * Print all data in omsi_t structure.
- * Indent is string with indentation in form of "| " strings or "".
+/**
+ * \brief Print all data in omsi_t structure.
+ *
+ * Used for debugging.
+ *
+ * \param [in]  omsi        OMSI struct to print.
+ * \param [in]  indent      String with indentation in form of "| " strings or ""
  */
 void omsu_print_omsi_t (omsi_t*     omsi,
                         omsi_string indent) {
@@ -709,9 +720,9 @@ void omsu_printf_int_var_attribute(int_var_attribute_t* int_var_attribute,
 
 
 /*
- * Prints all equation informations of model_data->equation_info.
+ * Print all equation informations of model_data->equation_info.
  * Indent is string with indentation in form of "| " strings or "".
- * Returns with omsi_warning if equation_info is NULL pointer.
+ * Return with omsi_warning if equation_info is NULL pointer.
  */
 omsi_status omsu_print_equation_info(model_data_t*  model_data,
                                      omsi_string    indent) {
@@ -790,18 +801,13 @@ omsi_status omsu_print_sim_data (sim_data_t* sim_data,
     nextIndent = (omsi_char*) global_callback->allocateMemory(strlen(indent)+2, sizeof(omsi_char));
     strcat(nextIndent, "| ");
 
-
     printf("%sstruct sim_data:\n", indent);
 
     omsu_print_omsi_function_rec (sim_data->initialization, "initialization", nextIndent);
-
     omsu_print_omsi_function_rec (sim_data->simulation, "simulation", nextIndent);
 
     omsu_print_omsi_values(sim_data->model_vars_and_params, "model_vars_and_params", nextIndent);
-
     omsu_print_omsi_values(sim_data->pre_vars, "pre_vars", nextIndent);
-
-
 
     /* ToDo: print rest of sim_data */
 
@@ -958,10 +964,15 @@ omsi_status omsu_print_algebraic_system(omsi_algebraic_system_t*    algebraic_sy
 }
 
 
+/*
+ * Print solver data.
+ * TODO Not working at the moment.
+ */
 omsi_status omsu_print_solver_data(omsi_string  solver_name,
                                    void*        solver_data,
                                    omsi_string  indent) {
 
+    /* TODO */
     UNUSED(solver_data); UNUSED(indent);
 
     if (strcmp("lapack_solver", solver_name)==0) {
@@ -996,4 +1007,4 @@ omsi_status omsu_print_externs(void*                externs,
     return omsi_error;
 }
 
-/** @} */
+/** \} */

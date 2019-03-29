@@ -36,7 +36,7 @@
  *
  * \brief Process modelName_init.xml file
  *
- * Functions to process informations from <modelName>_init.xml file in
+ * Functions to process informations from \<modelName\>_init.xml file in
  * resources folder.
  */
 
@@ -221,6 +221,13 @@ omsi_status omsu_process_input_xml(omsi_t*                         osu_data,
 
 
 /*
+ * ============================================================================
+ * Helper functions for XML parsing
+ * ============================================================================
+ */
+
+/*
+ * Helper function for omsu_read_var_info.
  * Compute corresponding index for alias variable.
  */
 omsi_int omsu_find_alias_index(omsi_int alias_valueReference,
@@ -249,7 +256,8 @@ omsi_int omsu_find_alias_index(omsi_int alias_valueReference,
 
 
 /*
- * Reads variables info and attributes and writes in model_vars_info.
+ * Helper function for omsu_read_var_infos.
+ * Read variable info and attributes and write in model_vars_info.
  * If one attribute is not found a default value is used.
  */
 void omsu_read_var_info (omc_ScalarVariable*    v,
@@ -405,10 +413,11 @@ void omsu_read_var_info (omc_ScalarVariable*    v,
 
     /* Free memory */
     global_callback->freeMemory((omsi_char*) aliasTmp);
-
 }
 
+
 /*
+ * Helper function for omsu_process_input_xml.
  * Fill model_vars_info for all states, derivatives, variables and parameters.
  * Allocates memory for strings.
  */
@@ -506,7 +515,7 @@ void omsu_read_var_infos(model_data_t*      model_data,
 
 
 /*
- *
+ * Return string from hash table or NULL if not found.
  */
 omsi_string omsu_findHashStringStringNull(hash_string_string*   ht,
                                           omsi_string           key) {
@@ -517,6 +526,9 @@ omsi_string omsu_findHashStringStringNull(hash_string_string*   ht,
 }
 
 
+/*
+ * Return string from hash table or empty string if not found.
+ */
 omsi_string omsu_findHashStringStringEmpty(hash_string_string*  ht,
                                            omsi_string          key) {
 
@@ -525,6 +537,10 @@ omsi_string omsu_findHashStringStringEmpty(hash_string_string*  ht,
 }
 
 
+/*
+ * Return string from hash table or log error if not found.
+ * ToDo: Error logging disabled at the moment. Change!
+ */
 omsi_string omsu_findHashStringString(hash_string_string*   ht,
                                       omsi_string           key) {
 
@@ -546,7 +562,7 @@ omsi_string omsu_findHashStringString(hash_string_string*   ht,
 }
 
 /*
- *
+ * Add long variable to hash table.
  */
 void omsu_addHashLongVar(hash_long_var**        ht,
                          omsi_long              key,
@@ -560,7 +576,7 @@ void omsu_addHashLongVar(hash_long_var**        ht,
 
 
 /*
- *
+ * Add string variable to hash table.
  */
 void omsu_addHashStringString(hash_string_string**  ht,
                               omsi_string           key,
@@ -573,7 +589,9 @@ void omsu_addHashStringString(hash_string_string**  ht,
 }
 
 
-/* reads integer value from a string */
+/*
+ * Read integer value from a string.
+ */
 void omsu_read_value_int(omsi_string    s,
                          omsi_int*      res,
                          omsi_int       default_value) {
@@ -590,7 +608,9 @@ void omsu_read_value_int(omsi_string    s,
 }
 
 
-/* reads integer value from a string */
+/*
+ * Read unsigned integer value from a string.
+ */
 void omsu_read_value_uint(omsi_string           s,
                           omsi_unsigned_int*    res) {
     if (s==NULL) {
@@ -607,7 +627,9 @@ void omsu_read_value_uint(omsi_string           s,
 }
 
 
-/* ToDo: comment me  */
+/*
+ * Find long variable in hash table or log error.
+ */
 omc_ScalarVariable** omsu_findHashLongVar(hash_long_var*    ht,
                                           omsi_long         key) {
 
@@ -628,7 +650,9 @@ omc_ScalarVariable** omsu_findHashLongVar(hash_long_var*    ht,
 }
 
 
-/* reads double value from a string */
+/*
+ * Read double value from string.
+ */
 void omsu_read_value_real(omsi_string   s,
                           omsi_real*    res,
                           omsi_real     default_value) {
@@ -645,7 +669,9 @@ void omsu_read_value_real(omsi_string   s,
 }
 
 
-/* reads boolean value from a string */
+/*
+ * Read boolean value from string.
+ */
 void omsu_read_value_bool(omsi_string   s,
                           omsi_bool*    res) {
 
@@ -653,13 +679,15 @@ void omsu_read_value_bool(omsi_string   s,
 }
 
 
+/*
+ * Read boolean value from string or return default value.
+ */
 void omsu_read_value_bool_default (omsi_string  s,
                                    omsi_bool*   res,
                                    omsi_bool    default_bool) {
 
     if (s == NULL || *s == '\0') {
         *res = default_bool;
-
     }
     else{
         *res = 0 == strcmp(s, "true");
@@ -668,8 +696,8 @@ void omsu_read_value_bool_default (omsi_string  s,
 
 
 /*
- *  Reads modelica_string value from a string.
- *  Allocates memory for string and copies string s into str.
+ * Read string value from string.
+ * Allocates memory for string and copies string s into str.
  */
 void omsu_read_value_string(omsi_string s,
                             omsi_char** str) {
@@ -690,6 +718,16 @@ void omsu_read_value_string(omsi_string s,
 }
 
 
+/*
+ * ============================================================================
+ * Helper functions for Expat.
+ * https://libexpat.github.io/doc/
+ * ============================================================================
+ */
+
+/*
+ * Helper function used for Expat.
+ */
 void XMLCALL startElement(void*         userData,
                           omsi_string   name,
                           omsi_string*  attr) {
@@ -814,6 +852,9 @@ void XMLCALL startElement(void*         userData,
 }
 
 
+/*
+ * Helper function used for Expat.
+ */
 void XMLCALL endElement(void*       userData,
                         omsi_string name) {
 
@@ -822,8 +863,16 @@ void XMLCALL endElement(void*       userData,
 }
 
 
-/* deallocates memory for omc_ModelInput struct */
-/* ToDo: is full of bugs */
+/*
+ * ============================================================================
+ * Functions for memory management.
+ * ============================================================================
+ */
+
+/*
+ * Deallocate memory for omc_ModelInput struct
+ * ToDo: is full of bugs
+ */
 void omsu_free_ModelInput(omc_ModelInput* mi) {
 
     free_hash_string_string(mi->md);
@@ -847,11 +896,12 @@ void omsu_free_ModelInput(omc_ModelInput* mi) {
     free_hash_long_var(mi->sAlg);
     free_hash_long_var(mi->sPar);
     free_hash_long_var(mi->sAli);
-
 }
 
 
-/* Deletes all items from hash and frees memory for hash table hash_string_string */
+/*
+ * Delete all items from hash and free memory for hash table hash_string_string
+ */
 void free_hash_string_string (hash_string_string* data) {
 
     hash_string_string* current, *tmp;
@@ -865,7 +915,9 @@ void free_hash_string_string (hash_string_string* data) {
 }
 
 
-/* Deletes all items from hash and frees memory for hash table hash_long_var */
+/*
+ * Delete all items from hash and free memory for hash table hash_long_var
+ */
 void free_hash_long_var (hash_long_var* data) {
 
     hash_long_var* current, *tmp;
@@ -877,4 +929,4 @@ void free_hash_long_var (hash_long_var* data) {
     }
 }
 
-/** @} */
+/** \} */

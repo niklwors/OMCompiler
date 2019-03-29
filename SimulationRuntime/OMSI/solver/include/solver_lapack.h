@@ -28,10 +28,10 @@
  *
  */
 
-/** \file solver_newton.h
+/** \file solver_lapack.h
  */
 
-/** @addtogroup LAPACK_SOLVER LAPACK solver
+/** \addtogroup LAPACK_SOLVER LAPACK solver
  *  \ingroup LIN_SOLVER
  *
  *  \brief Linear solver using LAPACK routines.
@@ -39,7 +39,7 @@
  *  Using DGESV() function from LAPACK to solve `A*x=b` with square matrix `A`.
  *  [DGESV Documentation](http://www.netlib.org/lapack/explore-html/d7/d3b/group__double_g_esolve_ga5ee879032a8365897c3ba91e3dc8d512.html#ga5ee879032a8365897c3ba91e3dc8d512)
  *
- *  @{ */
+ *  \{ */
 
 
 #ifndef _LINEARSOLVERLAPACK_H_
@@ -123,4 +123,4 @@ void solver_lapack_print_data(solver_char*          buffer,
 #endif
 #endif
 
-/** @} */
+/** \} */

@@ -38,7 +38,7 @@
 
 
 
-/** @addtogroup OMSIBase OMSI Base Library
+/** \addtogroup OMSIBase OMSI Base Library
   * \ingroup OMSI
   *
   * \brief Base functionalities used by OMSIC and OMSICpp runtimes.
@@ -47,7 +47,7 @@
   * on OMSU data. Mostly memory management functions, functions to call OMSI
   * Solver Library for solving algebraic systems and operate directly on
   * simulation data.
-  *  @{ */
+  *  \{ */
 
 
 
@@ -85,15 +85,15 @@ typedef fmi2Boolean         omsi_bool;
 typedef fmi2Char            omsi_char;
 typedef fmi2String          omsi_string;
 #else
-typedef unsigned int        omsi_unsigned_int;
-typedef double              omsi_real;
-typedef int                 omsi_int;
-typedef long                omsi_long;
-typedef int                 omsi_bool;
-#define omsi_true  1
-#define omsi_false 0
-typedef char                omsi_char;
-typedef const omsi_char*    omsi_string;
+typedef unsigned int        omsi_unsigned_int;  /**< OMSI unsigned integer data type. Defaults to `unsigned int`. */
+typedef double              omsi_real;          /**< OMSI real data type. Defaults to `double`. */
+typedef int                 omsi_int;           /**< OMSI integer data type. Defaults to `int`. */
+typedef long                omsi_long;          /**< OMSI long integer data type. Defaults to `long`. */
+typedef int                 omsi_bool;          /**< OMSI boolean data type. Defaults to `int`. */
+#define omsi_true  1                            /**< Boolean true. */
+#define omsi_false 0                            /**< Boolean false. */
+typedef char                omsi_char;          /**< OMSI char data type. Defaults to `char`. */
+typedef const omsi_char*    omsi_string;        /**< OMSI string data type. Defaults to `const omsi_char*`. */
 #endif
 
 #define OMSI_TYPES_DEFINED
@@ -172,15 +172,15 @@ typedef struct {
 struct omsi_function_t;
 
 
-/*
- * variable basic data type
+/**
+ * Variable basic data types
  */
 typedef enum {
-    OMSI_TYPE_UNKNOWN,
-    OMSI_TYPE_REAL,
-    OMSI_TYPE_INTEGER,
-    OMSI_TYPE_BOOLEAN,
-    OMSI_TYPE_STRING
+    OMSI_TYPE_UNKNOWN,/**< Unknown type*/
+    OMSI_TYPE_REAL,   /**< Real type */
+    OMSI_TYPE_INTEGER,/**< Integer type */
+    OMSI_TYPE_BOOLEAN,/**< Boolean type */
+    OMSI_TYPE_STRING  /**< String type */
 }omsi_data_type;
 
 static const omsi_string omsiDataTypesNames[] = {
@@ -191,35 +191,37 @@ static const omsi_string omsiDataTypesNames[] = {
     "String"};
 
 
-/* ToDo: is this the right location for these definitions? */
+/**
+ * OMSU or FMU type.
+ */
 typedef enum {
-    omsi_model_exchange,
-    omsi_co_simulation      /* not supported yet */
+    omsi_model_exchange,                            /**< Model Exchange */
+    omsi_co_simulation      /* not supported yet */ /**< Co-Simulation (not supported yet) */
 }omsu_type;
 
 
-/*
+/**
  * OpenModelic Simulation Unit (OMSU) solving mode
  */
 typedef enum {
-    omsi_instantiated_mode,
-    omsi_initialization_mode,
-    omsi_continuousTime_mode,
-    omsi_event_mode,
-    omsi_none_mode
+    omsi_instantiated_mode,  /**< Is instantiated */
+    omsi_initialization_mode,/**< Is initialized */
+    omsi_continuousTime_mode,/**< Is in continuous-time mode */
+    omsi_event_mode,         /**< Is in event mode */
+    omsi_none_mode           /**< Is in no mode */
 } omsi_solving_mode_t;
 
 
-/*
- * Actual status of OpenModelica Simulation Unit (OMSU)
+/**
+ * Status for an OpenModelica Simulation Unit (OMSU)
  */
 typedef enum {
-    omsi_ok,
-    omsi_warning,
-    omsi_discard,
-    omsi_error,
-    omsi_fatal,
-    omsi_pending
+    omsi_ok,     /**< Okay */
+    omsi_warning,/**< Warning */
+    omsi_discard,/**< Discard */
+    omsi_error,  /**< Error */
+    omsi_fatal,  /**< Fatal */
+    omsi_pending /**< Pending */
 }omsi_status;
 
 
@@ -279,17 +281,23 @@ typedef enum {
  * Definitions for simulation data
  * ============================================================================
  */
+
+/**
+ * \brief Contains information where to find variables in `sim_data->model_vars_and_params`.
+ */
 typedef struct omsi_index_type {
-  omsi_data_type        type;    /* data type*/
-  omsi_unsigned_int     index;   /* index in sim_data->model_vars_and_params->[datatype]
+  omsi_data_type        type;    /**< Data type*/
+  omsi_unsigned_int     index;   /**< Index in sim_data->model_vars_and_params->[datatype]
                                   * where [datatype]=reals|ints|bools depending on type */
 } omsi_index_type;
 
 
-/*
- * Struct of arrays containing actual values for Variables, Parameters,
- * Aliases and so on for associating time value.
- * Also containing number of containing reals, ints and bools.
+/**
+ * \brief Struct of arrays containing values.
+ *
+ * Containing values for variables, parameters,
+ * aliases for corresponding time value.
+ * Also containing number of containing reals, integers and booleans, strings and externs.
  */
 typedef struct omsi_values {
     omsi_real*      reals;      /* array of omsi_real */
@@ -307,10 +315,13 @@ typedef struct omsi_values {
 } omsi_values;
 
 
+/**
+ * Struct containing sample event.
+ */
 typedef struct omsi_sample {
-    omsi_unsigned_int id;
-    omsi_real start_time;
-    omsi_real interval;
+    omsi_unsigned_int id;       /**< Unique id for each sample. */
+    omsi_real start_time;       /**< Start time of sample event. */
+    omsi_real interval;         /**< Interval length of sample event. */
 }omsi_sample;
 
 
@@ -608,4 +619,4 @@ omsi_int omsi_intialize_simulation(omsi_t** omsi);
 
 #endif
 
-/** @} */
+/** \} */

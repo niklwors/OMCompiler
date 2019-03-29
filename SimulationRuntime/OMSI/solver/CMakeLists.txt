@@ -33,13 +33,15 @@ ENDIF(MSVC)
 
 # Find SUNDIALS KINSOL libraries
 FIND_LIBRARY(KINSOL_LIBRARIE sundials_kinsol
-	PATH ${CMAKE_INSTALL_PREFIX}/${LIB_OMC})
+	PATHS ${CMAKE_INSTALL_PREFIX}/${LIB_OMC}
+	NO_DEFAULT_PATH)
 IF (NOT KINSOL_LIBRARIE)
   MESSAGE(FATAL_ERROR "Error: SUNDIALS KINSOL library not found!")
 ENDIF()
 
 FIND_LIBRARY(SUNDIALS_NVEC_LIBRARIE sundials_nvecserial
-	PATH ${CMAKE_INSTALL_PREFIX}/${LIB_OMC})
+	PATHS ${CMAKE_INSTALL_PREFIX}/${LIB_OMC}
+	NO_DEFAULT_PATH)
 IF(NOT SUNDIALS_NVEC_LIBRARIE)
   MESSAGE(FATAL_ERROR "Error: sundials_nvec_serial library not found!")
 ENDIF()
@@ -58,7 +60,6 @@ add_library(${OMSISolverName}
   src/solver_helper.c
   src/solver_kinsol.c
   src/solver_lapack.c
-  src/solver_newton.c
 )
 
 

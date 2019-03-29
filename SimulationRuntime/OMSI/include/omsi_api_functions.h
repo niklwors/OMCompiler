@@ -28,7 +28,7 @@
  *
  */
 
-/*! \file omsi_me.h
+/*! \file omsi_api_functions.h
  *  \brief API functions for OMSI Model Exchange and Co-Simulation
  *
  *  Description: Header file for all usable API functions for OpenModelica
@@ -131,39 +131,39 @@ OMSI_DLLDirection void omsi_setup_experiment(omsi_t* omsi, bool tolerance_define
 /* called from fmi2_enter_intialization_mode */
 OMSI_DLLDirection int omsi_initialize(omsi_t* omsi);
 /* called from fmi2_set_real */
-OMSI_DLLDirection int omsi_set_real(omsi_t* omsi, const int vr[], size_t nvr, const double value[]);
+OMSI_DLLDirection int omsi_set_real(omsi_t* omsi, const int* vr, size_t nvr, const double* value);
 /* called from fmi2_set_integer */
-OMSI_DLLDirection int omsi_set_integer(omsi_t* omsi, const int vr[], size_t nvr, const int value[]);
+OMSI_DLLDirection int omsi_set_integer(omsi_t* omsi, const int* vr, size_t nvr, const int* value);
 /* called from fmi2_set_booleanomsi_vector_t */
-OMSI_DLLDirection int omsi_set_boolean(omsi_t* omsi, const int vr[], size_t nvr, const bool value[]);
+OMSI_DLLDirection int omsi_set_boolean(omsi_t* omsi, const int* vr, size_t nvr, const bool* value);
 /* called from fmi2_set_string */
-OMSI_DLLDirection int omsi_set_string(omsi_t* omsi, const int vr[], size_t nvr, const const char* value[]);
+OMSI_DLLDirection int omsi_set_string(omsi_t* omsi, const int* vr, size_t nvr, const const char** value);
 /* called from fmi2_get_real */
-OMSI_DLLDirection int omsi_get_real(omsi_t* omsi, const int vr[], size_t nvr, double value[]);
+OMSI_DLLDirection int omsi_get_real(omsi_t* omsi, const int* vr, size_t nvr, double* value);
 /* called from fmi2_get_integer */
-OMSI_DLLDirection int omsi_get_integer(omsi_t* omsi, const int vr[], size_t nvr, int value[]);
+OMSI_DLLDirection int omsi_get_integer(omsi_t* omsi, const int* vr, size_t nvr, int* value);
 /* called from fmi2_get_boolean */
-OMSI_DLLDirection int omsi_get_boolean(omsi_t* omsi, const int vr[], size_t nvr, bool value[]);
+OMSI_DLLDirection int omsi_get_boolean(omsi_t* omsi, const int* vr, size_t nvr, bool* value);
 /* called from fmi2_get_string */
-OMSI_DLLDirection int omsi_get_string(omsi_t* omsi, const int vr[], size_t nvr, const char*  value[]);
+OMSI_DLLDirection int omsi_get_string(omsi_t* omsi, const int* vr, size_t nvr, const char** value);
 /* called from fmi2_get_directional_derivative */
 OMSI_DLLDirection int omsi_get_directional_derivative(omsi_t* omsi,
-                const int vUnknown_ref[], size_t nUnknown,
-                const int vKnown_ref[],   size_t nKnown,
-                const double dvKnown[], double dvUnknown[]);
+                const int* vUnknown_ref, size_t nUnknown,
+                const int* vKnown_ref,   size_t nKnown,
+                const double* dvKnown, double* dvUnknown);
 
 /* called from fmi2_get_derivatives */
-OMSI_DLLDirection int omsi_get_derivatives(omsi_t* omsi, double derivatives[] , size_t nx);
+OMSI_DLLDirection int omsi_get_derivatives(omsi_t* omsi, double* derivatives , size_t nx);
 /* called from fmi2_get_event_indicators */
-OMSI_DLLDirection int omsi_get_event_indicators(omsi_t* omsi, double eventIndicators[], size_t ni);
+OMSI_DLLDirection int omsi_get_event_indicators(omsi_t* omsi, double* eventIndicators, size_t ni);
 /* called from fmi2_get_nominals_of_continuous_states */
-OMSI_DLLDirection int omsi_get_nominal_continuous_states(omsi_t* omsi, double x_nominal[], size_t nx);
+OMSI_DLLDirection int omsi_get_nominal_continuous_states(omsi_t* omsi, double* x_nominal, size_t nx);
 /* called from fmi2_completed_integrator_step */
 OMSI_DLLDirection int omsi_completed_integrator_step(omsi_t* omsi, double* triggered_event);
 /* called from fmi2_set_time */
 OMSI_DLLDirection int omsi_set_time(omsi_t* omsi, double time);
 /* called from  fmi2_set_continuous_states */
-OMSI_DLLDirection int omsi_set_continuous_states(omsi_t* omsi, const double x[], size_t nx);
+OMSI_DLLDirection int omsi_set_continuous_states(omsi_t* omsi, const double* x, size_t nx);
 /* called from fmi2_terminate */
 OMSI_DLLDirection int omsi_terminate(omsi_t* omsi);
 /* called from fmi2_terminate */

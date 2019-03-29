@@ -28,6 +28,14 @@
  *
  */
 
+/** \file solver_helper.c
+ *
+ * Helper functions for OMSI solver.
+ */
+
+/** @addtogroup SOLVER OMSI Solver Library
+  *  @{ */
+
 #include <solver_helper.h>
 
 solver_bool solver_instance_correct(solver_data*    general_solver_data,
@@ -106,3 +114,5 @@ solver_string solver_state2string(solver_state state) {
         return "Unknown solver state";
     }
 }
+
+/** @} */

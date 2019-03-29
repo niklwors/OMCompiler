@@ -37,11 +37,12 @@
  * \brief Process modelName_info.json file
  *
  * Functions to process informations from optional modelName_info.json file in
- * resources folder.
+ * FMU resources folder.
  */
 
 /** \addtogroup initJson
-  *  \{ */
+ *  \{
+ */
 
 #include <omsi_global.h>
 #include <omsi_input_json.h>
@@ -77,16 +78,16 @@ static void readInfoJson(omsi_string    str,
 
 
 /**
- * \brief Processes all informations from input.json file.
+ * \brief Process all informations from input.json file.
  *
- * Reads values, allocates memory and writes everything in model_data->equation_info.
+ * Read values, allocates memory and writes everything in model_data->equation_info.
  *
- * \param osu_data
- * \param fileName
- * \param fmuGUID
- * \param instanceName
- * \param functions
- * \return
+ * \param [in,out]  osu_data        Central data structure containing all informations.
+ * \param [in]      fileName        Path to JSON file.
+ * \param [in]      fmuGUID         GUID of FMU for checking purpose. Ignored at the moment.
+ * \param [in]      instanceName    Name of MFU instance for logging. Ignored at the moment.
+ * \param [in]      functions       Pointer to callback functions provided by user.
+ * \return `omsi_status`            Returns `omsi_ok` on success.
  */
 omsi_status omsu_process_input_json(omsi_t*                         osu_data,
                                     omsi_string                     fileName,
@@ -114,11 +115,14 @@ omsi_status omsu_process_input_json(omsi_t*                         osu_data,
     /* free memory */
     omc_mmap_close_read(mmap_reader);
 
-
     return omsi_ok;
 }
 
 
+/*
+ * Helper function for reading JSON.
+ * Skip whitespace.
+ */
 static omsi_string skipSpace(omsi_string str) {
     do {
         switch (*str) {
@@ -134,7 +138,11 @@ static omsi_string skipSpace(omsi_string str) {
 }
 
 
-/* Does not work for escaped strings. Returns the rest of the string to parse. */
+/*
+ * Helper function for reading JSON.
+ * Assert string value is written in `str`. Returns the rest of the string to parse.
+ * Does not work for escaped strings.
+ */
 static omsi_string assertStringValue(omsi_string str,
                                      omsi_string value) {
     int len = strlen(value);
@@ -149,6 +157,11 @@ static omsi_string assertStringValue(omsi_string str,
 }
 
 
+/*
+ * Helper function for reading JSON.
+ * Assert char value is written in `str`. Returns the rest of the string to parse.
+ * Does not work for escaped strings.
+ */
 static omsi_string assertChar (omsi_string  str,
                                omsi_char    expected_char) {
     str = skipSpace(str);
@@ -162,9 +175,9 @@ static omsi_string assertChar (omsi_string  str,
 }
 
 /*
- * Asserts if pointer *str points to char that is equal to expected_char or end
+ * Helper function for reading JSON.
+ * Assert pointer `*str` points to char that is equal to expected_char or end
  * of array ']' is reached.
- * Otherwise aborts.
  */
 static omsi_string omsu_assertCharOrEnd (omsi_string    str,
                                          omsi_char      expected_char,
@@ -186,6 +199,11 @@ static omsi_string omsu_assertCharOrEnd (omsi_string    str,
 }
 
 
+/*
+ * Helper function for reading JSON.
+ * Assert real value is written in `str`. Returns the rest of the string to parse.
+ * Does not work for escaped strings.
+ */
 static omsi_string assertNumber(omsi_string str,
                                 omsi_real   expected) {
     omsi_char* endptr = NULL;
@@ -206,6 +224,10 @@ static omsi_string assertNumber(omsi_string str,
 }
 
 
+/*
+ * Helper function for reading JSON.
+ * Skip rest of current object in `str`.
+ */
 static omsi_string skipObjectRest(omsi_string   str,
                                   omsi_int      first) {
     str=skipSpace(str);
@@ -235,7 +257,8 @@ static omsi_string skipObjectRest(omsi_string   str,
 
 
 /*
- * Skips everything inside string that is between braces, brackets or
+ * Helper function for reading JSON.
+ * Skip everything inside string that is between braces, brackets or
  * quotation marks, e.g. everything between {..}, [..] or "..".
  */
 static omsi_string skipValue(omsi_string str) {
@@ -319,6 +342,10 @@ static omsi_string skipValue(omsi_string str) {
 }
 
 
+/*
+ * Helper function for reading JSON.
+ * Skip everything inside field, if it exists.
+ */
 static omsi_string skipFieldIfExist(omsi_string str,
                                     omsi_string name) {
     omsi_string s = str;
@@ -344,7 +371,9 @@ static omsi_string skipFieldIfExist(omsi_string str,
 }
 
 
-/* Reads single equation from string created from JSON file.
+/*
+ * Helper function for reading JSON.
+ * Read single equation from string created from JSON file.
  * Save detailed informations about equation in equation_info.
  */
 omsi_string readEquation(omsi_string        str,
@@ -480,7 +509,9 @@ omsi_string readEquation(omsi_string        str,
     return skipObjectRest(str,0);
 }
 
-/* Reads equations part from string created from JSON file.
+/*
+ * Helper function for reading JSON.
+ * Read equations part from string created from JSON file.
  * For every equation a sub function is called to save detailed informations in equation_info.
  */
 omsi_string readEquations(omsi_string       str,
@@ -550,8 +581,13 @@ omsi_string readEquations(omsi_string       str,
 }
 
 
-/* Reads all Informations from JSON file
+/**
+ * \brief Reads all informations from JSON file.
+ *
  * Actually skips everything except for equations, but checks if format of JSON is correct.
+ *
+ * \param [in]      str         String containing content of JSON file.
+ * \param [in,out]  model_data  Pointer to struct used for saving data read from JSON file.
  */
 static void readInfoJson(omsi_string    str,
                          model_data_t*  model_data) {
@@ -586,3 +622,5 @@ static void readInfoJson(omsi_string    str,
     str=skipValue(str);
     assertChar(str,'}');
 }
+
+/** \} */

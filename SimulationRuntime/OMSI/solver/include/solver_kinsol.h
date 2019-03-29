@@ -31,9 +31,9 @@
 /** \file solver_kinsol.h
  */
 
-/** @addtogroup kinsol_SOLVER kinsol solver
+/** \addtogroup kinsol_SOLVER kinsol solver
  *  \ingroup NONLIN_SOLVER
- *  @{ */
+ *  \{ */
 
 
 #ifndef _NONLINEARSOLVERKINSOL_H_
@@ -130,4 +130,4 @@ solver_status solver_kinsol_error_handler(solver_data*  solver,
 
 #endif
 
-/** @} */
+/** \} */

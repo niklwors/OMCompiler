@@ -66,8 +66,8 @@
  */
 
 
-/** @addtogroup SOLVER OMSI Solver Library
-  *  @{ */
+/** \addtogroup SOLVER OMSI Solver Library
+  *  \{ */
 
 #ifndef SOLVER_API_H
 #define SOLVER_API_H
@@ -312,4 +312,4 @@ typedef struct solver_data {
 
 #endif
 
-/** @} */
+/** \} */

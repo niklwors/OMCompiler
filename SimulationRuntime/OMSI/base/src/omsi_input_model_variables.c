@@ -27,6 +27,13 @@
  * CONDITIONS OF OSMC-PL.
  *
  */
+
+/** \file omsi_input_model_variables.c
+ */
+
+/** \addtogroup initSimData
+  *  \{ */
+
 #include <omsi_global.h>
 #include <omsi_input_model_variables.h>
 
@@ -34,7 +41,16 @@
 #define UNUSED(x) (void)(x)     /* ToDo: delete later */
 
 
-
+/**
+ * \brief Allocates memory for model variables.
+ *
+ * Gets called from ´omsi_instantiate`.
+ *
+ * \param [in,out]  omsu        Central data structure containing all informations.
+ * \param [in]      functions   Callback functions to be used from OMSI functions, e.g for memory management or logging.
+ * \return                      `omsi_status omsi_ok` if successful <br>
+ *                              `omsi_status omsi_error` if something went wrong.
+ */
 omsi_status omsi_allocate_model_variables(omsi_t*                           omsu,
                                           const omsi_callback_functions*    functions) {
 
@@ -113,6 +129,15 @@ omsi_status omsi_allocate_model_variables(omsi_t*                           omsu
     return omsi_ok;
 }
 
+/**
+ * \brief Initializes model variables with values from init-XML file.
+ *
+ * \param [in,out]  omsu            Central data structure containing all informations.
+ * \param [in]      functions       Callback functions to be used from OMSI functions. Ignored at the moment.
+ * \param [in]      instanceName    Name of OMSU instance. Ignored at the moment.
+ * \return                          `omsi_status omsi_ok` if successful <br>
+ *                                  `omsi_status omsi_error` if something went wrong.
+ */
 omsi_status omsi_initialize_model_variables(omsi_t*                         omsu,
                                             const omsi_callback_functions*  functions,
                                             omsi_string                     instanceName) {
@@ -126,6 +151,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
     omsi_unsigned_int bool_parameter, bool_parameter_2;
     omsi_unsigned_int bool_algebraic, bool_algebraic_2;
 
+    /* ToDo: Delete me! */
     UNUSED(functions);
     UNUSED(instanceName);
 
@@ -148,7 +174,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
         return omsi_error;
     }
 
-    /*Initialize state variables from init xml file values*/
+    /* Initialize state variables from init xml file values*/
     n = omsu->model_data->n_states;
     for (state = 0; state < n; ++state) {
         real_var_attribute_t* attr = (real_var_attribute_t*)(omsu->model_data->model_vars_info[state].modelica_attributes);
@@ -160,7 +186,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
         omsu->sim_data->model_vars_and_params->reals[state] = attr->start;
     }
 
-    /*Initialize derivatives variables from init xml file values*/
+    /* Initialize derivatives variables from init xml file values*/
     n = n + omsu->model_data->n_derivatives;
     for (derstate = state; derstate < n; ++derstate) {
         real_var_attribute_t* attr = (real_var_attribute_t*)(omsu->model_data->model_vars_info[derstate].modelica_attributes);
@@ -172,7 +198,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
         omsu->sim_data->model_vars_and_params->reals[derstate] = attr->start;
     }
 
-    /*Initialize real algebraic variables from init xml file values*/
+    /* Initialize real algebraic variables from init xml file values*/
     n = n + omsu->model_data->n_real_vars;
     for (real_algebraic = derstate; real_algebraic < n; ++real_algebraic) {
         real_var_attribute_t* attr = (real_var_attribute_t*)(omsu->model_data->model_vars_info[real_algebraic].modelica_attributes);
@@ -184,7 +210,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
         omsu->sim_data->model_vars_and_params->reals[real_algebraic] = attr->start;
     }
 
-    /*Initialize real parameter variables from init xml file values*/
+    /* Initialize real parameter variables from init xml file values*/
     n = n + omsu->model_data->n_real_parameters;
     for (real_parameter = real_algebraic; real_parameter < n; ++real_parameter) {
         real_var_attribute_t* attr = (real_var_attribute_t*)(omsu->model_data->model_vars_info[real_parameter].modelica_attributes);
@@ -200,7 +226,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
     real_alias = omsu->model_data->n_real_aliases;
     n = n + real_alias;
 
-    /*Initialize int algebraic variables from init xml file values*/
+    /* Initialize int algebraic variables from init xml file values*/
     n = n + omsu->model_data->n_int_vars;
     for (int_algebraic = real_parameter+ real_alias, int_algebraic_2=0; int_algebraic < n; ++int_algebraic, ++int_algebraic_2) {
         int_var_attribute_t* attr = (int_var_attribute_t*)(omsu->model_data->model_vars_info[int_algebraic].modelica_attributes);
@@ -212,7 +238,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
         omsu->sim_data->model_vars_and_params->ints[int_algebraic_2] = attr->start;
     }
 
-    /*Initialize int parameter from init xml file values*/
+    /* Initialize int parameter from init xml file values*/
     n = n + omsu->model_data->n_int_parameters;
     for (int_parameter = int_algebraic, int_parameter_2 = int_algebraic_2; int_parameter < n; ++int_parameter, ++int_parameter_2) {
         int_var_attribute_t* attr = (int_var_attribute_t*)(omsu->model_data->model_vars_info[int_parameter].modelica_attributes);
@@ -224,11 +250,11 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
         omsu->sim_data->model_vars_and_params->ints[int_parameter_2] = attr->start;
     }
 
-    /*int alias variables are not extra included in int vars memory,therefore they are skipped*/
+    /* int alias variables are not extra included in int vars memory, therefore they are skipped */
     int_alias = omsu->model_data->n_int_aliases;
     n = n + int_alias;
 
-    /*Initialize bool algebraic variables from init xml file values*/
+    /* Initialize bool algebraic variables from init xml file values*/
     n = n + omsu->model_data->n_bool_vars;
     for (bool_algebraic = int_parameter+ int_alias, bool_algebraic_2 = 0; bool_algebraic < n; ++bool_algebraic, ++bool_algebraic_2) {
         bool_var_attribute_t* attr = (bool_var_attribute_t*)(omsu->model_data->model_vars_info[bool_algebraic].modelica_attributes);
@@ -240,7 +266,7 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
         omsu->sim_data->model_vars_and_params->bools[bool_algebraic_2] = attr->start;
     }
 
-    /*Initialize bool parameter  from init xml file values*/
+    /* Initialize bool parameter  from init xml file values*/
     n = n + omsu->model_data->n_bool_parameters;
     for (bool_parameter = bool_algebraic, bool_parameter_2 = bool_algebraic_2; bool_parameter < n; ++bool_parameter, ++bool_parameter_2) {
         bool_var_attribute_t* attr = (bool_var_attribute_t*)(omsu->model_data->model_vars_info[bool_parameter].modelica_attributes);
@@ -257,6 +283,13 @@ omsi_status omsi_initialize_model_variables(omsi_t*                         omsu
     return omsi_ok;
 }
 
+/**
+ * \brief Free allocated memory for model variables in simulation data.
+ *
+ * \param [in,out]  sim_data        Pointer to simulation data containing all variables.
+ * \return                          `omsi_status omsi_ok` if successful <br>
+ *                                  `omsi_status omsi_warning` if `sim_data` is NULL.
+ */
 omsi_status omsi_free_model_variables(sim_data_t* sim_data) {
 
     /* Check input */
@@ -296,6 +329,10 @@ omsi_status omsi_free_model_variables(sim_data_t* sim_data) {
 }
 
 
+/*
+ * Helper function.
+ * Allocates aligned memory.
+ */
 void* alignedMalloc(size_t required_bytes,
                     size_t alignment)        /* ToDo: change size_t to some omsi type */
 {
@@ -309,6 +346,10 @@ void* alignedMalloc(size_t required_bytes,
     return p2;
 }
 
+/*
+ * Helper function.
+ * Frees memory allocated with `alignedMalloc`.
+ */
 void alignedFree(void* p)
 {
     void* p1 = ((void**)p)[-1];         /* get the pointer to the buffer we allocated */
@@ -316,364 +357,14 @@ void alignedFree(void* p)
 }
 
 
-/*
- * ============================================================================
- * Getters
- * ============================================================================
- */
-
-omsi_status omsi_get_boolean(omsi_t*                    omsu,
-                             const omsi_unsigned_int    vr[],
-                             omsi_unsigned_int          nvr,
-                             omsi_bool                  value[]){
-
-    /* Variables */
-    omsi_unsigned_int i;
-    omsi_unsigned_int n_prev_model_vars;
-    omsi_int index;
-
-    if (!model_variables_allocated(omsu, "fmi2GetBoolean")) {
-        return omsi_error;
-    }
-
-    if (nvr > 0 && vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetBoolean: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr > 0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetBoolean: Invalid argument value[] = NULL.");
-        return omsi_error;
-    }
-
-    /* Get bool values */
-    for (i = 0; i < nvr; i++){
-        /* Check for negated alias */
-        n_prev_model_vars = omsu->model_data->n_states +omsu->model_data->n_derivatives + omsu->model_data->n_real_vars + omsu->model_data->n_real_parameters + omsu->model_data->n_real_aliases
-                          + omsu->model_data->n_int_vars + omsu->model_data->n_int_parameters + omsu->model_data->n_int_aliases;
-        index = omsi_get_negated_index(&omsu->model_data->model_vars_info[vr[i]+n_prev_model_vars], vr[i]);
-
-        if (index < 0) {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetBoolean", -index, omsu->sim_data->model_vars_and_params->n_bools)) {
-                return omsi_error;
-            }
-            value[i] =getBoolean(omsu, -index);
-        } else {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetBoolean", index, omsu->sim_data->model_vars_and_params->n_bools)) {
-                return omsi_error;
-            }
-            value[i] =getBoolean(omsu, index);
-        }
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2GetBoolean: #b%u# = %s", vr[i], value[i] ? "true" : "false");
-    }
-    return omsi_ok;
-}
-
-omsi_status omsi_get_integer(omsi_t*                     omsu,
-                             const omsi_unsigned_int    vr[],
-                             omsi_unsigned_int          nvr,
-                             omsi_int                   value[]){
-
-    /* Variables */
-    omsi_unsigned_int i;
-    omsi_unsigned_int n_prev_model_vars;
-    omsi_int index;
-
-    if (!model_variables_allocated(omsu, "fmi2GetInteger")) {
-        return omsi_error;
-    }
-
-    if (nvr > 0 &&  vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetInteger: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr > 0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetInteger: Invalid argument value[] = NULL.");
-        return omsi_error;
-    }
-
-    /* Get integers */
-    for (i = 0; i < nvr; i++) {
-        /* Check for negated alias */
-        n_prev_model_vars = omsu->model_data->n_states +omsu->model_data->n_derivatives + omsu->model_data->n_real_vars + omsu->model_data->n_real_parameters + omsu->model_data->n_real_aliases;
-        index = omsi_get_negated_index(&omsu->model_data->model_vars_info[vr[i]+n_prev_model_vars], vr[i]);
-
-        if (index < 0) {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetInteger", -index, omsu->sim_data->model_vars_and_params->n_ints)) {
-                return omsi_error;
-            }
-            value[i] =getInteger(omsu, -index);
-        } else {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetInteger", index, omsu->sim_data->model_vars_and_params->n_ints)) {
-                return omsi_error;
-            }
-            value[i] =getInteger(omsu, index);
-        }
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2GetInteger: #i%u# = %d", vr[i], value[i]);
-    }
-    return omsi_ok;
-}
-
-omsi_status omsi_get_real(omsi_t*                    omsu,
-                          const omsi_unsigned_int   vr[],
-                          omsi_unsigned_int         nvr,
-                          omsi_real                 value[]){
-
-    /* Variables */
-    omsi_unsigned_int i;
-    omsi_int index;
-
-    if (!model_variables_allocated(omsu, "fmi2GetReal")) {
-        return omsi_error;
-    }
-
-    if (nvr > 0 && vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetReal: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr > 0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetReal: Invalid argument value[] = NULL.");
-      return omsi_error;
-    }
-
-    /* Get reals */
-    for (i = 0; i < nvr; i++) {
-        /* Check for negated alias */
-        index = omsi_get_negated_index(&omsu->model_data->model_vars_info[vr[i]], vr[i]);
-
-        if (index < 0) {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetReal", -index, omsu->sim_data->model_vars_and_params->n_reals)) {
-                return omsi_error;
-            }
-            value[i] =getReal(omsu, -index);
-        } else {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetReal", index, omsu->sim_data->model_vars_and_params->n_reals)) {
-                return omsi_error;
-            }
-            value[i] =getReal(omsu, index);
-        }
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2GetReal: vr = %i, value = %f", vr[i], value[i]);
-    }
-    return omsi_ok;
-}
-
-omsi_status omsi_get_string(omsi_t*                  omsu,
-                            const omsi_unsigned_int vr[],
-                            omsi_unsigned_int       nvr,
-                            omsi_string             value[]){
-
-    /* Variables */
-    omsi_unsigned_int i;
-    omsi_unsigned_int n_prev_model_vars;
-    omsi_int index;
-
-    if (!model_variables_allocated(omsu, "fmi2GetString")) {
-        return omsi_error;
-    }
-
-    if (nvr>0 && vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetString: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr>0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2GetString: Invalid argument value[] = NULL.");
-        return omsi_error;
-    }
-
-    for (i = 0; i < nvr; i++) {
-        /* Check for negated alias */
-        n_prev_model_vars = omsu->model_data->n_states +omsu->model_data->n_derivatives + omsu->model_data->n_real_vars + omsu->model_data->n_real_parameters + omsu->model_data->n_real_aliases
-                          + omsu->model_data->n_int_vars + omsu->model_data->n_int_parameters + omsu->model_data->n_int_aliases
-                          + omsu->model_data->n_bool_vars + omsu->model_data->n_bool_parameters + omsu->model_data->n_bool_aliases;
-        index = omsi_get_negated_index(&omsu->model_data->model_vars_info[vr[i]+n_prev_model_vars], vr[i]);
-
-        if (index < 0) {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetString", -index, omsu->sim_data->model_vars_and_params->n_strings)) {
-                return omsi_error;
-            }
-            value[i] =getString(omsu, -index);
-        } else {
-            if (omsi_vr_out_of_range(omsu, "fmi2GetString", index, omsu->sim_data->model_vars_and_params->n_strings)) {
-                return omsi_error;
-            }
-            value[i] =getString(omsu, index);
-        }
-        if (omsi_vr_out_of_range(omsu, "fmi2GetString", vr[i], omsu->sim_data->model_vars_and_params->n_strings)) {
-            return omsi_error;
-        }
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2GetString: #s%u# = '%s'", vr[i], value[i]);
-    }
-    return omsi_ok;
-}
 
 /*
- * ============================================================================
- * Setters
- * ============================================================================
+ * Check if memory is allocated for model variables.
  */
-
-/* ToDo: Include code for negated aliases */
-omsi_status omsi_set_boolean(omsi_t*                    omsu,
-                             const omsi_unsigned_int    vr[],
-                             omsi_unsigned_int          nvr,
-                             const omsi_bool            value[]) {
-
-    /* Variables */
-    omsi_unsigned_int i;
-
-    if (!model_variables_allocated(omsu, "fmi2SetBoolean"))
-        return omsi_error;
-
-    if (nvr>0 && vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetBoolean: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr>0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetBoolean: Invalid argument value[] = NULL.");
-        return omsi_error;
-    }
-
-    filtered_base_logger(global_logCategories, log_all, omsi_ok,
-        "fmi2SetBoolean: nvr = %d", nvr);
-
-    for (i = 0; i < nvr; i++) {
-        if (omsi_vr_out_of_range(omsu, "fmi2SetBoolean", vr[i], omsu->sim_data->model_vars_and_params->n_bools))
-            return omsi_error;
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2SetBoolean: #b%d# = %s", vr[i], value[i] ? "true" : "false");
-
-        setBoolean(omsu, vr[i], value[i]);
-    }
-
-    return omsi_ok;
-}
-
-omsi_status omsi_set_integer(omsi_t*                    omsu,
-                             const omsi_unsigned_int    vr[],
-                             omsi_unsigned_int          nvr,
-                             const omsi_int             value[]) {
-
-    /* Variables */
-    omsi_unsigned_int i;
-
-    if (!model_variables_allocated(omsu, "fmi2SetInteger"))
-        return omsi_error;
-
-    if (nvr>0 && vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetInteger: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr>0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetInteger: Invalid argument value[] = NULL.");
-        return omsi_error;
-    }
-
-    filtered_base_logger(global_logCategories, log_all, omsi_ok,
-        "fmi2SetInteger: nvr = %d", nvr);
-
-    for (i = 0; i < nvr; i++) {
-        if (omsi_vr_out_of_range(omsu, "fmi2SetInteger", vr[i], omsu->sim_data->model_vars_and_params->n_ints))
-            return omsi_error;
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2SetInteger: #i%d# = %d", vr[i], value[i]);
-        setInteger(omsu, vr[i], value[i]);
-    }
-
-    return omsi_ok;
-}
-
-omsi_status omsi_set_real(omsi_t*                   omsu,
-                          const omsi_unsigned_int   vr[],
-                          omsi_unsigned_int         nvr,
-                          const omsi_real           value[]) {
-
-    /* Variables */
-    omsi_unsigned_int i;
-
-    if (!model_variables_allocated(omsu, "fmi2SetReal"))
-        return omsi_error;
-
-    if (nvr>0 && vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetReal: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr>0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetReal: Invalid argument value[] = NULL.");
-        return omsi_error;
-    }
-
-    filtered_base_logger(global_logCategories, log_all, omsi_ok,
-        "fmi2SetReal: nvr = %d", nvr);
-
-    for (i = 0; i < nvr; i++) {
-        if (omsi_vr_out_of_range(omsu, "fmi2SetReal", vr[i], omsu->sim_data->model_vars_and_params->n_reals))
-            return omsi_error;
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2SetReal: #r%d# = %.16g", vr[i], value[i]);
-        setReal(omsu, vr[i], value[i]);
-    }
-
-    return omsi_ok;
-}
-
-omsi_status omsi_set_string(omsi_t*                  omsu,
-                            const omsi_unsigned_int vr[],
-                            omsi_unsigned_int                  nvr,
-                            const omsi_string       value[]) {
-
-    /* Variables */
-    omsi_unsigned_int i;
-
-    if (!model_variables_allocated(omsu, "fmi2SetString"))
-        return omsi_error;
-
-    if (nvr>0 && vr==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetString: Invalid argument vr[] = NULL.");
-        return omsi_error;
-    }
-    if (nvr>0 && value==NULL) {
-        filtered_base_logger(global_logCategories, log_statuserror, omsi_error,
-                "fmi2SetString: Invalid argument value[] = NULL.");
-        return omsi_error;
-    }
-
-    filtered_base_logger(global_logCategories, log_all, omsi_ok,
-        "fmi2SetString: nvr = %d", nvr);
-
-    for (i = 0; i < nvr; i++) {
-        if (omsi_vr_out_of_range(omsu, "fmi2SetString", vr[i], omsu->sim_data->model_vars_and_params->n_strings))
-            return omsi_error;
-        filtered_base_logger(global_logCategories, log_all, omsi_ok,
-            "fmi2SetString: #s%d# = '%s'", vr[i], value[i]);
-
-        setString(omsu, vr[i], value[i]);
-    }
-
-    return omsi_ok;
-}
-
-
 omsi_bool model_variables_allocated(omsi_t*     omsu,
                                     omsi_string functionName) {
 
+    /* TODO: Fix me! */
     UNUSED(omsu);
     UNUSED(functionName);
 #if 0
@@ -697,117 +388,4 @@ omsi_bool model_variables_allocated(omsi_t*     omsu,
     return omsi_true;
 }
 
-
-
-/*
- * ============================================================================
- * Helper functions for getters and setters
- * ============================================================================
- */
-
-/* What happens for alias variables for getters and setters? */
-
-/*
- * Gets real number of struct OSU with value reference vr.
- */
-omsi_real getReal (omsi_t*                  osu_data,
-                   const omsi_unsigned_int  vr) {
-
-    omsi_real output = osu_data->sim_data->model_vars_and_params->reals[vr];
-    return output;
-}
-
-
-/*
- * Sets real number of struct OSU for index reference vr with value
-*/
-omsi_status setReal(omsi_t*                 osu_data,
-                    const omsi_unsigned_int vr,
-                    const omsi_real         value) {
-
-    osu_data->sim_data->model_vars_and_params->reals[vr] = value;
-    return omsi_ok;
-}
-
-
-/*
- * Gets integer number of struct OSU with value reference vr
-*/
-omsi_int getInteger (omsi_t*                    osu_data,
-                     const omsi_unsigned_int    vr) {
-
-    /* Variables */
-    omsi_int output;
-
-    /*index = vr - osu_data->sim_data->model_vars_and_params->n_reals;*/
-    output = osu_data->sim_data->model_vars_and_params->ints[vr];
-   return output;
-}
-
-
-/*
- * Sets integer number of struct OSU for index reference vr with value
- */
-omsi_status setInteger(omsi_t*                  osu_data,
-                       const omsi_unsigned_int  vr,
-                       const omsi_int           value) {
-
-    /* index = vr - osu_data->sim_data->model_vars_and_params->n_reals; */
-    osu_data->sim_data->model_vars_and_params->ints[vr] = value;
-    return omsi_ok;
-}
-
-
-/*
- * gets boolean variable of struct OSU with value reference vr
- */
-omsi_bool getBoolean (omsi_t*                  osu_data,
-                      const omsi_unsigned_int   vr) {
-    /* Variables */
-    omsi_bool output;
-
-   /*index = vr - osu_data->sim_data->model_vars_and_params->n_reals
-               - osu_data->sim_data->model_vars_and_params->n_ints; */
-    output = osu_data->sim_data->model_vars_and_params->bools[vr];
-    return output;
-}
-
-
-/*
- * sets boolean variable of struct OSU for index reference vr with value
- */
-omsi_status setBoolean(omsi_t*                  osu_data,
-                       const omsi_unsigned_int  vr,
-                       const omsi_bool          value) {
-
-    /* index = vr - osu_data->sim_data->model_vars_and_params->n_reals
-               - osu_data->sim_data->model_vars_and_params->n_ints; */
-    osu_data->sim_data->model_vars_and_params->bools[vr] = value;
-    return omsi_ok;
-}
-
-/*
- * gets string of struct OSU with value reference vr
-*/
-omsi_string getString (omsi_t*                  osu_data,
-                       const omsi_unsigned_int  vr) {
-
-    /* Variables */
-    omsi_string output;
-
-    output = osu_data->sim_data->model_vars_and_params->strings[vr];
-    return output;
-}
-
-
-/*
- * sets string of struct OSU for index reference vr with value
- */
-omsi_status setString(omsi_t*                  osu_data,
-                      const omsi_unsigned_int   vr,
-                      const omsi_string         value) {
-
-    osu_data->sim_data->model_vars_and_params->strings[vr] = value;
-    return omsi_error;
-}
-
+/** \} */

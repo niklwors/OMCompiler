@@ -33,8 +33,8 @@
  * Application interface for OMSI solver.
  */
 
-/** @addtogroup SOLVER OMSI Solver Library
-  *  @{ */
+/** \addtogroup SOLVER OMSI Solver Library
+  *  \{ */
 
 #ifndef _SOLVER_API_H
 #define _SOLVER_API_H
@@ -115,4 +115,4 @@ solver_status solver_non_linear_solve(solver_data* solver);
 
 #endif
 
-/** @} */
+/** \} */

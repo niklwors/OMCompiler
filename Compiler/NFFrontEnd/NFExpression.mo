@@ -133,27 +133,45 @@ public
 	    ock := match ick
 	      local
 	        Expression i, ic, r, c, si, sm;
-	      case (INFERRED_CLOCK()) then DAE.INFERRED_CLOCK();
-	      case (INTEGER_CLOCK(i, r)) then DAE.INTEGER_CLOCK(Expression.toDAE(i), Expression.toDAE(r));
-	      case (REAL_CLOCK(i)) then DAE.REAL_CLOCK(Expression.toDAE(i));
-	      case (BOOLEAN_CLOCK(c, si)) then DAE.BOOLEAN_CLOCK(Expression.toDAE(c), Expression.toDAE(si));
-	      case (SOLVER_CLOCK(c, sm)) then DAE.SOLVER_CLOCK(Expression.toDAE(c), Expression.toDAE(sm));
+	      case INFERRED_CLOCK()     then DAE.INFERRED_CLOCK();
+	      case INTEGER_CLOCK(i, r)  then DAE.INTEGER_CLOCK(Expression.toDAE(i), Expression.toDAE(r));
+	      case REAL_CLOCK(i)        then DAE.REAL_CLOCK(Expression.toDAE(i));
+	      case BOOLEAN_CLOCK(c, si) then DAE.BOOLEAN_CLOCK(Expression.toDAE(c), Expression.toDAE(si));
+	      case SOLVER_CLOCK(c, sm)  then DAE.SOLVER_CLOCK(Expression.toDAE(c), Expression.toDAE(sm));
 	    end match;
 	  end toDAE;
 
-    function toString
+    function toDebugString
       input ClockKind ick;
       output String ock;
     algorithm
       ock := match ick
         local
           Expression i, ic, r, c, si, sm;
-        case (INFERRED_CLOCK()) then "INFERRED_CLOCK()";
-        case (INTEGER_CLOCK(i, r)) then "INTEGER_CLOCK(" + Expression.toString(i) + ", " + Expression.toString(r) + ")";
-        case (REAL_CLOCK(i)) then "REAL_CLOCK(" + Expression.toString(i) + ")";
-        case (BOOLEAN_CLOCK(c, si)) then "BOOLEAN_CLOCK(" + Expression.toString(c) + ", " + Expression.toString(si) + ")";
-        case (SOLVER_CLOCK(c, sm)) then "SOLVER_CLOCK(" + Expression.toString(c) + ", " + Expression.toString(sm) + ")";
+        case INFERRED_CLOCK()     then "INFERRED_CLOCK()";
+        case INTEGER_CLOCK(i, r)  then "INTEGER_CLOCK(" + Expression.toString(i) + ", " + Expression.toString(r) + ")";
+        case REAL_CLOCK(i)        then "REAL_CLOCK(" + Expression.toString(i) + ")";
+        case BOOLEAN_CLOCK(c, si) then "BOOLEAN_CLOCK(" + Expression.toString(c) + ", " + Expression.toString(si) + ")";
+        case SOLVER_CLOCK(c, sm)  then "SOLVER_CLOCK(" + Expression.toString(c) + ", " + Expression.toString(sm) + ")";
       end match;
+    end toDebugString;
+
+    function toString
+      input ClockKind ck;
+      output String str;
+    algorithm
+      str := match ck
+        local
+          Expression e1, e2;
+
+        case INFERRED_CLOCK()      then "";
+        case INTEGER_CLOCK(e1, e2) then Expression.toString(e1) + ", " + Expression.toString(e2);
+        case REAL_CLOCK(e1)        then Expression.toString(e1);
+        case BOOLEAN_CLOCK(e1, e2) then Expression.toString(e1) + ", " + Expression.toString(e2);
+        case SOLVER_CLOCK(e1, e2)  then Expression.toString(e1) + ", " + Expression.toString(e2);
+      end match;
+
+      str := "Clock(" + str + ")";
     end toString;
 	end ClockKind;
 
@@ -815,41 +833,74 @@ public
     end match;
   end setType;
 
+  function typeCastOpt
+    input Option<Expression> exp;
+    input Type ty;
+    output Option<Expression> outExp = Util.applyOption(exp, function typeCast(ty = ty));
+  end typeCastOpt;
+
   function typeCast
+    "Converts an expression to the given type. Dimensions of array types can be
+     omitted, and are ignored by this function, since arrays can't be cast to a
+     different size. Only the element type of the type is used, so for example:
+       typeCast({1, 2, 3}, Type.REAL()) => {1.0, 2.0, 3.0}
+
+     The function does not check that the cast is valid, and expressions that
+     can't be converted outright will be wrapped as a CAST expression."
     input output Expression exp;
     input Type ty;
+  protected
+    Type t, ety;
+    list<Expression> el;
   algorithm
-    exp := match (exp, ty)
-      local
-        Type t, ety;
-        list<Expression> el;
+    ety := Type.arrayElementType(ty);
 
+    exp := match (exp, ety)
+      // Integer can be cast to Real.
       case (INTEGER(), Type.REAL())
         then REAL(intReal(exp.value));
 
+      // Real doesn't need to be cast to Real, since we convert e.g. array with
+      // a mix of Integers and Reals to only Reals.
       case (REAL(), Type.REAL()) then exp;
 
+      // For arrays we typecast each element and update the type of the array.
       case (ARRAY(ty = t, elements = el), _)
         algorithm
-          ety := Type.arrayElementType(ty);
           el := list(typeCast(e, ety) for e in el);
-          t := Type.setArrayElementType(t, ty);
+          t := Type.setArrayElementType(t, ety);
         then
           ARRAY(t, el, exp.literal);
 
+      case (RANGE(ty = t), _)
+        algorithm
+          t := Type.setArrayElementType(t, ety);
+        then
+          RANGE(t, typeCast(exp.start, ety), typeCastOpt(exp.step, ety), typeCast(exp.stop, ety));
+
+      // Unary operators (i.e. -) are handled by casting the operand.
       case (UNARY(), _)
-        then UNARY(exp.operator, typeCast(exp.exp, ty));
+        algorithm
+          t := Type.setArrayElementType(Operator.typeOf(exp.operator), ety);
+        then
+          UNARY(Operator.setType(t, exp.operator), typeCast(exp.exp, ety));
 
+      // If-expressions are handled by casting each of the branches.
       case (IF(), _)
-        then IF(exp.condition, typeCast(exp.trueBranch, ty), typeCast(exp.falseBranch, ty));
+        then IF(exp.condition, typeCast(exp.trueBranch, ety), typeCast(exp.falseBranch, ety));
 
+      // Calls are handled by Call.typeCast, which has special rules for some functions.
       case (CALL(), _)
-        then Call.typeCast(exp, ty);
+        then Call.typeCast(exp, ety);
 
+      // Casting a cast expression overrides its current cast type.
+      case (CAST(), _) then typeCast(exp.exp, ty);
+
+      // Other expressions are handled by making a CAST expression.
       else
         algorithm
           t := typeOf(exp);
-          t := Type.setArrayElementType(t, ty);
+          t := Type.setArrayElementType(t, ety);
         then
           CAST(t, exp);
 
@@ -1447,7 +1498,7 @@ public
       case ENUM_LITERAL(ty = t as Type.ENUMERATION())
         then Absyn.pathString(t.typePath) + "." + exp.name;
 
-      case CLKCONST(clk) then "CLKCONST(" + ClockKind.toString(clk) + ")";
+      case CLKCONST(clk) then ClockKind.toString(clk);
 
       case CREF() then ComponentRef.toString(exp.cref);
       case TYPENAME() then Type.typenameString(Type.arrayElementType(exp.ty));
@@ -3781,33 +3832,12 @@ public
   algorithm
     res := match cref
       case ComponentRef.CREF()
-        then subscriptsContains(cref.subscripts, func) or
+        then Subscript.listContainsExp(cref.subscripts, func) or
              crefContains(cref.restCref, func);
 
       else false;
     end match;
   end crefContains;
-
-  function subscriptsContains
-    input list<Subscript> subs;
-    input ContainsPred func;
-    output Boolean res;
-  algorithm
-    for s in subs loop
-      res := match s
-        case Subscript.UNTYPED() then contains(s.exp, func);
-        case Subscript.INDEX() then contains(s.index, func);
-        case Subscript.SLICE() then contains(s.slice, func);
-        else false;
-      end match;
-
-      if res then
-        return;
-      end if;
-    end for;
-
-    res := false;
-  end subscriptsContains;
 
   function listContains
     input list<Expression> expl;
@@ -3877,6 +3907,146 @@ public
       case Call.TYPED_REDUCTION() then contains(call.exp, func);
     end match;
   end callContains;
+
+  function containsShallow
+    input Expression exp;
+    input ContainsPred func;
+    output Boolean res;
+  algorithm
+    res := match exp
+      case CREF() then crefContainsShallow(exp.cref, func);
+      case ARRAY() then listContainsShallow(exp.elements, func);
+
+      case MATRIX()
+        algorithm
+          res := false;
+
+          for row in exp.elements loop
+            if listContainsShallow(row, func) then
+              res := true;
+              break;
+            end if;
+          end for;
+        then
+          res;
+
+      case RANGE()
+        then func(exp.start) or
+             Util.applyOptionOrDefault(exp.step, func, false) or
+             func(exp.stop);
+
+      case TUPLE() then listContainsShallow(exp.elements, func);
+      case RECORD() then listContainsShallow(exp.elements, func);
+      case CALL() then callContainsShallow(exp.call, func);
+
+      case SIZE()
+        then Util.applyOptionOrDefault(exp.dimIndex, func, false) or
+             func(exp.exp);
+
+      case BINARY() then func(exp.exp1) or func(exp.exp2);
+      case UNARY() then func(exp.exp);
+      case LBINARY() then func(exp.exp1) or func(exp.exp2);
+      case LUNARY() then func(exp.exp);
+      case RELATION() then func(exp.exp1) or func(exp.exp2);
+      case IF() then func(exp.condition) or func(exp.trueBranch) or func(exp.falseBranch);
+      case CAST() then func(exp.exp);
+      case UNBOX() then func(exp.exp);
+
+      case SUBSCRIPTED_EXP()
+        then func(exp.exp) or Subscript.listContainsExpShallow(exp.subscripts, func);
+
+      case TUPLE_ELEMENT() then func(exp.tupleExp);
+      case RECORD_ELEMENT() then func(exp.recordExp);
+      case PARTIAL_FUNCTION_APPLICATION() then listContains(exp.args, func);
+      case BOX() then func(exp.exp);
+      else false;
+    end match;
+  end containsShallow;
+
+  function crefContainsShallow
+    input ComponentRef cref;
+    input ContainsPred func;
+    output Boolean res;
+  algorithm
+    res := match cref
+      case ComponentRef.CREF()
+        then Subscript.listContainsExpShallow(cref.subscripts, func) or
+             crefContainsShallow(cref.restCref, func);
+
+      else false;
+    end match;
+  end crefContainsShallow;
+
+  function listContainsShallow
+    input list<Expression> expl;
+    input ContainsPred func;
+    output Boolean res;
+  algorithm
+    for e in expl loop
+      if func(e) then
+        res := true;
+        return;
+      end if;
+    end for;
+
+    res := false;
+  end listContainsShallow;
+
+  function callContainsShallow
+    input Call call;
+    input ContainsPred func;
+    output Boolean res;
+  algorithm
+    res := match call
+      local
+        Expression e;
+
+      case Call.UNTYPED_CALL()
+        algorithm
+          res := listContainsShallow(call.arguments, func);
+
+          if not res then
+            for arg in call.named_args loop
+              (_, e) := arg;
+
+              if func(e) then
+                res := true;
+                break;
+              end if;
+            end for;
+          end if;
+        then
+          res;
+
+      case Call.ARG_TYPED_CALL()
+        algorithm
+          for arg in call.arguments loop
+            (e, _, _) := arg;
+
+            if func(e) then
+              res := true;
+              return;
+            end if;
+          end for;
+
+          for arg in call.named_args loop
+            (_, e, _, _) := arg;
+
+            if func(e) then
+              res := true;
+              return;
+            end if;
+          end for;
+        then
+          false;
+
+      case Call.TYPED_CALL() then listContainsShallow(call.arguments, func);
+      case Call.UNTYPED_ARRAY_CONSTRUCTOR() then func(call.exp);
+      case Call.TYPED_ARRAY_CONSTRUCTOR() then func(call.exp);
+      case Call.UNTYPED_REDUCTION() then func(call.exp);
+      case Call.TYPED_REDUCTION() then func(call.exp);
+    end match;
+  end callContainsShallow;
 
   function arrayFirstScalar
     "Returns the first scalar element of an array. Fails if the array is empty."

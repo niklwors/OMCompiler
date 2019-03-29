@@ -31,15 +31,17 @@
 /** \file omsi_initialization.c
  */
 
-/** \defgroup Initialization
+/** \defgroup Initialization Initialization
  *  \ingroup OMSIBase
+ *
+ * \brief Base initialization functions.
  *
  * Defines basic functions for creating and setting up an OSU_data instance of
  * type `struct omsi_t`.
  */
 
-/** @addtogroup Initialization
-  *  @{ */
+/** \addtogroup Initialization
+  *  \{ */
 
 #include <omsi_global.h>
 #include <omsi_posix_func.h>
@@ -60,14 +62,16 @@ ModelState* global_model_state;
 
 
 /**
- * \brief Allocates memory for omsi_t struct
+ * \brief Allocate memory for omsi_t struct
  *
- * containing all informations for simulation, the experiment data and model
+ * `omsi_t` contains all informations for simulation, the experiment data and model
  * infos. Processes modelDescription,  init-XML file and optional JASON file
  * to allocate memory and initialize structs with constant values.
+ * Gets called from OMSIC or OMSICpp library
  *
  * \param [in] instanceName         Unique identifier for OMSU instance, e.g. the model name.
  * \param [in] fmuType              Type of OMSU: ModelExchange or CoSimulation.
+ *                                  Parameter is ignored at the moment, only ModelExchange is supported.
  * \param [in] fmuGUID              Globally unique identifier to check that modelDescription.xml
  *                                  and generated code are compatible.
  * \param [in] fmuResourceLocation  URI to get "resources" directory of unzipped OMSU archive.
@@ -77,10 +81,11 @@ ModelState* global_model_state;
  * \param [in] visible              Defines, if interaction with user should be minimal or
  *                                  OMSU is executed in interactive mode.
  *                                  Parameter is ignored at the moment.
- * \param [in] loggingOn            If `loggingOn=omsi_true` debug loggin is enabled.
- *                                  If `loggingIn=omsi_false` debug loggin is disabled.
+ * \param [in] loggingOn            If `loggingOn=omsi_true` debug logging is enabled.
+ *                                  If `loggingIn=omsi_false` debug logging is disabled.
+ * \param [in] model_state          Current model state.
  *
- * \return  omsi_t*                 Pointer to newly created struct of type omsi_t.
+ * \return  `omsi_t`*                 Pointer to newly created struct of type omsi_t.
  */
 omsi_t* omsi_instantiate(omsi_string                            instanceName,
                          omsu_type                              fmuType,
@@ -88,7 +93,7 @@ omsi_t* omsi_instantiate(omsi_string                            instanceName,
                          omsi_string                            fmuResourceLocation,
                          const omsi_callback_functions*         functions,
                          omsi_template_callback_functions_t*    template_functions,
-                         omsi_bool                              __attribute__((unused)) visible,
+                         omsi_bool                              visible,
                          omsi_bool                              loggingOn,
                          ModelState*                            model_state)
 {
@@ -102,10 +107,11 @@ omsi_t* omsi_instantiate(omsi_string                            instanceName,
     omsi_char* infoJsonFilename;
     omsi_status status;
 
-    UNUSED(fmuType);
-
     /* check all input arguments */
-    /* ignoring argument: visible */
+    /* ignoring arguments: visible and fmuType */
+    UNUSED(fmuType);
+    UNUSED(visible);
+
     if (!functions->logger) {
         printf("(Fatal Error) fmi2Instantiate: No logger function set.\n");
         return NULL;
@@ -246,6 +252,17 @@ omsi_t* omsi_instantiate(omsi_string                            instanceName,
 
     return osu_data;
 }
+
+
+/**
+ * \brief Initialize callbacks for initialization and simulation problem.
+ *
+ * Gets called from OMSIC or OMSICpp library and uses generated functions for initialization.
+ *
+ * \param [in,out]      omsu                Central data structure containing all informations.
+ * \param [in]          template_functions  Struct containing pointers to functions in generated code.
+ * \return `omsi_status`                    Returns `omsi_ok` on success.
+ */
 omsi_status omsi_intialize_callbacks(omsi_t*                                omsu,
                                      omsi_template_callback_functions_t*    template_functions )
 {
@@ -360,4 +377,4 @@ omsi_string omsi_get_model_name(omsi_string fmuResourceLocation) {
     return md.modelName;
 }
 
-/** @} */
+/** \} */
