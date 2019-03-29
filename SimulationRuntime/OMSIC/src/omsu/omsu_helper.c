@@ -28,41 +28,26 @@
  *
  */
 
+/** \file omsu_helper.c
+ *
+ *  \brief Helper functions and functions for logging and debugging.
+ *
+ * This file defines helper functions used all over OMSI C-runtime. Also functions
+ * for logging and debugging.
+ */
+
+/** \defgroup Logging Logging and Debugging
+ *  \ingroup OMSIC
+ *
+ * \brief Functions used for logging and debugging
+ */
+
+/** \addtogroup Logging
+  *  \{ */
+
 #include <omsu_helper.h>
 
 #define UNUSED(x) (void)(x)     /* ToDo: delete later */
-
-
-/*
- * ============================================================================
- * Helper for deallocating memory.
- * ============================================================================
- */
-void omsu_free_osu(osu_t* OSU) {
-
-    /* Log function call */
-    if (OSU->state == modelError || OSU->state == 0) {      /* global logCategories already freed */
-        filtered_base_logger(NULL, log_all, omsi_error,
-                "Free OSU component.");
-    }
-    else {
-        filtered_base_logger(NULL, log_all, omsi_ok,
-                "Free OSU component.");
-    }
-
-    if (OSU==NULL) {
-        return;
-    }
-
-    global_callback->freeMemory((omsi_char*) OSU->instanceName);
-    global_callback->freeMemory(OSU->osu_functions);
-    global_callback->freeMemory(OSU->vrStatesDerivatives);
-    global_callback->freeMemory(OSU->vrStates);
-    global_callback->freeMemory(OSU->GUID);
-
-    global_callback->freeMemory(OSU);
-}
-
 
 /*
  * ============================================================================
@@ -70,8 +55,8 @@ void omsu_free_osu(osu_t* OSU) {
  * ============================================================================
  */
 
-
 /*
+ * Helper function for logging.
  * Returns current state of component as string.
  */
 omsi_string stateToString(osu_t* OSU) {
@@ -86,6 +71,7 @@ omsi_string stateToString(osu_t* OSU) {
     }
     return "Unknown";
 }
+
 
 /*
  * Checks if component environment is allowed to execute function_name in its
@@ -124,6 +110,7 @@ omsi_bool invalidState(osu_t*       OSU,            /* OSU component */
     return omsi_false;
 }
 
+
 /*
  * Returns true if pointer is NULL pointer, emits error message and sets
  * model state to modelError.
@@ -144,6 +131,7 @@ omsi_bool nullPointer(osu_t*        OSU,
     return omsi_false;
 }
 
+
 /*
  * Returns true if vr is out of range of end, emits error message and sets
  * model state to modelError.
@@ -163,6 +151,7 @@ omsi_bool vrOutOfRange(osu_t*               OSU,
     return omsi_false;
 }
 
+
 /*
  * Logs error for call of unsupported function.
  */
@@ -177,6 +166,7 @@ omsi_status unsupportedFunction(osu_t*      OSU,
             "%s: Function not implemented.", function_name);
     return omsi_error;
 }
+
 
 /*
  * Returns true if n is not equal to nExpected, emits error message and sets
@@ -199,11 +189,15 @@ omsi_bool invalidNumber(osu_t*          OSU,
     return omsi_false;
 }
 
-/*! \fn omsi_set_debug_logging
+
+/**
+ * \brief Enable or disable debug logging.
  *
- *  This function sets up debug logging.
- *
- *  \param [ref] [data]
+ * \param   [in]        OSU             OMSU component.
+ * \param   [in]        loggingOn       Set logging on or off.
+ * \param   [in]        nCategories     Number of categories of OMSU. Set in modelDescription.xml.
+ * \param   [in]        categories      Allowed categories. Set in modelDescription.xml.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_set_debug_logging(osu_t*               OSU,
                                    omsi_bool            loggingOn,
@@ -240,10 +234,11 @@ omsi_status omsi_set_debug_logging(osu_t*               OSU,
     return omsi_ok;
 }
 
-/**
+
+/*
  * \brief Returns model state of OSU.
  *
- * @return
+ * \return
  */
 ModelState omsic_get_model_state (void)
 {
@@ -266,8 +261,6 @@ omsi_bool omsu_discrete_changes(osu_t*  OSU,
     else {
         return omsu_values_equal(OSU->osu_data->sim_data->model_vars_and_params, threadData);
     }
-
-
 }
 
 
@@ -280,7 +273,7 @@ void omsu_storePreValues(omsi_t* omsi_data) {
 }
 
 
-/**
+/*
  * \brief Update values of `pre_zero_crossing` array.
  *
  * \param sim_data
@@ -418,9 +411,12 @@ omsi_status omsu_copy_values(omsi_values*   target_vars,
  * ============================================================================
  */
 
-
-/*
- * Print all data in osu_t structure.
+/**
+ * \brief Print all data in osu_t structure.
+ *
+ * Used for debugging.
+ *
+ * \param   [in]    OSU     OMSU component.
  */
 void omsu_print_osu (osu_t* OSU) {
 
@@ -511,12 +507,14 @@ omsi_real division_error_time(const char*   msg,
   return 0;
 }
 
+
 /*
  *  Modelica built-in homotopy function
  */
 omsi_real homotopy(omsi_real actual, omsi_real siple) {
 
-  /* call an assert after lgging */
+  /* call an assert after logging */
   return actual;
 }
 
+/** \} */

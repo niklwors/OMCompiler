@@ -28,19 +28,38 @@
  *
  */
 
-/*
- * This file defines functions for the FMI continuous simulation used via the OpenModelica
+/** \file omsu_continuous_simulation.c
+ *
+ *  \brief Functions for OMSI continuous simulation.
+ *
+ * This file defines functions for the continuous simulation with OpenModelica
  * Simulation Interface (OMSI). These are the functions to evaluate the
  * model equations during continuous-time mode with OMSI.
  */
+
+/** \defgroup ContinuousSimulation Continuous Simulation
+ *  \ingroup OMSIC
+ *
+ * \brief Functions used for continuous simulation
+ */
+
+/** \addtogroup ContinuousSimulation
+  *  \{ */
 
 #include <omsu_continuous_simulation.h>
 
 #define UNUSED(x) (void)(x)     /* ToDo: delete later */
 
-/*
- * The component environment is in Event Mode and the super dense time is
- * incremented by this call.
+
+/**
+ * \brief Evaluate discrete model equations.
+ *
+ * Only allowed if OMSU is in event mode.
+ * Can be called with fmi2 wrapper function `fmi2NewDiscreteStates`.
+ *
+ * \param [in,out]      OSU             OMSU component.
+ * \param [out]         eventInfo       Informations about the event for the integrator.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_new_discrete_state(osu_t*              OSU,
                                     omsi_event_info*    eventInfo) {
@@ -71,9 +90,15 @@ omsi_status omsi_new_discrete_state(osu_t*              OSU,
 }
 
 
-/*
+/**
+ * \brief OMSU enters continuous-time mode.
+ *
  * The model enters Continuous-Time Mode and all discrete-time equations become
- * inactive and all relations are “frozen”.
+ * inactive and all relations are "frozen".
+ * Can be called with fmi2 wrapper function `fmi2EnterContinuousTimeMode`.
+ *
+ * \param [in,out]      OSU             OMSU component.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_enter_continuous_time_mode(osu_t* OSU) {
 
@@ -91,9 +116,15 @@ omsi_status omsi_enter_continuous_time_mode(osu_t* OSU) {
 }
 
 
-/*
- * Sets a new (continuous) state vector and re-initialize caching of variables
- * that depend on the states.
+/**
+ * \brief Set a new continuous state vector and re-initalize depend states.
+ *
+ * Can be called with fmi2 wrapper `fmi2SetContinuousStates`.
+ *
+ * \param [in,out]      OSU             OMSU component.
+ * \param [in]          x               Array with values for continuous states.
+ * \param [in]          nx              Length of array `x`.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_set_continuous_states(osu_t*               OSU,
                                        const omsi_real      x[],
@@ -135,8 +166,15 @@ omsi_status omsi_set_continuous_states(osu_t*               OSU,
     return omsi_ok;
 }
 
-/*
- * Returns the new (continuous) state vector x.
+/**
+ * \brief Get new (continuous) state vector.
+ *
+ * Can be called with fmi2 wrapper `fmi2GetContinuousStates`.
+ *
+ * \param [in,out]      OSU             OMSU component.
+ * \param [out]         x               Array with values of continuous states.
+ * \param [in]          nx              Length of array `x`.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_get_continuous_states(osu_t*               OSU,
                                        omsi_real            x[],
@@ -171,10 +209,17 @@ omsi_status omsi_get_continuous_states(osu_t*               OSU,
 }
 
 
-/*
- * Returns the nominal values of the continuous states.
- * Since the component enviroment has no information about the nominal value of
+/**
+ * \brief Return the nominal values of the continuous states.
+ *
+ * Since the component environment has no information about the nominal value of
  * the continuous states 1.0 is returned.
+ * Can be called with fmi2 wrapper `fmi2GetNominalsOfContinuousStates`.
+ *
+ * \param [in,out]      OSU             OMSU component.
+ * \param [out]         x_nominal       Array with nominal values of continuous states.ds
+ * \param [in]          nx              Length of array `x`.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_get_nominals_of_continuous_states(osu_t*               OSU,
                                                    omsi_real            x_nominal[],
@@ -208,12 +253,20 @@ omsi_status omsi_get_nominals_of_continuous_states(osu_t*               OSU,
 }
 
 
-/*
- * This function must be called by the environment after every completed step of
- * the integrator provided the capability flag completedIntegratorStepNotNeeded = false.
+/**
+ * \brief Has to be called after every completed integrator step.
+ *
+ * ...provided the capability flag `completedIntegratorStepNotNeeded = false`.
  * The function returns enterEventMode to signal to the environment if the OMSU
  * shall call omsu_enter_event_mode, and it returns terminateSimulation to signal
  * if the simulation shall be terminated.
+ *
+ * \param [in,out]      OSU                                 OMSU component.
+ * \param [in]          noSetFMUStatePriorToCurrentPoint    `omsi_true` if `fmi2SetFMUState` will no longer be called for
+ *                                                          time instants prior to current time in this simulation.
+ * \param [out]         enterEventMode                      Signal if environment shall call `fmi2EnterEventMode`.
+ * \param [out]         terminateSimulation                 Signal if the simulation should be terminated.
+ * \return              omsi_status                         Exit status of function.
  */
 omsi_status omsi_completed_integrator_step(osu_t*       OSU,
                                            omsi_bool    noSetFMUStatePriorToCurrentPoint,
@@ -297,8 +350,13 @@ omsi_status omsi_completed_integrator_step(osu_t*       OSU,
 }
 
 
-/*
- * Computes state derivatives at the current time instant and for the current states.
+/**
+ * \brief Computes state derivatives at the current time instant and for the current states.
+ *
+ * \param   [in,out]    OSU             OMSU component.
+ * \param   [out]       derivatives     Array with values of derivatives.
+ * \param   [in]        nx              Length of array `x`.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_get_derivatives(osu_t*             OSU,
                                  omsi_real          derivatives[],
@@ -405,3 +463,5 @@ omsi_status omsi_get_directional_derivative(osu_t*                  OSU,
 
     return omsi_ok;
 }
+
+/** \} */

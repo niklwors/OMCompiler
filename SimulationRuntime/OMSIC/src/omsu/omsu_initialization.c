@@ -28,11 +28,26 @@
  *
  */
 
-/*
- * This file defines functions for the FMI used via the OpenModelica Simulation
- * Interface (OMSI). These functions are used for instantiation and initialization
- * of the FMU.
+/** \file omsu_initialization.c
+ *
+ *  \brief Functions for instantiation and initialization, termination and
+ *  deallocation of OMSUs.
+ *
+ * This file defines functions for the OpenModelica Simulation Interface (OMSI).
+ * These functions are used for instantiation and initialization
+ * of an OMSU. Terminate and restart a simulation. Set experiment informations
+ * and free an OMSU.
  */
+
+/** \defgroup InitializationOMSIC Initialization and deallocation
+ *  \ingroup OMSIC
+ *
+ * \brief Functions for instantiation and initialization, termination and
+ * deallocation of OMSUs.
+ */
+
+/** \addtogroup InitializationOMSIC
+  *  \{ */
 
 #define DEBUG omsi_false
 #define DEBUG_PRINT(function) if (DEBUG) {                                     \
@@ -45,6 +60,21 @@
 #include <omsu_initialization.h>
 #include <omsi_posix_func.h>
 
+
+/**
+ * \brief Return new instance of OMSU.
+ *
+ * \param [in]  instanceName            Unique identifier for FMU instance.
+ * \param [in]  fmuType                 Is `fmi2ModelExchange` or `fmi2CoSimulation`.
+ *                                      Only model exchange is supported at the moment.
+ * \param [in]  fmuGUID                 Globally Unique Identifier from modelDescription.xml.
+ * \param [in]  fmuResourceLocation     URI to resource directory of unzippedFMU.
+ * \param [in]  functions               Callback functions used in FMU.
+ * \param [in]  visible                 Defines if interaction with user should be reduced
+ *                                      or be interactive. Unused at the moment.
+ * \param [in]  loggingOn               Enable or disable debug logging.
+ * \return New OMSU or `NULL` if instantiation failed.
+ */
 osu_t* omsic_instantiate(omsi_string                            instanceName,
                          omsu_type                              fmuType,
                          omsi_string                            fmuGUID,
@@ -150,8 +180,11 @@ osu_t* omsic_instantiate(omsi_string                            instanceName,
 }
 
 
-/*
- * Informs the OpenModelica Simulation Unit to enter the initialization mode.
+/**
+ * \brief Informs the OMSU to enter initialization mode.
+ *
+ * \param   [in,out]    OSU             OMSU component.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_enter_initialization_mode(osu_t* OSU) {
 
@@ -185,8 +218,12 @@ omsi_status omsi_enter_initialization_mode(osu_t* OSU) {
     return omsi_ok;
 }
 
-/*
- * Informs the OpenModelica Simulation Unit to exit initialization mode.
+
+/**
+ * \brief Informs the OMSU to exit initialization mode.
+ *
+ * \param   [in,out]    OSU             OMSU component.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_exit_initialization_mode(osu_t* OSU) {
 
@@ -205,9 +242,17 @@ omsi_status omsi_exit_initialization_mode(osu_t* OSU) {
     return omsi_ok;
 }
 
-/*
- * Setup experiment data for the Openmodelica Simulation Unit.
- * Gets called from function fmi2SetupExperiment.
+
+/**
+ * \brief Inform the OMSU  to setup the experiment.
+ *
+ * \param   [in,out]    OSU                 OMSU component.
+ * \param   [in]        toleranceDefined    Boolean if tolerance is defined.
+ * \param   [in]        tolerance           Value of tolerance, if defined.
+ * \param   [in]        startTime           Start time for experiment.
+ * \param   [in]        stopTimeDefined     If a stop time is defined.
+ * \param   [in]        stopTime            Value of stop time, if defined.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_setup_experiment(osu_t*     OSU,
                                   omsi_bool  toleranceDefined,
@@ -244,10 +289,14 @@ omsi_status omsi_setup_experiment(osu_t*     OSU,
     return omsi_ok;
 }
 
-/*
+
+/**
+ * \brief Free OMSU instance.
+ *
  * Frees all allocated memory for the Openmodelica Simulation Unit.
  * Does nothing if a null pointer is provided.
- * Gets called from function fmi2FreeInstance.
+ *
+ * \param   [in,out]    OSU                 OMSU component.
  */
 void omsi_free_instance(osu_t* OSU) {
 
@@ -275,9 +324,12 @@ void omsi_free_instance(osu_t* OSU) {
 
 }
 
-/*
- * Resets the Openmodelica Simulation Unit.
- * Gets called from function fmi2Reset.
+
+/**
+ * \brief Reset the OMSU after a simulation run.
+ *
+ * \param   [in,out]    OSU                 OMSU component.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_reset(osu_t* OSU) {
 
@@ -298,9 +350,12 @@ omsi_status omsi_reset(osu_t* OSU) {
     return omsi_ok;
 }
 
-/*
- * Informs that the simulation run is terminated.
- * Gets called from function fmi2Terminate.
+
+/**
+ * \brief Informs the OMSU that the simulation run is terminated.
+ *
+ * \param   [in,out]    OSU                 OMSU component.
+ * \return              omsi_status     Exit status of function.
  */
 omsi_status omsi_terminate(osu_t* OSU) {
 
@@ -313,3 +368,36 @@ omsi_status omsi_terminate(osu_t* OSU) {
     OSU->state = modelTerminated;
     return omsi_ok;
 }
+
+
+/**
+ * \brief Free OMSU
+ *
+ * \param [in,out]      OSU     OMSU component.
+ */
+void omsu_free_osu(osu_t* OSU) {
+
+    /* Log function call */
+    if (OSU->state == modelError || OSU->state == 0) {      /* global logCategories already freed */
+        filtered_base_logger(NULL, log_all, omsi_error,
+                "Free OSU component.");
+    }
+    else {
+        filtered_base_logger(NULL, log_all, omsi_ok,
+                "Free OSU component.");
+    }
+
+    if (OSU==NULL) {
+        return;
+    }
+
+    global_callback->freeMemory((omsi_char*) OSU->instanceName);
+    global_callback->freeMemory(OSU->osu_functions);
+    global_callback->freeMemory(OSU->vrStatesDerivatives);
+    global_callback->freeMemory(OSU->vrStates);
+    global_callback->freeMemory(OSU->GUID);
+
+    global_callback->freeMemory(OSU);
+}
+
+/** \} */

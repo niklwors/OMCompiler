@@ -22,7 +22,7 @@ OMSI: OMSIBaseInstall OMSICInstall
 OMSI-clean: OMSIBaseClean OMSICClean
 	cd $(OMBUILDDIR);                             \
 	rm -rf include/omc/omsi include/omc/omsic;    \
-	rm -rf lib/omc/omsi
+	rm -rf $(LIB_OMC)/omsi;
 
 
 #############################
@@ -84,9 +84,9 @@ OMSIBaseInstall: OMSIBase
 OMSIBaseClean:
 	cd SimulationRuntime/OMSI; \
 	$(foreach PLATFORM, $(PLATFORMS), \
-	test -d Build_$(PLATFORM) && cd Build_$(PLATFORM) && $(MAKE) uninstall && $(MAKE) DESTDIR=$(OMBUILDDIR) clean && cd ..; \
-	rm -R -f Build_$(PLATFORM); \
-)
+	  test -d Build_$(PLATFORM) && cd Build_$(PLATFORM) && $(MAKE) uninstall && $(MAKE) DESTDIR=$(OMBUILDDIR) clean && cd ..; \
+	  rm -R -f Build_$(PLATFORM); \
+	)
 
 
 #############################
@@ -109,5 +109,6 @@ OMSICInstall: OMSIC
 OMSICClean:
 	cd SimulationRuntime/OMSIC; \
 	$(foreach PLATFORM, $(PLATFORMS), \
-	  (cd Build_$(PLATFORM); $(MAKE) DESTDIR=$(OMBUILDDIR) clean; cd ..; \
-	  rm -R -f Build_$(PLATFORM));)
+	  test -d Build_$(PLATFORM) && cd Build_$(PLATFORM) && $(MAKE) uninstall && $(MAKE) DESTDIR=$(OMBUILDDIR) clean && cd ..; \
+	  rm -R -f Build_$(PLATFORM); \
+	)

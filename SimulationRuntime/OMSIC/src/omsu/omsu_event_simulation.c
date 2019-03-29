@@ -34,6 +34,23 @@
  * model equations with OMSI.
  */
 
+/** \file omsu_event_simulation.c
+ *
+ *  \brief Functions for OMSI event handling.
+ *
+ * This file defines functions for the OpenModelica Simulation Interface (OMSI).
+ * These are the core functions to handle events with OMSI.
+ */
+
+/** \defgroup EventHandling Event simulation
+ *  \ingroup OMSIC
+ *
+ * \brief Functions used for event simulation
+ */
+
+/** \addtogroup EventHandling
+  *  \{ */
+
 #include <omsu_event_simulation.h>
 
 #define UNUSED(x) (void)(x)     /* ToDo: delete later */
@@ -57,8 +74,15 @@ omsi_status omsi_enter_event_mode(osu_t* OSU) {
 }
 
 
-/*
- * Computes event indicators at current time instant and for the current states.
+/**
+ * \brief Compute event indicators.
+ *
+ * Allowed to call in event mode, continuous-time mode and terminated.
+ *
+ * \param   [in,out]    OSU                 OMSU component.
+ * \param   [out]       event_indicators    Array with values of event indicators.
+ * \param   [in]        n_event_indicators  Length of array `event_indicators`.
+ * \return              omsi_status         Exit status of function.
  */
 omsi_status omsi_get_event_indicators(osu_t*            OSU,
                                       omsi_real*        event_indicators,
@@ -67,14 +91,9 @@ omsi_status omsi_get_event_indicators(osu_t*            OSU,
     /* Variables */
     omsi_unsigned_int i;
 
-    /* According to FMI RC2 specification fmi2GetEventIndicators should only be
-     * allowed in Event Mode, Continuous-Time Mode & terminated. The following code
-     * is done only to make the FMUs compatible with Dymola because Dymola is
-     * trying to call fmi2GetEventIndicators after fmi2EnterInitializationMode.
-     */
     if (invalidState(OSU, "fmi2GetEventIndicators",
-            modelInstantiated|modelInitializationMode|modelEventMode|
-            modelContinuousTimeMode|modelTerminated|modelError, ~0)) {
+            modelInstantiated|modelInitializationMode|modelContinuousTimeMode|
+            modelEventMode|modelTerminated|modelError, ~0)) {
         return omsi_error;
     }
     /* Check if number of event indicators n_event_indicators is valid */
@@ -120,6 +139,17 @@ omsi_status omsi_get_event_indicators(osu_t*            OSU,
 
 
 
+/**
+ * \brief Event iteration to update discrete values.
+ *
+ * Update pre values, evaluate discrete equations and update discrete variables.
+ * Computes next sample event time.
+ * Called from function `omsi_new_discrete_state`.
+ *
+ * \param   [in,out]    OSU             OMSU component.
+ * \param   [out]       eventInfo       Informations about the event for integrator.
+ * \return              omsi_status     Exit status of function.
+ */
 omsi_status omsi_event_update(osu_t*              OSU,
                               omsi_event_info*    eventInfo) {
 
@@ -215,3 +245,5 @@ omsi_status omsi_event_update(osu_t*              OSU,
     OSU->_need_update = omsi_true;
     return omsi_error; */
 }
+
+/** \} */

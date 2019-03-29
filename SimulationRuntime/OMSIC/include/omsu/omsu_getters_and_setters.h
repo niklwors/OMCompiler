@@ -55,20 +55,20 @@ extern "C" {
 
 /* function prototypes */
 
-omsi_status omsic_get_boolean(osu_t*                     OSU,
-                              const omsi_unsigned_int    vr[],
-                              omsi_unsigned_int          nvr,
-                              omsi_bool                  value[]);
+omsi_status omsic_get_real(osu_t*                    OSU,
+                           const omsi_unsigned_int   vr[],
+                           omsi_unsigned_int         nvr,
+                           omsi_real                 value[]);
 
 omsi_status omsic_get_integer(osu_t*                     OSU,
                               const omsi_unsigned_int    vr[],
                               omsi_unsigned_int          nvr,
                               omsi_int                   value[]);
 
-omsi_status omsic_get_real(osu_t*                    OSU,
-                           const omsi_unsigned_int   vr[],
-                           omsi_unsigned_int         nvr,
-                           omsi_real                 value[]);
+omsi_status omsic_get_boolean(osu_t*                     OSU,
+                              const omsi_unsigned_int    vr[],
+                              omsi_unsigned_int          nvr,
+                              omsi_bool                  value[]);
 
 omsi_status omsic_get_string(osu_t*                  OSU,
                              const omsi_unsigned_int vr[],
@@ -88,20 +88,20 @@ omsi_status omsi_get_interval(osu_t*            OSU,
                               omsi_unsigned_int nClockIndex,
                               omsi_real         interval[]);
 
-omsi_status omsic_set_boolean(osu_t*                     OSU,
-                              const omsi_unsigned_int    vr[],
-                              omsi_unsigned_int          nvr,
-                              const omsi_bool            value[]);
+omsi_status omsic_set_real(osu_t*                    OSU,
+                           const omsi_unsigned_int   vr[],
+                           omsi_unsigned_int         nvr,
+                           const omsi_real           value[]);
 
 omsi_status omsic_set_integer(osu_t*                     OSU,
                               const omsi_unsigned_int    vr[],
                               omsi_unsigned_int          nvr,
                               const omsi_int             value[]);
 
-omsi_status omsic_set_real(osu_t*                    OSU,
-                           const omsi_unsigned_int   vr[],
-                           omsi_unsigned_int         nvr,
-                           const omsi_real           value[]);
+omsi_status omsic_set_boolean(osu_t*                     OSU,
+                              const omsi_unsigned_int    vr[],
+                              omsi_unsigned_int          nvr,
+                              const omsi_bool            value[]);
 
 omsi_status omsic_set_string(osu_t*                  OSU,
                              const omsi_unsigned_int vr[],

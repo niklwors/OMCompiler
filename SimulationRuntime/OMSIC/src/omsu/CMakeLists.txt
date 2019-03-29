@@ -3,8 +3,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.9)
 PROJECT(OMSU)
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(OMSUName ${LIBPREFIX}OMSU${LIBSUFFIX})
-
 #set OMSIBase lib
 if(NOT PLATFORM OR PLATFORM STREQUAL "dynamic")
   set (libOMSIBase ${CMAKE_INSTALL_PREFIX}/${LIBINSTALLEXT}/libOMSIBase${SHREXT})
@@ -21,8 +19,8 @@ include_directories ("${CMAKE_SOURCE_DIR}/include/omsu")
 include_directories ("${CMAKE_SOURCE_DIR}/include/fmi2")
 include_directories ("${OMSI_SOURCE_DIR}/base/include")
 
-add_library(${OMSUName} STATIC omsu_helper.c omsu_initialization.c omsu_getters_and_setters.c omsu_event_simulation.c omsu_continuous_simulation.c ../fmi2/omsi_fmi2_wrapper.c)
+add_library(${OMSICName} STATIC omsu_helper.c omsu_initialization.c omsu_getters_and_setters.c omsu_event_simulation.c omsu_continuous_simulation.c ../fmi2/omsi_fmi2_wrapper.c)
 
-target_link_libraries(${OMSUName} ${CMAKE_DL_LIBS} ${libOMSIBase})
+target_link_libraries(${OMSICName} ${CMAKE_DL_LIBS} ${libOMSIBase})
 
-install(TARGETS ${OMSUName} DESTINATION ${LIBINSTALLEXT})
+install(TARGETS ${OMSICName} DESTINATION ${LIBINSTALLEXT})

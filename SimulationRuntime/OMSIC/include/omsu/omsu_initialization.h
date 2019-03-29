@@ -56,13 +56,6 @@ extern "C" {
 /* extern functions */
 extern void omsic_model_setup_data(osu_t* OSU);
 
-
-/*! \fn omsi_me_instantiate
- *
- *  This function instantiates the osu instance.
- *
- *  \param [ref] [data]
- */
 osu_t* omsic_instantiate(omsi_string                            instanceName,
                          omsu_type                              fmuType,
                          omsi_string                            fmuGUID,
@@ -71,29 +64,10 @@ osu_t* omsic_instantiate(omsi_string                            instanceName,
                          omsi_bool                              __attribute__((unused)) visible,
                          omsi_bool                              loggingOn);
 
-
-/*! \fn omsi_enter_initialization_mode
- *
- *  This function enters initialization mode.
- *
- *  \param [ref] [data]
- */
 omsi_status omsi_enter_initialization_mode(osu_t* OSU);
 
-/*! \fn omsi_exit_initialization_mode
- *
- *  This function exits initialization mode.
- *
- *  \param [ref] [data]
- */
 omsi_status omsi_exit_initialization_mode(osu_t* OSU);
 
-/*! \fn omsi_setup_experiment
- *
- *  This function sets up an experiment.
- *
- *  \param [ref] [data]
- */
 omsi_status omsi_setup_experiment(osu_t*     OSU,
                                   omsi_bool  toleranceDefined,
                                   omsi_real  tolerance,
@@ -101,33 +75,14 @@ omsi_status omsi_setup_experiment(osu_t*     OSU,
                                   omsi_bool  stopTimeDefined,
                                   omsi_real  stopTime);
 
-/*! \fn omsi_free_instance
- *
- *  This function frees the osu instance.
- *
- *  \param [ref] [data]
- */
 void omsi_free_instance(osu_t* OSU);
 
-/*! \fn omsi_reset
- *
- *  This function resets the instance.
- *
- *  \param [ref] [data]
- */
 omsi_status omsi_reset(osu_t* OSU);
 
-/*! \fn omsi_terminate
- *
- *  This function deinitializes the instance.
- *
- *  \param [ref] [data]
- */
 omsi_status omsi_terminate(osu_t* OSU);
 
+
 /* Extern function prototypes */
-
-
 extern void initialize_start_function (omsi_template_callback_functions_t* callback);
 
 #ifdef __cplusplus

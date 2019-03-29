@@ -29,14 +29,22 @@ ENDIF(BUILD_SHARED_LIBS)
 
 IF(MSVC)
   MESSAGE(STATUS "MSVC")
-  SET(LIBINSTALLEXT "${LIB_OMC}/omsi/msvc" CACHE STRING "library directory")
+  IF(LIB_OMC)
+    SET(LIBINSTALLEXT "${LIB_OMC}/omsi/msvc" CACHE STRING "library directory" FORCE)
+  ELSE(LIB_OMC)
+    SET(LIBINSTALLEXT "omsi/msvc" CACHE STRING "library directory" FORCE)
+  ENDIF(LIB_OMC)
 ELSE(MSVC)
-  SET(LIBINSTALLEXT "${LIB_OMC}/omsi" CACHE STRING "library directory")
+  IF(LIB_OMC)
+    SET(LIBINSTALLEXT "${LIB_OMC}/omsi" CACHE STRING "library directory" FORCE)
+  ELSE(LIB_OMC)
+    SET(LIBINSTALLEXT "omsi" CACHE STRING "library directory" FORCE)
+  ENDIF(LIB_OMC)
 ENDIF(MSVC)
 message(STATUS "Libs will be installed in ${CMAKE_INSTALL_PREFIX}/${LIBINSTALLEXT}")
 
 
-SET(OSUCName ${LIBPREFIX}OMSIC${LIBSUFFIX})
+SET(OMSICName ${LIBPREFIX}OMSIC${LIBSUFFIX})
 
 SET(OMSI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../OMSI)
 
@@ -70,3 +78,14 @@ install(FILES
   ${CMAKE_SOURCE_DIR}/include/fmi2/fmi2FunctionTypes.h
   ${CMAKE_SOURCE_DIR}/include/fmi2/fmi2TypesPlatform.h
 DESTINATION include/omc/omsic/fmi2/)
+
+# uninstall target
+if(NOT TARGET uninstall)
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
