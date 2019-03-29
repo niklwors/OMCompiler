@@ -5593,7 +5593,7 @@ case rel as RELATION(__) then
           let &preExp += '<%res%> = <%hysteresisfunction%>;<%\n%>'
           res
         case LESSEQ(__) then
-          let hysteresisfunction = if isReal then 'LessEqZC(<%e1%>, <%e2%>, dataLess->simulationInfo->storedRelations[<%rel.index%>])' else 'LessEq(<%e1%>,<%e2%>)'
+          let hysteresisfunction = if isReal then 'LessEqZC(<%e1%>, <%e2%>, data->simulationInfo->storedRelations[<%rel.index%>])' else 'LessEq(<%e1%>,<%e2%>)'
           let &preExp += '<%res%> = <%hysteresisfunction%>;<%\n%>'
           res
         case GREATER(__) then

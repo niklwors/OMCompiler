@@ -32,7 +32,7 @@
 package CodegenOMSIC
 " file:        CodegenOMSIC.tpl
   package:     CodegenOMSIC
-  description: Code generation using Susan templates for 
+  description: Code generation using Susan templates for
                OpenModelica Simulation Inferface (OMSI) for C
 "
 

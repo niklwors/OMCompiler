@@ -126,29 +126,29 @@ template generateOmsiFunctionCode(OMSIFunction omsiFunction, String FileNamePref
       ""
   end match
 
+
   match omsiFunction
-  case SimCode.OMSI_FUNCTION(__) then
-
-  <<
-  <%insertCopyrightOpenModelica()%>
-  <%match  Config.simCodeTarget()
-    case "omsic" then
+    case SimCode.OMSI_FUNCTION(__) then
     <<
-    /* All Equations Code */
-    #include "<%headerFileName%>.h"
-    >>
-    case "omsicpp" then
-    <<
-    //OpenModelica Simulation Interface
-    #include <omsi.h>
-    #include <omsi_callbacks.h>
-    #include <omsi_global.h>
-    #include <omsi_utils.h>
-    #include <omsi_input_sim_data.h>
-    #include <Core/System/IOMSI.h>
+    <%insertCopyrightOpenModelica()%>
+    <%match  Config.simCodeTarget()
+      case "omsic" then
+      <<
+      /* All Equations Code */
+      #include "<%headerFileName%>.h"
+      >>
+      case "omsicpp" then
+      <<
+      //OpenModelica Simulation Interface
+      #include <omsi.h>
+      #include <omsi_callbacks.h>
+      #include <omsi_global.h>
+      #include <omsi_utils.h>
+      #include <omsi_input_sim_data.h>
+      #include <Core/System/IOMSI.h>
 
-    >>
-    end match%>
+      >>
+  end match%>
 
 
   #if defined(__cplusplus)
