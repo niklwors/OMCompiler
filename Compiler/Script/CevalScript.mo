@@ -61,6 +61,7 @@ import SimCode;
 
 // protected imports
 protected
+import Autoconf;
 import BaseHashSet;
 import CevalScriptBackend;
 import CevalFunction;
@@ -221,13 +222,13 @@ public function compileModel "Compiles a model given a file-prefix, helper funct
   input list<String> makeVars = {};
 protected
   String omhome = Settings.getInstallationDirectoryPath(),omhome_1 = System.stringReplace(omhome, "\"", "");
-  String pd = System.pathDelimiter();
+  String pd = Autoconf.pathDelimiter;
   String cdWorkingDir,setMakeVars,libsfilename,libs_str,s_call,filename,winCompileMode,workDir = (if stringEq(workingDir, "") then "" else workingDir + pd);
-  String fileDLL = workDir + fileprefix + System.getDllExt(),
-         fileEXE = workDir + fileprefix + System.getExeExt(),
+  String fileDLL = workDir + fileprefix + Autoconf.dllExt,
+         fileEXE = workDir + fileprefix + Autoconf.exeExt,
          fileLOG = workDir + fileprefix + ".log";
   Integer numParallel,res;
-  Boolean isWindows = System.os() == "Windows_NT";
+  Boolean isWindows = Autoconf.os == "Windows_NT";
   list<String> makeVarsNoBinding;
 algorithm
   libsfilename := workDir + fileprefix + ".libs";
@@ -251,7 +252,7 @@ algorithm
     numParallel := if Config.getRunningTestsuite() then 1 else Config.noProc();
     cdWorkingDir := if stringEmpty(workingDir) then "" else (" -C \"" + workingDir + "\"");
     setMakeVars := sum(" "+var for var in makeVarsNoBinding);
-    s_call := stringAppendList({System.getMakeCommand()," -j",intString(numParallel),cdWorkingDir," -f ",fileprefix,".makefile",setMakeVars});
+    s_call := stringAppendList({Autoconf.make," -j",intString(numParallel),cdWorkingDir," -f ",fileprefix,".makefile",setMakeVars});
   end if;
   if Flags.isSet(Flags.DYN_LOAD) then
     Debug.traceln("compileModel: running " + s_call);
@@ -315,7 +316,7 @@ algorithm
     // send "" priority if that is it, don't send "default"
     // see https://trac.openmodelica.org/OpenModelica/ticket/2422
     // prio = if_(stringEq(prio,""), "default", prio);
-    mp := System.realpath(dir + "/../") + System.groupDelimiter() + Settings.getModelicaPath(Config.getRunningTestsuite());
+    mp := System.realpath(dir + "/../") + Autoconf.groupDelimiter + Settings.getModelicaPath(Config.getRunningTestsuite());
     (outProgram,true) := loadModel((Absyn.IDENT(cname),{prio},true)::{}, mp, p, true, true, checkUses, true, filename == "package.moc");
     return;
   end if;
@@ -375,7 +376,7 @@ algorithm
   (modelicaPath, forceLoad, notifyLoad, checkUses, requireExactVersion, encrypted) := inArg;
   if onlyCheckFirstModelicaPath then
     /* Using loadFile() */
-    thisModelicaPath::_ := System.strtok(modelicaPath, System.groupDelimiter());
+    thisModelicaPath::_ := System.strtok(modelicaPath, Autoconf.groupDelimiter);
   else
     thisModelicaPath := modelicaPath;
   end if;
@@ -1691,11 +1692,11 @@ algorithm
                   "CONFIGURE_CMDLINE"};
         omhome = Settings.getInstallationDirectoryPath();
         omlib = Settings.getModelicaPath(Config.getRunningTestsuite());
-        omcpath = omhome + "/bin/omc" + System.getExeExt();
+        omcpath = omhome + "/bin/omc" + Autoconf.exeExt;
         systemPath = Util.makeValueOrDefault(System.readEnv,"PATH","");
         omdev = Util.makeValueOrDefault(System.readEnv,"OMDEV","");
         omcfound = System.regularFileExists(omcpath);
-        os = System.os();
+        os = Autoconf.os;
         touch_file = "omc.checksettings.create_file_test";
         usercflags = Util.makeValueOrDefault(System.readEnv,"MODELICAUSERCFLAGS","");
         workdir = System.pwd();
@@ -1704,14 +1705,14 @@ algorithm
         uname = System.readFile(touch_file);
         rm_res = 0 == System.systemCall("rm " + touch_file, "");
         // _ = System.platform();
-        senddata = System.getRTLibs();
+        senddata = Autoconf.ldflags_runtime;
         gcc = System.getCCompiler();
         have_corba = Corba.haveCorba();
         System.systemCall("rm -f " + touch_file, "");
         gcc_res = 0 == System.systemCall(gcc + " --version", touch_file);
         gccVersion = System.readFile(touch_file);
         System.systemCall("rm -f " + touch_file, "");
-        confcmd = System.configureCommandLine();
+        confcmd = Autoconf.configureCommandLine;
         vals = {Values.STRING(omhome),
                 Values.STRING(omlib),
                 Values.STRING(omcpath),
@@ -3110,7 +3111,7 @@ algorithm
       equation
         (name::names) = System.strtok(name,".");
         failure(_ = Interactive.getPathedClassInProgram(Absyn.IDENT(name),program));
-        gd = System.groupDelimiter();
+        gd = Autoconf.groupDelimiter;
         mps = System.strtok(mp, gd);
         (mp,name,isDir) = System.getLoadModelPath(name, {"default"}, mps);
         mp = if isDir then mp + name else mp;

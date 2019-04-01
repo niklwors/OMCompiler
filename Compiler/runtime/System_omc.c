@@ -134,21 +134,6 @@ extern int System_realtimeNtick(int ix)
   return rt_ncall(ix);
 }
 
-extern const char* System_getRTLibs()
-{
-  return LDFLAGS_RT;
-}
-
-extern const char* System_getRTLibsSim()
-{
-  return LDFLAGS_RT_SIM;
-}
-
-extern const char* System_getRTLibsFMU()
-{
-  return LDFLAGS_RT_SOURCE_FMU;
-}
-
 extern const char* System_getCCompiler()
 {
   return cc;
@@ -177,21 +162,6 @@ extern const char* System_getLDFlags()
 extern const char* System_getCFlags()
 {
   return cflags;
-}
-
-extern const char* System_getExeExt()
-{
-  return CONFIG_EXE_EXT;
-}
-
-extern const char* System_getDllExt()
-{
-  return CONFIG_DLL_EXT;
-}
-
-extern const char* System_os()
-{
-  return CONFIG_OS;
 }
 
 extern const char* System_trim(const char* str, const char* chars_to_remove)
@@ -232,25 +202,77 @@ extern const char* System_dirname(const char* str)
   return res;
 }
 
+#if defined(OPENMODELICA_BOOTSTRAPPING_STAGE_1)
+extern const char* System_getRTLibs()
+{
+  return "DUMMY RT LIBS";
+}
+
+extern const char* System_getRTLibsSim()
+{
+  return "DUMMY RT LIBS";
+}
+
+extern const char* System_getRTLibsFMU()
+{
+  return "DUMMY RT LIBS";
+}
+
+extern const char* System_getExeExt()
+{
+  return ".exe";
+}
+
+extern const char* System_getDllExt()
+{
+  return CONFIG_DLL_EXT;
+}
+
+extern const char* System_getMakeCommand()
+{
+  return "make";
+}
+
+extern const char* System_os()
+{
+  return "Windows_NT";
+}
+
 extern const char* System_configureCommandLine()
 {
-  return CONFIGURE_COMMANDLINE;
+  return "Dummy configure";
 }
 
 extern const char* System_platform()
 {
-  return CONFIG_PLATFORM;
+  return "Dummy platform";
 }
 
 extern const char* System_pathDelimiter()
 {
-  return CONFIG_PATH_DELIMITER;
+  return "/";
 }
 
 extern const char* System_groupDelimiter()
 {
-  return CONFIG_GROUP_DELIMITER;
+  return ";";
 }
+
+extern const char* System_getCorbaLibs()
+{
+  return "Dummy CORBA libs";
+}
+
+extern void* System_getRuntimeLibs()
+{
+  return "Dummy system libs";
+}
+
+const char* System_getTriple()
+{
+  return "DEFAULT_TRIPLE";
+}
+#endif
 
 extern int System_strncmp(const char *str1, const char *str2, int len)
 {
@@ -636,16 +658,6 @@ void* System_subDirectories(const char *directory)
 }
 #endif
 
-extern const char* System_getCorbaLibs()
-{
-  return CONFIG_CORBALIBS;
-}
-
-extern void* System_getRuntimeLibs()
-{
-  return CONFIG_SYSTEMLIBS;
-}
-
 extern void* System_regex(const char* str, const char* re, int maxn, int extended, int sensitive, int *nmatch)
 {
   void *res;
@@ -776,11 +788,6 @@ extern void System_getGCStatus(double *used, double *allocated)
 {
   *allocated = GC_get_heap_size();
   *used = *allocated - GC_get_free_bytes();
-}
-
-extern const char* System_getMakeCommand()
-{
-  return DEFAULT_MAKE;
 }
 
 extern const char* System_snprintff(const char *fmt, int len, double d)

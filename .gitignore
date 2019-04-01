@@ -101,6 +101,8 @@ SimulationRuntime/build_c/
 SimulationRuntime/opc/ua/open62541.h
 SimulationRuntime/opc/ua/open62541.c
 SimulationRuntime/opc/ua/libomopcua.dll
+SimulationRuntime/OMSI/Build_dynamic/
+SimulationRuntime/OMSI/Build_static/
 
 # OpenModelicaSetup
 Compiler/OpenModelicaSetup
@@ -170,3 +172,5 @@ tags
 
 *.plist
 *clang_output*
+
+Compiler/Util/Autoconf.mo

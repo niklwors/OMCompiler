@@ -1163,7 +1163,7 @@ match platform
   nozip: <%fileNamePrefix%>_functions.h <%fileNamePrefix%>_literals.h $(OFILES) $(RUNTIMEFILES)
   <%\t%>mkdir -p ../binaries/$(FMIPLATFORM)
   ifeq (@LIBTYPE_DYNAMIC@,1)
-  <%\t%>$(LD) -o <%modelNamePrefix%>$(DLLEXT) $(OFILES) $(RUNTIMEFILES) <%dirExtra%> <%libsPos1%> <%libsPos2%> $(LDFLAGS)
+  <%\t%>$(LD) -o <%modelNamePrefix%>$(DLLEXT) $(OFILES) $(RUNTIMEFILES) <%dirExtra%> <%libsPos1%> @BSTATIC@ <%libsPos2%> @BDYNAMIC@ $(LDFLAGS)
   <%\t%>cp <%fileNamePrefix%>$(DLLEXT) <%fileNamePrefix%>_FMU.libs ../binaries/$(FMIPLATFORM)/
   endif
   <%\t%>head -n20 Makefile > ../resources/$(FMIPLATFORM).summary
@@ -1260,7 +1260,7 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
   # /MD - link with MSVCRT.LIB
   # /link - [linker options and libraries]
   # /LIBPATH: - Directories where libs can be found
-  LDFLAGS=/MD /link /dll /debug /pdb:"<%fileNamePrefix%>.pdb" /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/msvc/" /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/msvc/release/" <%dirExtra%> <%libsPos1%> <%libsPos2%> f2c.lib initialization.lib libexpat.lib math-support.lib meta.lib results.lib simulation.lib solver.lib sundials_kinsol.lib sundials_nvecserial.lib util.lib lapack_win32_MT.lib lis.lib  gc-lib.lib user32.lib pthreadVC2.lib wsock32.lib cminpack.lib umfpack.lib amd.lib
+  LDFLAGS=/MD /link /dll /debug /pdb:"<%fileNamePrefix%>.pdb" /LIBPATH:"<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/msvc/" /LIBPATH:"<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/msvc/release/" <%dirExtra%> <%libsPos1%> <%libsPos2%> f2c.lib initialization.lib libexpat.lib math-support.lib meta.lib results.lib simulation.lib solver.lib sundials_kinsol.lib sundials_nvecserial.lib util.lib lapack_win32_MT.lib lis.lib  gc-lib.lib user32.lib pthreadVC2.lib wsock32.lib cminpack.lib umfpack.lib amd.lib
 
   # /MDd link with MSVCRTD.LIB debug lib
   # lib names should not be appended with a d just switch to lib/omc/msvc/debug

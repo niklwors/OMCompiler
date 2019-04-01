@@ -41,46 +41,37 @@
 /* Windows */
 #if defined(__MINGW64__)
 
-#define CONFIG_PLATFORM "WIN64"
 #define CONFIG_MODELICA_SPEC_PLATFORM "win64"
 #define CONFIG_OPENMODELICA_SPEC_PLATFORM "mingw64"
 #define CONFIG_GCC_DUMPMACHINE "x86_64-w64-mingw32"
 #define CONFIG_GCC_VERSION "5.3.0" /* adrpo, change here when we upgrade! */
-#define DEFAULT_TRIPLE ""
 
 #elif defined(__MINGW32__)
 
-#define CONFIG_PLATFORM "WIN32"
 #define CONFIG_MODELICA_SPEC_PLATFORM "win32"
 #define CONFIG_OPENMODELICA_SPEC_PLATFORM "mingw32"
 #define CONFIG_GCC_DUMPMACHINE "i686-w64-mingw32"
 #define CONFIG_GCC_VERSION "5.3.0" /* adrpo, change here when we upgrade! */
-#define DEFAULT_TRIPLE ""
 
 #elif defined(_MSV_VER) && defined(_M_IX86)
 
-#define CONFIG_PLATFORM "WIN32"
 #define CONFIG_MODELICA_SPEC_PLATFORM "win32"
 #define CONFIG_OPENMODELICA_SPEC_PLATFORM "msvc32"
 #define CONFIG_GCC_DUMPMACHINE ""
 #define CONFIG_GCC_VERSION ""
-#define DEFAULT_TRIPLE "i686-msvc32"
 
 #elif defined(_MSV_VER) && defined(_M_X64)
 
-#define CONFIG_PLATFORM "WIN64"
 #define CONFIG_MODELICA_SPEC_PLATFORM "win64"
 #define CONFIG_OPENMODELICA_SPEC_PLATFORM "msvc64"
 #define CONFIG_GCC_DUMPMACHINE ""
 #define CONFIG_GCC_VERSION ""
-#define DEFAULT_TRIPLE "i686-msvc64"
 
 #endif
 
 #define DEFAULT_CC "gcc"
 #define DEFAULT_CXX "g++"
 #define DEFAULT_OMPCC "gcc -fopenmp"
-#define DEFAULT_MAKE "make"
 
 /* adrpo: add -loleaut32 as is used by ExternalMedia */
 #define DEFAULT_LDFLAGS "-fopenmp -Wl,-Bstatic -lregex -ltre -lintl -liconv -lexpat -lomcgc -lpthread -loleaut32 -limagehlp -lhdf5 -lz -lszip -Wl,-Bdynamic"
@@ -89,25 +80,10 @@
 #define CONFIG_WITH_OPENMP 1
 
 #define CONFIG_DEFAULT_OPENMODELICAHOME NULL
-#if defined(__MINGW32__)
-  #define CONFIGURE_COMMANDLINE "Manually created Makefiles for OMDev"
-#elif defined(_MSC_VER)
-  #define CONFIGURE_COMMANDLINE "Manually created Makefiles for Visual Studio"
-#endif
 
 /* adrpo: add -loleaut32 as is used by ExternalMedia */
-#define BASIC_LDFLAGS_RT " -Wl,-Bstatic -lomcgc -lregex -ltre -lintl -liconv -lexpat -static-libgcc -luuid -loleaut32 -lole32 -limagehlp -lws2_32 -llis -lumfpack -lklu -lcolamd -lbtf -lamd  -lsundials_idas -lsundials_kinsol -lsundials_nvecserial -lipopt -lcoinmumps -lpthread -lm -lgfortranbegin -lgfortran -lquadmath -lmingw32 -lgcc_eh -lmoldname -lmingwex -lmsvcrt -luser32 -lkernel32 -ladvapi32 -lshell32 -lopenblas -lcminpack -Wl,-Bdynamic"
-#define LDFLAGS_RT " -lOpenModelicaRuntimeC" BASIC_LDFLAGS_RT
-#define LDFLAGS_RT_SIM " -Wl,-Bstatic -lSimulationRuntimeC -Wl,-Bdynamic" BASIC_LDFLAGS_RT " -lwsock32 -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic"
-#define LDFLAGS_RT_SOURCE_FMU " -Wl,-Bstatic -lregex -ltre -lintl -liconv -static-libgcc -lpthread -lm -lgfortranbegin -lgfortran -lquadmath -lmingw32 -lgcc_eh -lmoldname -lmingwex -lmsvcrt -luser32 -lkernel32 -ladvapi32 -lshell32 -limagehlp -lopenblas -lhdf5 -lz -lszip -Wl,-Bdynamic"
-#define CONFIG_EXE_EXT ".exe"
 #define CONFIG_DLL_EXT ".dll"
-#define CONFIG_OS "Windows_NT"
-#define CONFIG_CORBALIBS "-L$(OPENMODELICAHOME)/lib/omc -lomniORB420_rt -lomnithread40_rt"
 #define CONFIG_LPSOLVEINC "lpsolve/lp_lib.h"
-/* Windows is always "special" */
-#define CONFIG_SYSTEMLIBS mmc_mk_nil()
-
 
 #if defined(__i386__) || defined(__x86_64__) || defined(_MSC_VER)
   /*
@@ -126,12 +102,10 @@
   #define DEFAULT_LINKER "g++ -shared -Xlinker --export-all-symbols"
 #endif
 
-#define CONFIG_PATH_DELIMITER "/"
-#define CONFIG_GROUP_DELIMITER ";"
-
 #define CONFIG_IPOPT_INC /* Without IPOPT */
 #define CONFIG_IPOPT_LIB /* Without IPOPT */
 
+#define WITH_HWLOC 0
 #define WITH_SUNDIALS
 
 #if defined(__MINGW32__)

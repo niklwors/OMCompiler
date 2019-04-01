@@ -39,6 +39,7 @@ import SimCodeVar;
 protected
 
 import Array;
+import Autoconf;
 import BaseHashTable;
 import CevalScript;
 import ComponentReference;
@@ -1773,10 +1774,10 @@ algorithm
         includes := generateExtFunctionIncludesIncludestr(mod);
         (libs, dirs, resources) := generateExtFunctionLibraryDirectoryFlags(program, path, mod, libs);
         for name in if Flags.isSet(Flags.CHECK_EXT_LIBS) then libNames else {} loop
-          if getGerneralTarget(target)=="msvc" or System.os()=="Windows_NT" then
-            fullLibNames := {name + System.getDllExt(), "lib" + name + ".a", "lib" + name + ".lib"};
+          if getGerneralTarget(target)=="msvc" or Autoconf.os=="Windows_NT" then
+            fullLibNames := {name + Autoconf.dllExt, "lib" + name + ".a", "lib" + name + ".lib"};
           else
-            fullLibNames := {"lib" + name + ".a", "lib" + name + System.getDllExt()};
+            fullLibNames := {"lib" + name + ".a", "lib" + name + Autoconf.dllExt};
           end if;
           lookForExtFunctionLibrary(fullLibNames, dirs, name, resources, path, info);
         end for;
@@ -1798,7 +1799,7 @@ protected function lookForExtFunctionLibrary
 protected
   list<String> dirs2;
 algorithm
-  dirs2 := "/usr/lib/"+System.getTriple()::"/lib/"+System.getTriple()::"/usr/lib/"::"/lib/"::dirs; // We could also try to look in ldconfig, etc for system libraries
+  dirs2 := "/usr/lib/"+Autoconf.triple::"/lib/"+Autoconf.triple::"/usr/lib/"::"/lib/"::dirs; // We could also try to look in ldconfig, etc for system libraries
   if not max(System.regularFileExists(d+"/"+n) for d in dirs2, n in names) then
     _ := match resources
       local
@@ -1898,16 +1899,16 @@ algorithm
   libPaths := matchcontinue(uri,path,inLibs)
     local
       String str, platform1, platform2;
-  case(_, _,{"-lWinmm"}) guard System.os()=="Windows_NT"
+  case(_, _,{"-lWinmm"}) guard Autoconf.os=="Windows_NT"
     //Winmm has to be linked from the windows system but not from the resource directories.
     //This is a fix for M_DD since otherwise the dummy pthread.dll that breaks the built will be linked
-    then {(Settings.getInstallationDirectoryPath() + "/lib/" + System.getTriple() + "/omc")};
+    then {(Settings.getInstallationDirectoryPath() + "/lib/" + Autoconf.triple + "/omc")};
   case(, _,_)
     equation
       platform1 = uri + "/" + System.openModelicaPlatform();
       platform2 = uri + "/" + System.modelicaPlatform();
     then uri::platform2::platform1::(Settings.getHomeDir(false)+"/.openmodelica/binaries/"+Absyn.pathFirstIdent(path))::
-      (Settings.getInstallationDirectoryPath() + "/lib/")::(Settings.getInstallationDirectoryPath() + "/lib/" + System.getTriple() + "/omc")::{};
+      (Settings.getInstallationDirectoryPath() + "/lib/")::(Settings.getInstallationDirectoryPath() + "/lib/" + Autoconf.triple + "/omc")::{};
   end matchcontinue;
 end getLinkerLibraryPaths;
 
@@ -1938,7 +1939,7 @@ algorithm
         end matchcontinue;
         str := CevalScript.getFullPathFromUri(program, str, false);
         resourcesStr := CevalScript.getFullPathFromUri(program, "modelica://" + Absyn.pathFirstIdent(path) + "/Resources", false);
-        isLinux := stringEq("linux",System.os());
+        isLinux := stringEq("linux",Autoconf.os);
         target := Flags.getConfigString(Flags.TARGET);
         // please, take care about ordering these libraries, the most specific should have the highest priority
         libs2 := getLinkerLibraryPaths(str, path, inLibs);
@@ -1997,7 +1998,7 @@ algorithm
         str = CevalScript.getFullPathFromUri(program, str, false);
         platform1 = System.openModelicaPlatform();
         platform2 = System.modelicaPlatform();
-        isLinux = stringEq("linux",System.os());
+        isLinux = stringEq("linux",Autoconf.os);
         // please, take care about ordering these libraries, the most specific should go first (in reverse here)
         libs = generateExtFunctionLibraryDirectoryPaths2(true, str, isLinux, {} );
         libs = generateExtFunctionLibraryDirectoryPaths2(not stringEq(platform2,""), str + "/" + platform2, isLinux, libs);
@@ -2009,7 +2010,7 @@ algorithm
         str = CevalScript.getFullPathFromUri(program, str, false);
         platform1 = System.openModelicaPlatform();
         platform2 = System.modelicaPlatform();
-        isLinux = stringEq("linux",System.os());
+        isLinux = stringEq("linux",Autoconf.os);
         // please, take care about ordering these libraries, the most specific should go first (in reverse here)
         libs = generateExtFunctionLibraryDirectoryPaths2(true, str, isLinux, {} );
         libs = generateExtFunctionLibraryDirectoryPaths2(not stringEq(platform2,""), str + "/" + platform2, isLinux, libs);
@@ -2060,7 +2061,7 @@ algorithm
     // omcruntime on windows needs linking with mico2313 and wsock and then some :)
     case Absyn.STRING("omcruntime")
       equation
-        true = "Windows_NT" == System.os();
+        true = "Windows_NT" == Autoconf.os;
         strs = {"f2c.lib", "initialization.lib", "libexpat.lib", "math-support.lib", "meta.lib", "ModelicaExternalC.lib", "results.lib", "simulation.lib", "solver.lib", "sundials_kinsol.lib", "sundials_nvecserial.lib", "util.lib", "lapack_win32_MT.lib"};
       then
         (strs, {});
@@ -2070,7 +2071,7 @@ algorithm
     // hack some day, but at least I get an early weekend.
     case Absyn.STRING("OpenModelicaCorba")
       equation
-        str = System.getCorbaLibs();
+        str = Autoconf.corbaLibs;
       then ({str},{});
 
     case Absyn.STRING("fmilib")
@@ -2105,57 +2106,57 @@ algorithm
   (strs,names) := matchcontinue exp
     local
       String str, fopenmp;
-      list<String> strs1, strs2, names1, names2;
+      list<String> strs1, strs2, strs3, names1, names2, names3;
 
     // Lapack is always included
     case Absyn.STRING("lapack") then ({},{});
     case Absyn.STRING("Lapack") then ({},{});
 
     //pthreads is already linked under windows
-    case Absyn.STRING("pthread") guard System.os()=="Windows_NT"
+    case Absyn.STRING("pthread") guard Autoconf.os=="Windows_NT"
       equation
         Error.addCompilerNotification("pthreads library is already available. It is not linked from the external library resource directory.\n");
       then  ({},{});
 
    //do not link rt.dll for Modelica Device Drivers as it is not needed under windows
-    case Absyn.STRING("rt") guard System.os()=="Windows_NT"
+    case Absyn.STRING("rt") guard Autoconf.os=="Windows_NT"
       equation
         Error.addCompilerNotification("rt library is not needed under Windows. It is not linked from the external library resource directory.\n");
       then  ({},{});
 
    //do not link Ws2_32.dll for Modelica Device Drivers as it is not needed under windows
-    case Absyn.STRING("Ws2_32") guard System.os()=="Windows_NT"
+    case Absyn.STRING("Ws2_32") guard Autoconf.os=="Windows_NT"
       equation
         Error.addCompilerNotification("Ws2_32 library is not needed under Windows. It is not linked from the external library resource directory.\n");
       then  ({},{});
 
     //user32 is already linked under windows
-    case Absyn.STRING("User32") guard System.os()=="Windows_NT"
+    case Absyn.STRING("User32") guard Autoconf.os=="Windows_NT"
       equation
         Error.addCompilerNotification("User32 library is already available. It is not linked from the external library resource directory.\n");
       then  ({},{});
 
     //winmm is a windows system lib
-    case Absyn.STRING(str as "Winmm") guard System.os()=="Windows_NT"
+    case Absyn.STRING(str as "Winmm") guard Autoconf.os=="Windows_NT"
       equation
         str = "-l" + str;
         Error.addCompilerNotification("Winmm library is a windows system library. It is not linked from the external library resource directory.\n");
       then  ({str},{});
 
     //do not link X11.dll for Modelica Device Drivers as it is not needed under windows
-    case Absyn.STRING("X11") guard System.os()=="Windows_NT"
+    case Absyn.STRING("X11") guard Autoconf.os=="Windows_NT"
       equation
         Error.addCompilerNotification("X11 library is not needed under Windows. It is not linked from the external library resource directory.\n");
       then  ({},{});
 
     case Absyn.STRING(str as "omcruntime")
       equation
-        if "Windows_NT" == System.os() then
+        if "Windows_NT" == Autoconf.os then
           // omcruntime on windows needs linking with mico2313 and wsock and then some :)
           str = "-l" + str;
           strs = str :: "-lintl" :: "-liconv" :: "-lexpat" :: "-lsqlite3" :: "-llpsolve55" :: "-ltre" :: "-lomniORB420_rt" :: "-lomnithread40_rt" :: "-lws2_32" :: "-lRpcrt4" :: "-lregex" :: {};
         else
-          strs = System.getRuntimeLibs();
+          strs = Autoconf.systemLibs;
         end if;
       then  (strs,{});
 
@@ -2164,19 +2165,21 @@ algorithm
     // hack some day, but at least I get an early weekend.
     case Absyn.STRING("OpenModelicaCorba")
       equation
-        str = System.getCorbaLibs();
+        str = Autoconf.corbaLibs;
       then ({str},{});
 
     case Absyn.STRING("fmilib")
-      then (if System.os()=="Windows_NT" then {"-lfmilib","-lshlwapi"} else {"-lfmilib"},{});
+      then (if Autoconf.os=="Windows_NT" then {"-lfmilib","-lshlwapi"} else {"-lfmilib"},{});
 
     case Absyn.STRING(str)
       algorithm
         if str=="ModelicaStandardTables" then
+          // MSL 3.2.1 did not have the updated annotations...
           (strs1,names1) := getLibraryStringInGccFormat(Absyn.STRING("ModelicaIO"));
           (strs2,names2) := getLibraryStringInGccFormat(Absyn.STRING("ModelicaMatIO"));
-          strs := listAppend(strs1, strs2);
-          names := listAppend(names1, names2);
+          (strs3,names3) := getLibraryStringInGccFormat(Absyn.STRING("zlib"));
+          strs := listAppend(strs1, listAppend(strs2, strs3));
+          names := listAppend(names1, listAppend(names2, names3));
         else
           strs := {};
           names := {};
@@ -2518,17 +2521,17 @@ algorithm
                  (if Flags.isSet(Flags.HPCOM) then System.getOMPCCompiler() else System.getCCompiler());
   cxxcompiler := if stringEq(Config.simCodeTarget(),"JavaScript") then "emcc" else System.getCXXCompiler();
   linker := if stringEq(Config.simCodeTarget(),"JavaScript") then "emcc" else System.getLinker();
-  exeext := if stringEq(Config.simCodeTarget(),"JavaScript") then ".js" else System.getExeExt();
-  dllext := System.getDllExt();
+  exeext := if stringEq(Config.simCodeTarget(),"JavaScript") then ".js" else Autoconf.exeExt;
+  dllext := Autoconf.dllExt;
   omhome := Settings.getInstallationDirectoryPath();
   omhome := System.trim(omhome, "\""); // Remove any quotation marks from omhome.
   cflags := System.getCFlags() + " " +
             (if Flags.isSet(Flags.HPCOM) then "-fopenmp" else "");
   cflags := if stringEq(Config.simCodeTarget(),"JavaScript") then "-Os -Wno-warn-absolute-paths" else cflags;
   ldflags := System.getLDFlags();
-  rtlibs := if isFunction then System.getRTLibs() else (if isFMU then System.getRTLibsFMU() else System.getRTLibsSim());
+  rtlibs := if isFunction then Autoconf.ldflags_runtime else (if isFMU then Autoconf.ldflags_runtime_fmu else Autoconf.ldflags_runtime_sim);
   platform := System.modelicaPlatform();
-  compileDir :=  System.pwd() + System.pathDelimiter();
+  compileDir :=  System.pwd() + Autoconf.pathDelimiter;
   makefileParams := SimCodeFunction.MAKEFILE_PARAMS(ccompiler, cxxcompiler, linker, exeext, dllext,
         omhome, cflags, ldflags, rtlibs, includes, libs,libPaths, platform,compileDir);
 end createMakefileParams;
