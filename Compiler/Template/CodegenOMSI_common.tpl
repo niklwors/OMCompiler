@@ -129,7 +129,7 @@ template generateOmsiFunctionCode(OMSIFunction omsiFunction, String FileNamePref
 
   match omsiFunction
     case SimCode.OMSI_FUNCTION(__) then
-    <<
+ <<
     <%insertCopyrightOpenModelica()%>
     <%match  Config.simCodeTarget()
       case "omsic" then

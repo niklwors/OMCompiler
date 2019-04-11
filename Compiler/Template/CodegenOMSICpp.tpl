@@ -795,9 +795,9 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
   # /ZI enable Edit and Continue debug info
   CDFLAGS = /ZI
   !IF "$(PCH_FILE)" == ""
-  LDSYSTEMFLAGS=  /link /DLL  /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/omsicpp/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/omsi/msvc"  /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/msvc/debug"  /LIBPATH:"<%makefileParams.omhome%>/bin" /LIBPATH:"$(BOOST_LIBS)"  OMCppExtensionUtilities_static.lib OMCppModelicaUtilities_static.lib  OMCppOSU.lib   OMSIBase_static.lib OMSISolver_static.lib OMCppDgesv_static.lib OMCppDataExchange_static.lib  OMCppSystem_static.lib   OMCppMath_static.lib  OMCppOMCFactory.lib  libexpat.lib  sundials_nvecserial.lib sundials_kinsol.lib  WSock32.lib Ws2_32.lib
+  LDSYSTEMFLAGS=  /link /DLL  /LIBPATH:"<%makefileParams.omhome%>/lib/omc/omsicpp/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/omc/omsi/msvc"  /LIBPATH:"<%makefileParams.omhome%>/lib/omc/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/omc/msvc/debug"  /LIBPATH:"<%makefileParams.omhome%>/bin" /LIBPATH:"$(BOOST_LIBS)"  OMCppExtensionUtilities_static.lib OMCppModelicaUtilities_static.lib  OMCppOSU.lib   OMSIBase_static.lib OMSISolver_static.lib OMCppDgesv_static.lib OMCppDataExchange_static.lib  OMCppSystem_static.lib   OMCppMath_static.lib  OMCppOMCFactory.lib  libexpat.lib  sundials_nvecserial.lib sundials_kinsol.lib  WSock32.lib Ws2_32.lib
   !ELSE
-  LDSYSTEMFLAGS=  /link /DLL  /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/omsicpp/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/omsi/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/<%getTriple()%>/omc/msvc/debug"  /LIBPATH:"<%makefileParams.omhome%>/bin" /LIBPATH:"$(BOOST_LIBS)"  OMCppExtensionUtilities_static.lib OMCppModelicaUtilities_static.lib  OMCppOSU.lib   OMSIBase_static.lib OMSISolver_static.lib OMCppDgesv_static.lib OMCppDataExchange_static.lib  OMCppSystem_static.lib  OMCppMath_static.lib  OMCppOMCFactory.lib   libexpat.lib $(PCH_LIB) sundials_nvecserial.lib sundials_kinsol.lib  WSock32.lib Ws2_32.lib
+  LDSYSTEMFLAGS=  /link /DLL  /LIBPATH:"<%makefileParams.omhome%>/lib/omc/omsicpp/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/omc/omsi/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/omc/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/omc/msvc/debug"  /LIBPATH:"<%makefileParams.omhome%>/bin" /LIBPATH:"$(BOOST_LIBS)"  OMCppExtensionUtilities_static.lib OMCppModelicaUtilities_static.lib  OMCppOSU.lib   OMSIBase_static.lib OMSISolver_static.lib OMCppDgesv_static.lib OMCppDataExchange_static.lib  OMCppSystem_static.lib  OMCppMath_static.lib  OMCppOMCFactory.lib   libexpat.lib $(PCH_LIB) sundials_nvecserial.lib sundials_kinsol.lib  WSock32.lib Ws2_32.lib
   !ENDIF
   # lib names should not be appended with a d just switch to lib/omc/omsicpp
 
@@ -885,7 +885,7 @@ case "gcc" then
             SIM_OPT_LEVEL=-O0
             # native build or cross compilation
             ifeq ($(TARGET_TRIPLET),)
-              TRIPLET=<%getTriple()%>
+              TRIPLET=<%Autoconf.triple%>
               CC=<%makefileParams.ccompiler%>
               CXX=<%makefileParams.cxxcompiler%>
               ABI_CFLAG=
