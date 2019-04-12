@@ -1449,7 +1449,7 @@ algorithm
           else
             b := false;
           end try;
-          compileDir := System.pwd() + System.pathDelimiter();
+          compileDir := System.pwd() + Autoconf.pathDelimiter;
           executable := filenameprefix + "_me_FMU";
           initfilename := filenameprefix + "_init_xml";
         end if;
@@ -1550,7 +1550,7 @@ algorithm
           else
             fail();
           end try;
-          compileDir := System.pwd() + System.pathDelimiter();
+          compileDir := System.pwd() + Autoconf.pathDelimiter;
           executable := filenameprefix;
           outputFormat_str := "mat";
 
@@ -3618,7 +3618,7 @@ algorithm
     logfile := filenameprefix + ".log";
     dir := fmutmp+"/sources/";
   else
-    fmutmp := filenameprefix+".fmutmp" + System.pathDelimiter();
+    fmutmp := filenameprefix+".fmutmp" + Autoconf.pathDelimiter;
     try
       CevalScript.compileModel(filenameprefix+"_FMU" , libs, fmutmp);
       timeCompile := System.realtimeTock(ClockIndexes.RT_CLOCK_BUILD_MODEL);
