@@ -691,7 +691,7 @@ algorithm
     fileprefix := iSimCode.fileNamePrefix;
     guid := System.getUUIDStr();
     SerializeInitXML.simulationInitFileReturnBool(simCode=iSimCode, guid=guid);
-    runTplWriteFile(func = function CodegenFMU2.fmiModelDescription(in_a_simCode=iSimCode, in_a_guid=guid,in_a_FMUType=fmuType), file="modelDescription.xml");
+    runTplWriteFile(func = function CodegenFMU2.fmiModelDescription(in_a_simCode=iSimCode, in_a_guid=guid, in_a_FMUType=fmuType, in_a_sourceFiles={}), file="modelDescription.xml");
     runTpl(func = function CodegenOMSI_common.generateEquationsCode(a_simCode=iSimCode, a_FileNamePrefix=fileprefix));
   Tpl.tplNoret3(CodegenOMSICpp.translateModel, iSimCode, fmuVersion, fmuType);
 end callTargetTemplatesOMSICpp;
