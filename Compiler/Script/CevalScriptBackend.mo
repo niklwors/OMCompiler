@@ -1437,9 +1437,9 @@ algorithm
             end if;
             // choose the simulation tool OM FMU Import vs. OMSimulator
             if Flags.isSet(Flags.OMSIC_SIM_OMS) then
-              sim_call := stringAppendList({System.getMakeCommand()," -C"+System.makeC89Identifier(filenameprefix)+".fmutmp/", " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","OMSimulation"});
+              sim_call := stringAppendList({Autoconf.make," -C"+System.makeC89Identifier(filenameprefix)+".fmutmp/", " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","OMSimulation"});
             else
-              sim_call := stringAppendList({System.getMakeCommand()," -C"+System.makeC89Identifier(filenameprefix)+".fmutmp/",  " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","fmiImport"});
+              sim_call := stringAppendList({Autoconf.make," -C"+System.makeC89Identifier(filenameprefix)+".fmutmp/",  " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","fmiImport"});
             end if;
             if System.systemCall(sim_call,filenameprefix+"_FMU.log") <> 0 then
               Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {"Compile imported FMU failed!\n",filenameprefix+"_FMU.log"});
@@ -1538,9 +1538,9 @@ algorithm
             end if;
             // choose the simulation tool OM FMU Import vs. OMSimulator
             if Flags.isSet(Flags.OMSIC_SIM_OMS) then
-              sim_call := stringAppendList({System.getMakeCommand()," -C "+System.makeC89Identifier(filenameprefix)+".fmutmp/", " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","OMSimulation"});
+              sim_call := stringAppendList({Autoconf.make," -C "+System.makeC89Identifier(filenameprefix)+".fmutmp/", " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","OMSimulation"});
             else
-              sim_call := stringAppendList({System.getMakeCommand()," -C "+System.makeC89Identifier(filenameprefix)+".fmutmp/"," -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","fmiImport"});
+              sim_call := stringAppendList({Autoconf.make," -C "+System.makeC89Identifier(filenameprefix)+".fmutmp/"," -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","fmiImport"});
             end if;
             if System.systemCall(sim_call,filenameprefix+"_FMU.log") <> 0 then
               Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {"Compile imported FMU failed!\n",filenameprefix+"_FMU.log"});
