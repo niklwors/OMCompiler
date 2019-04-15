@@ -12471,7 +12471,8 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
         let &preExp +=
         <<
             //negated unary inner  zero crossing
-            <%tmp%> = <%op%> <%tmp1%>) ? true : false \n;
+            <%tmp%> = (<%op%><%tmp1%>) ? true : false;
+
         >>
         tmp
 
@@ -12811,8 +12812,10 @@ template createEvaluateZeroFuncs( list<SimEqSystem> equationsForZeroCrossings, S
   void <%className%>::evaluateZeroFuncs(const UPDATETYPE command)
   {
     <%varDecls%>
-    // Evaluate Equations
-    <%equation_zero_func_calls%>
+
+     // Evaluate Equations
+    evaluateAll(command);
+
   }
   >>
 end createEvaluateZeroFuncs;
