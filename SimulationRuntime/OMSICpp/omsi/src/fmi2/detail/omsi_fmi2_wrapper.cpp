@@ -41,6 +41,11 @@
 #include <Core/System/FactoryExport.h>
 #include <Core/Utils/extension/logger.hpp>
 #include <Core/System/IOMSI.h>
+
+//omsi base includes
+#include <omsi_initialization.h>
+#include <omsi_getters_and_setters.h>
+
 //omsi cpp inlcudes
 #include <omsi_global_settings.h>
 #include "omsi_fmi2_log.h"
@@ -50,8 +55,6 @@
 
 
 
-//omsi base includes
-#include <omsi_initialization.h>
 
 //3rdparty includes
 #include <boost/filesystem/operations.hpp>
