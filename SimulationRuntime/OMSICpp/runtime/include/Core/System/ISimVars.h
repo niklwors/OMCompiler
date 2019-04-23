@@ -58,13 +58,14 @@ public:
     virtual const double& getRealVar(size_t i) = 0;
     virtual const int& getIntVar(size_t i)= 0;
     virtual const bool& getBoolVar(size_t i)= 0;
-	virtual const int& getOMSIBoolVar(size_t i) = 0;
+    virtual const int& getOMSIBoolVar(size_t i) = 0;
+    virtual const std::string& getStringVar(size_t i) = 0;
 
     /*Methods for initialize scalar model variables in simvars memory*/
     virtual double& initRealVar(size_t i) = 0;
     virtual int& initIntVar(size_t i)= 0;
     virtual bool& initBoolVar(size_t i)= 0;
-	virtual int& initOMSIBoolVar(size_t i) = 0;
+    virtual int& initOMSIBoolVar(size_t i) = 0;
     virtual string& initStringVar(size_t i)= 0;
 
      /*Methods for pre- variables*/
@@ -74,5 +75,6 @@ public:
      virtual double& getPreVar(const double& var)=0;
      virtual int& getPreVar(const int& var)=0;
      virtual bool& getPreVar(const bool& var)=0;
+     virtual std::string& getPreVar(const std::string& var)=0;
 };
 /** @} */ // end of coreSystem

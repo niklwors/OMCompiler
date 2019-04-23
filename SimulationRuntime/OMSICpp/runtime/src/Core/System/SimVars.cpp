@@ -55,9 +55,11 @@ void SimVars::create(size_t dim_real, size_t dim_int, size_t dim_bool, size_t di
 	//allocate memory for all model variables
 	if (dim_string > 0) {
 		_string_vars = new string[dim_string];
+		_pre_string_vars = new string[dim_string];
 	}
 	else {
 		_string_vars = NULL;
+		_pre_string_vars = NULL;
 	}
 	if (dim_bool > 0) {
 		_bool_vars = (bool*)alignedMalloc(sizeof(bool) * dim_bool, 64);
@@ -169,6 +171,8 @@ SimVars::~SimVars()
 			alignedFree(_bool_vars);
 		if (_string_vars)
 			delete[] _string_vars;
+		if(_pre_string_vars)
+			delete [] _pre_string_vars;
 	}
 }
 
@@ -286,6 +290,13 @@ const bool& SimVars::getBoolVar(size_t i)
 		throw ModelicaSimulationError(MODEL_EQ_SYSTEM, "for omsu systems, boolean variables are not supported");
 	if (i < _dim_bool)
 		return _bool_vars[i];
+	else
+		throw std::runtime_error("Wrong variable index");
+}
+const std::string& SimVars::getStringVar(size_t i)
+{
+	if (i < _dim_string)
+		return _string_vars[i];
 	else
 		throw std::runtime_error("Wrong variable index");
 }
@@ -606,6 +617,14 @@ void SimVars::savePreVariables()
 			std::copy(_bool_vars, _bool_vars + _dim_bool, _pre_bool_vars);
 		}
 	}
+	if (_dim_string > 0) {
+		if (_use_omsu) {
+			std::copy(_omsi_string_vars, _omsi_string_vars + _dim_string, _pre_omsi_string_vars);
+		}
+		else {
+			std::copy(_string_vars, _string_vars + _dim_string, _pre_string_vars);
+		}
+	}
 }
 /**
 *  \brief Initializes access to pre variables
@@ -642,6 +661,12 @@ bool& SimVars::getPreVar(const bool& var)
 {
 	size_t i = &var - _bool_vars;
 	return _pre_bool_vars[i];
+}
+
+std::string& SimVars::getPreVar(const std::string& var)
+{
+	size_t i = &var - _string_vars;
+	return _pre_string_vars[i];
 }
 
 /**\brief returns a pointer to a real simvar variable in simvar array

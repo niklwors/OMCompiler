@@ -449,10 +449,10 @@ if test -z "$RUNTIMECFLAGS"; then
   AC_TRY_LINK([], [return 0;], [AC_MSG_RESULT($CC ok);],[AC_MSG_ERROR($CC failed)])
   CFLAGS="$FPIC"
   AC_MSG_CHECKING([runtime compiler CFLAGS])
+  RUNTIMECFLAGS="$FPIC"
   for flag in -falign-functions -mfpmath=sse -fno-dollars-in-identifiers; do
-    RUNTIMECFLAGS="$CFLAGS"
-    CFLAGS="$RUNTIMECFLAGS $flag -Werror"
-    AC_TRY_LINK([], [return 0;], [CFLAGS="$RUNTIMECFLAGS $flag"],[CFLAGS="$RUNTIMECFLAGS"])
+    CFLAGS="$FPIC $flag -Werror"
+    AC_TRY_LINK([], [return 0;], [RUNTIMECFLAGS="$RUNTIMECFLAGS $flag"],[])
   done
 else
   CFLAGS="$RUNTIMECFLAGS $FPIC -Werror"
@@ -460,13 +460,13 @@ else
 fi
 AC_MSG_RESULT([$RUNTIMECFLAGS])
 
+CC="$CC_OLD"
+CFLAGS="$CFLAGS_OLD"
+
 LIBS=""
 AC_SEARCH_LIBS(dlopen,dl)
 LIBDL="$LIBS"
 LIBS=""
-
-CC="$CC_OLD"
-CFLAGS="$CFLAGS_OLD"
 
 dnl check for lpsolve55
 
@@ -582,13 +582,17 @@ AC_TRY_LINK([
   AC_MSG_RESULT([gettext headers not found])
 ])
 
-LIBS=""
-AC_CHECK_HEADERS(hwloc.h,
-  [AC_CHECK_LIB(hwloc,hwloc_get_nbobjs_by_depth,
-    [WITH_HWLOC="1";OMC_LIBS="$OMC_LIBS -lhwloc"],
-    [WITH_HWLOC="0"])],
-  [WITH_HWLOC="0"]
-)
+AC_ARG_WITH(hwloc,  [  --without-hwloc        (default to looking for it)],[
+  LIBS=""
+  AC_CHECK_HEADERS(hwloc.h,
+    [AC_CHECK_LIB(hwloc,hwloc_get_nbobjs_by_depth,
+      [WITH_HWLOC="1";OMC_LIBS="$OMC_LIBS -lhwloc"],
+      [WITH_HWLOC="0"])],
+    [WITH_HWLOC="0"]
+  )
+],[
+  WITH_HWLOC="0"
+])
 
 LIBS=""
 AC_CHECK_HEADERS(uuid/uuid.h,
@@ -678,7 +682,6 @@ if test "$DARWIN" = "1"; then
   LINK="cp -fr"
   RPATH="-Wl,-rpath,'@loader_path/../lib/$host_short/omc/'"
   RPATH_QMAKE="-Wl,-rpath,'@loader_path/../../../../lib/$host_short/omc',-rpath,'@loader_path/../../../../lib/',-rpath,'$PREFIX/lib/$host_short/omc',-rpath,'$PREFIX/lib/'"
-  MSL_EXTRA_ARGS="--disable-hdf5 --enable-static-zlib --enable-static --enable-shared"
   OS_TARGET="osx"
   LIS_LDFLAGS="-Wl,-install_name,@rpath/liblis.dylib"
   AR_SH="sh -x ar.sh"
@@ -757,6 +760,7 @@ else
   UMFPACK_SHARED=ON
   CONFIG_OS=`echo $host_os | sed s/-gnu//`
 fi
+MSL_EXTRA_ARGS="--disable-hdf5 --enable-static-zlib --enable-static --disable-shared"
 
 AC_ARG_WITH(FMIL, [  --with-FMIL                 Link omc to FMIL (only disable when cross-compiling)],
 [

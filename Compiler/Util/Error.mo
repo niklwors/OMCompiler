@@ -348,9 +348,8 @@ public constant Message NON_PARAMETER_ITERATOR_RANGE = MESSAGE(109, TRANSLATION(
   Util.gettext("The iteration range %s is not a constant or parameter expression."));
 public constant Message IMPLICIT_ITERATOR_NOT_FOUND_IN_LOOP_BODY = MESSAGE(110, TRANSLATION(), ERROR(),
   Util.gettext("Identifier %s of implicit for iterator must be present as array subscript in the loop body."));
-
-// UNUSED ID 111
-
+public constant Message CONNECTOR_NON_PARAMETER_SUBSCRIPT = MESSAGE(111, TRANSLATION(), ERROR(),
+  Util.gettext("Connector ‘%s‘ has non-parameter subscript ‘%s‘."));
 public constant Message LOOKUP_CLASS_VIA_COMP_COMP = MESSAGE(112, TRANSLATION(), ERROR(),
   Util.gettext("Illegal access of class '%s' via a component when looking for '%s'."));
 public constant Message SUBSCRIPTED_FUNCTION_CALL = MESSAGE(113, TRANSLATION(), ERROR(),
@@ -828,6 +827,8 @@ public constant Message INST_RECURSION_LIMIT_REACHED = MESSAGE(349, TRANSLATION(
   Util.gettext("Recursion limit reached while instantiating ‘%s‘."));
 public constant Message WHEN_IF_VARIABLE_MISMATCH = MESSAGE(350, TRANSLATION(), ERROR(),
   Util.gettext("The branches of an if-equation inside a when-equation must have the same set of component references on the left-hand side."));
+public constant Message DIMENSION_DEDUCTION_FROM_BINDING_FAILURE = MESSAGE(351, TRANSLATION(), ERROR(),
+  Util.gettext("Dimension %s of ‘%s‘ could not be deduced from the component's binding equation ‘%s‘."));
 public constant Message INITIALIZATION_NOT_FULLY_SPECIFIED = MESSAGE(496, TRANSLATION(), WARNING(),
   Util.gettext("The initial conditions are not fully specified. %s."));
 public constant Message INITIALIZATION_OVER_SPECIFIED = MESSAGE(497, TRANSLATION(), WARNING(),
@@ -1014,6 +1015,8 @@ public constant Message OCG_MISSING_BRANCH = MESSAGE(594, TRANSLATION(), WARNING
   Util.gettext("Connections.rooted(%s) needs exactly one statement Connections.branch(%s, B.R) involving %s but we found none in the graph. Run with -d=cgraphGraphVizFile to debug"));
 public constant Message UNBOUND_PARAMETER_EVALUATE_TRUE = MESSAGE(594, TRANSLATION(), WARNING(),
   Util.gettext("Parameter %s has annotation(Evaluate=true) and no binding."));
+public constant Message FMI_URI_RESOLVE = MESSAGE(595, TRANSLATION(), WARNING(),
+  Util.gettext("Could not resolve URI (%s) at compile-time; copying all loaded packages into the FMU"));
 
 public constant Message MATCH_SHADOWING = MESSAGE(5001, TRANSLATION(), ERROR(),
   Util.gettext("Local variable '%s' shadows another variable."));

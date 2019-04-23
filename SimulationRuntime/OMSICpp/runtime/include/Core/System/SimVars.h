@@ -96,11 +96,12 @@ class BOOST_EXTENSION_SIMVARS_DECL SimVars: public ISimVars
     virtual const double& getRealVar(size_t i);
     virtual const int& getIntVar(size_t i);
     virtual const bool& getBoolVar(size_t i);
-	virtual const int& getOMSIBoolVar(size_t i);
+    virtual const int& getOMSIBoolVar(size_t i);
+    virtual const std::string& getStringVar(size_t i);
     virtual double* initRealArrayVar(size_t size, size_t start_index);
     virtual int* initIntArrayVar(size_t size, size_t start_index);
     virtual bool* initBoolArrayVar(size_t size, size_t start_index);
-	virtual int* initOMSIBoolArrayVar(size_t size, size_t start_index);
+    virtual int* initOMSIBoolArrayVar(size_t size, size_t start_index);
     virtual string* initStringArrayVar(size_t size, size_t start_index);
     virtual void initRealAliasArray(int indices[], size_t n, double* ref_data[]);
     virtual void initIntAliasArray(int indices[], size_t n, int* ref_data[]);
@@ -118,6 +119,7 @@ class BOOST_EXTENSION_SIMVARS_DECL SimVars: public ISimVars
     virtual double& getPreVar(const double& var);
     virtual int& getPreVar(const int& var);
     virtual bool& getPreVar(const bool& var);
+    virtual std::string& getPreVar(const std::string& var);
 
   protected:
     void create(size_t dim_real, size_t dim_int, size_t dim_bool, size_t dim_string, size_t dim_pre_vars, size_t dim_state_vars, size_t state_index);
@@ -158,6 +160,7 @@ class BOOST_EXTENSION_SIMVARS_DECL SimVars: public ISimVars
     int* _pre_int_vars;
     bool* _pre_bool_vars;
 	int* _pre_omsi_bool_vars; //The OpenModelica Simulation Interface uses int for boolean variables
+	std::string* _pre_string_vars;
 
 	bool _use_omsu;
 };

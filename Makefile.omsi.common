@@ -76,7 +76,10 @@ OMSIBaseMSVC: getMSVCversion
 OMSIBaseInstall: OMSIBase
 	cd SimulationRuntime/OMSI; \
 	$(foreach PLATFORM, $(PLATFORMS), \
-	  (cd Build_$(PLATFORM); $(MAKE) install);)
+	  (cd Build_$(PLATFORM); $(MAKE) install);) \
+
+	test ! `uname` = Darwin || install_name_tool -id @rpath/omsi/libOMSIBase.dylib $(OMBUILDDIR)/$(LIB_OMC)/omsi/libOMSIBase.dylib
+	test ! `uname` = Darwin || install_name_tool -id @rpath/omsi/libOMSISolver.dylib $(OMBUILDDIR)/$(LIB_OMC)/omsi/libOMSISolver.dylib
 
 OMSIBaseClean:
 	cd SimulationRuntime/OMSI; \

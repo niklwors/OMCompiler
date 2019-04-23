@@ -333,7 +333,7 @@ public constant EvaluationStages defaultEvalStages = EVALUATION_STAGES(false,fal
 
 public uniontype EquationAttributes
   record EQUATION_ATTRIBUTES
-    Boolean differentiated "true if the equation was differentiated, and should not differentiated again to avoid equal equations";
+    Boolean differentiated "true if the equation was differentiated, and should not be differentiated again to avoid equal equations";
     EquationKind kind;
     EvaluationStages evalStages;
   end EQUATION_ATTRIBUTES;
@@ -609,6 +609,7 @@ type StateSets = list<StateSet> "List of StateSets";
 public
 uniontype StateSet
   record STATESET
+    Integer index;
     Integer rang; // how many states are needed?
     list< .DAE.ComponentRef> state;
     .DAE.ComponentRef crA "set.x=A*states";
@@ -779,7 +780,8 @@ type SymbolicJacobian = tuple<BackendDAE,               // symbolic equation sys
                               String,                   // Matrix name
                               list<Var>,                // diff vars (independent vars)
                               list<Var>,                // diffed vars (residual vars)
-                              list<Var>                 // all diffed vars (residual vars + dependent vars)
+                              list<Var>,                // all diffed vars (residual vars + dependent vars)
+                              list< .DAE.ComponentRef>    // original dependent variables
                               >;
 
 public

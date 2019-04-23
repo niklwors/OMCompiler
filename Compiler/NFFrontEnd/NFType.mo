@@ -352,6 +352,16 @@ public
     end match;
   end isExpandableConnector;
 
+  function isExternalObject
+    input Type ty;
+    output Boolean isEO;
+  algorithm
+    isEO := match ty
+      case COMPLEX(complexTy = ComplexType.EXTERNAL_OBJECT()) then true;
+      else false;
+    end match;
+  end isExternalObject;
+
   function isRecord
     input Type ty;
     output Boolean isRecord;
@@ -891,6 +901,19 @@ public
       else false;
     end match;
   end isBoxed;
+
+  function sizeType
+    input Type arrayTy;
+    output Type sizeTy;
+  algorithm
+    if Type.isUnknown(arrayTy) then
+      // Return unknown type if the type is unknown, to avoid returning Array[0]
+      // for untyped expressions.
+      sizeTy := Type.UNKNOWN();
+    else
+      sizeTy := Type.ARRAY(Type.INTEGER(), {Dimension.fromInteger(dimensionCount(arrayTy))});
+    end if;
+  end sizeType;
 
   annotation(__OpenModelica_Interface="frontend");
 end NFType;

@@ -3138,13 +3138,8 @@ algorithm
     // print(stringDelimitList(list(Absyn.pathString(path) for path in Interactive.getTopClassnames(p)), ",") + "\n");
     SymbolTable.setAbsyn(p);
   end try;
-  try
-    absynClass := Interactive.getPathedClassInProgram(className, p);
-  else
-    success := true; /* Let derived classes possibly be handled by runFrontEndWork */
-    return;
-  end try;
-  (p,success) := CevalScript.loadModel(Interactive.getUsesAnnotationOrDefault(Absyn.PROGRAM({absynClass},Absyn.TOP()), false),Settings.getModelicaPath(Config.getRunningTestsuite()),p,false,true,true,false);
+
+  (p,success) := CevalScript.loadModel(Interactive.getUsesAnnotationOrDefault(p, false),Settings.getModelicaPath(Config.getRunningTestsuite()),p,false,true,true,false);
   SymbolTable.setAbsyn(p);
   // Always update the SCode structure; otherwise the cache plays tricks on us
   SymbolTable.clearSCode();
@@ -3214,7 +3209,6 @@ algorithm
         re = Absyn.restrString(restriction);
         Error.assertionOrAddSourceMessage(relaxedFrontEnd or not (Absyn.isFunctionRestriction(restriction) or Absyn.isPackageRestriction(restriction)),
           Error.INST_INVALID_RESTRICTION,{str,re},Absyn.dummyInfo);
-        (p,true) = CevalScript.loadModel(Interactive.getUsesAnnotationOrDefault(Absyn.PROGRAM({absynClass},Absyn.TOP()), false),Settings.getModelicaPath(Config.getRunningTestsuite()),p,false,true,true,false);
 
         //System.stopTimer();
         //print("\nExists+Dependency: " + realString(System.getTimerIntervalTime()));
@@ -3416,14 +3410,14 @@ protected function configureFMU
   input String logfile;
   input Boolean isWindows;
 protected
-  String CC, CFLAGS, LDFLAGS, makefileStr, container, host, nozip,
+  String CC, CFLAGS, LDFLAGS, makefileStr, container, host, nozip, path1, path2,
     dir=fmutmp+"/sources/", cmd="",
     quote="'",
     dquote = if isWindows then "\"" else "'",
-    includeDefaultFmi;
+    includeDefaultFmi, volumeID, cidFile, containerID;
   list<String> rest;
   Boolean finishedBuild;
-  Integer uid;
+  Integer uid, status;
 algorithm
   CC := System.getCCompiler();
   CFLAGS := "-Os "+System.stringReplace(System.getCFlags(),"${MODELICAUSERCFLAGS}","");
@@ -3434,7 +3428,7 @@ algorithm
     System.removeFile(logfile);
   end if;
   nozip := Autoconf.make+" -j"+intString(Config.noProc()) + " nozip";
-  includeDefaultFmi := "-I" + Settings.getInstallationDirectoryPath() + "/include/omc/c/fmi";
+  includeDefaultFmi := Settings.getInstallationDirectoryPath() + "/include/omc/c/fmi";
   finishedBuild := match Util.stringSplitAtChar(platform, " ")
     case {"dynamic"}
       algorithm
@@ -3448,7 +3442,7 @@ algorithm
         makefileStr := System.stringReplace(makefileStr, "@NEED_RUNTIME@", "");
         makefileStr := System.stringReplace(makefileStr, "@NEED_DGESV@", "");
         makefileStr := System.stringReplace(makefileStr, "@FMIPLATFORM@", System.modelicaPlatform());
-        makefileStr := System.stringReplace(makefileStr, "@CPPFLAGS@", includeDefaultFmi);
+        makefileStr := System.stringReplace(makefileStr, "@CPPFLAGS@", "-I" + includeDefaultFmi + " -DOMC_SIM_SETTINGS_CMDLINE -DOMC_FMI_RUNTIME=1");
         makefileStr := System.stringReplace(makefileStr, "@LIBTYPE_DYNAMIC@", "1");
         makefileStr := System.stringReplace(makefileStr, "@BSTATIC@", Autoconf.bstatic);
         makefileStr := System.stringReplace(makefileStr, "@BDYNAMIC@", Autoconf.bdynamic);
@@ -3469,7 +3463,7 @@ algorithm
         makefileStr := System.stringReplace(makefileStr, "@NEED_RUNTIME@", "");
         makefileStr := System.stringReplace(makefileStr, "@NEED_DGESV@", "");
         makefileStr := System.stringReplace(makefileStr, "@FMIPLATFORM@", System.modelicaPlatform());
-        makefileStr := System.stringReplace(makefileStr, "@CPPFLAGS@", "-DOMC_MINIMAL_RUNTIME=1 -DCMINPACK_NO_DLL=1 " + includeDefaultFmi);
+        makefileStr := System.stringReplace(makefileStr, "@CPPFLAGS@", "-DOMC_MINIMAL_RUNTIME=1 -DCMINPACK_NO_DLL=1 -I" + includeDefaultFmi);
         makefileStr := System.stringReplace(makefileStr, "@LIBTYPE_DYNAMIC@", "1");
         makefileStr := System.stringReplace(makefileStr, "@BSTATIC@", Autoconf.bstatic);
         makefileStr := System.stringReplace(makefileStr, "@BDYNAMIC@", Autoconf.bdynamic);
@@ -3480,7 +3474,7 @@ algorithm
       then false;
     case {_}
       algorithm
-        cmd := "cd \"" +  fmutmp + "/sources\" && ./configure --host="+quote+platform+quote+" CFLAGS="+quote+"-Os"+quote+" CPPFLAGS="+quote+includeDefaultFmi+quote+" LDFLAGS= && " +
+        cmd := "cd \"" +  fmutmp + "/sources\" && ./configure --host="+quote+platform+quote+" CFLAGS="+quote+"-Os"+quote+" CPPFLAGS="+quote+"-I"+includeDefaultFmi+quote+" LDFLAGS= && " +
                nozip;
         if 0 <> System.systemCall(cmd, outFile=logfile) then
           Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {System.readFile(logfile)});
@@ -3491,15 +3485,66 @@ algorithm
     case host::"docker"::"run"::rest
       algorithm
         uid := System.getuid();
-        cmd := "docker run "+(if uid<>0 then "--user " + String(uid) else "")+" --rm -w /fmu -v "+quote+System.realpath(fmutmp+"/..")+quote+":/fmu " +stringDelimitList(rest," ")+ " sh -c " + dquote +
-               "cd " + dquote + System.basename(fmutmp) + "/sources" + dquote + " && " +
-               "./configure --host="+quote+host+quote+" CFLAGS="+quote+"-Os"+quote+" CPPFLAGS="+quote+includeDefaultFmi+quote+" LDFLAGS= && " +
-               nozip + dquote;
+        // Create a docker volume for the FMU since we can't forward volumes
+        // to the docker run command depending on where the FMU was generated (inside another volume)
+        cmd := "docker volume create";
         if 0 <> System.systemCall(cmd, outFile=logfile) then
-          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {System.readFile(logfile)});
-          System.removeFile(dir + logfile);
+          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {cmd + " failed:\n" + System.readFile(logfile)});
           fail();
         end if;
+        cidFile := fmutmp+".cidfile";
+        if System.regularFileExists(cidFile) then
+          System.removeFile(cidFile);
+        end if;
+        volumeID := System.trim(System.readFile(logfile));
+        cmd := "docker run --cidfile "+cidFile+" -v "+volumeID+":/data busybox true";
+        if 0 <> System.systemCall(cmd, outFile=logfile) then
+          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {cmd + " failed:\n" + System.readFile(logfile)});
+          // Cleanup
+          System.systemCall("docker volume rm " + volumeID);
+          fail();
+        end if;
+        containerID := System.trim(System.readFile(cidFile));
+        System.removeFile(cidFile);
+        // Copy the FMU contents to the container
+        cmd := "docker cp "+fmutmp+" "+containerID+":/data";
+        if 0 <> System.systemCall(cmd, outFile=logfile) then
+          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {cmd + " failed:\n" + System.readFile(logfile)});
+          // Cleanup
+          System.systemCall("docker rm " + containerID);
+          System.systemCall("docker volume rm " + volumeID);
+          fail();
+        end if;
+        // Copy the FMI headers to the container
+        cmd := "docker cp "+includeDefaultFmi+" "+containerID+":/data/fmiInclude";
+        if 0 <> System.systemCall(cmd, outFile=logfile) then
+          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {cmd + " failed:\n" + System.readFile(logfile)});
+          // Cleanup
+          System.systemCall("docker rm " + containerID);
+          System.systemCall("docker volume rm " + volumeID);
+          fail();
+        end if;
+        cmd := "docker run "+(if uid<>0 then "--user " + String(uid) else "")+" --rm -w /fmu -v "+volumeID+":/fmu "+stringDelimitList(rest," ")+ " sh -c " + dquote +
+               "cd " + dquote + "/fmu/" + System.basename(fmutmp) + "/sources" + dquote + " && " +
+               "./configure --host="+quote+host+quote+" CFLAGS="+quote+"-Os"+quote+" CPPFLAGS=-I/fmu/fmiInclude LDFLAGS= && " +
+               nozip + dquote;
+        if 0 <> System.systemCall(cmd, outFile=logfile) then
+          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {cmd + ":\n" + System.readFile(logfile)});
+          System.removeFile(dir + logfile);
+          // Cleanup
+          System.systemCall("docker rm " + containerID);
+          System.systemCall("docker volume rm " + volumeID);
+          fail();
+        end if;
+        // Copy the files back from the volume (via the container) to the filesystem
+        cmd := "docker cp " + quote + containerID + ":/data/" + fmutmp + quote + " .";
+        if 0 <> System.systemCall(cmd, outFile=logfile) then
+          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {cmd + ":\n" + System.readFile(logfile)});
+          fail();
+        end if;
+        // Cleanup
+        System.systemCall("docker rm " + containerID);
+        System.systemCall("docker volume rm " + volumeID);
       then true;
     else
       algorithm

@@ -1682,20 +1682,11 @@ algorithm
     case Restriction.CONNECTOR()
       algorithm
         // Components of a connector may not have prefixes 'inner' or 'outer'.
-        if attr.innerOuter <> InnerOuter.NOT_INNER_OUTER then
-          Error.addSourceMessageAndFail(Error.INVALID_COMPONENT_PREFIX,
-            {Prefixes.innerOuterString(attr.innerOuter), InstNode.name(component)},
-            InstNode.info(component));
-        end if;
+        assertNotInnerOuter(attr.innerOuter, component, parentRestriction);
 
         if parentRestriction.isExpandable then
           // Components of an expandable connector may not have the prefix 'flow'.
-
-          if ConnectorType.isFlowOrStream(attr.connectorType) then
-            Error.addSourceMessageAndFail(Error.INVALID_COMPONENT_PREFIX,
-              {ConnectorType.toString(attr.connectorType), InstNode.name(component), Restriction.toString(parentRestriction)},
-              InstNode.info(component));
-          end if;
+          assertNotFlowStream(attr.connectorType, component, parentRestriction);
 
           // Mark components in expandable connectors as potentially present.
           attr.connectorType := intBitOr(attr.connectorType, ConnectorType.POTENTIALLY_PRESENT);
@@ -1703,9 +1694,60 @@ algorithm
       then
         ();
 
+    case Restriction.RECORD()
+      algorithm
+        // Elements of a record may not have prefixes 'input', 'output', 'inner', 'outer', 'stream', or 'flow'.
+        assertNotInputOutput(attr.direction, component, parentRestriction);
+        assertNotInnerOuter(attr.innerOuter, component, parentRestriction);
+        assertNotFlowStream(attr.connectorType, component, parentRestriction);
+      then
+        ();
+
     else ();
   end match;
 end checkDeclaredComponentAttributes;
+
+function invalidComponentPrefixError
+  input String prefix;
+  input InstNode node;
+  input Restriction restriction;
+algorithm
+  Error.addSourceMessage(Error.INVALID_COMPONENT_PREFIX,
+    {prefix, InstNode.name(node), Restriction.toString(restriction)}, InstNode.info(node));
+end invalidComponentPrefixError;
+
+function assertNotInputOutput
+  input Direction dir;
+  input InstNode node;
+  input Restriction restriction;
+algorithm
+  if dir <> Direction.NONE then
+    invalidComponentPrefixError(Prefixes.directionString(dir), node, restriction);
+    fail();
+  end if;
+end assertNotInputOutput;
+
+function assertNotInnerOuter
+  input InnerOuter io;
+  input InstNode node;
+  input Restriction restriction;
+algorithm
+  if io <> InnerOuter.NOT_INNER_OUTER then
+    invalidComponentPrefixError(Prefixes.innerOuterString(io), node, restriction);
+    fail();
+  end if;
+end assertNotInnerOuter;
+
+function assertNotFlowStream
+  input ConnectorType.Type cty;
+  input InstNode node;
+  input Restriction restriction;
+algorithm
+  if ConnectorType.isFlowOrStream(cty) then
+    invalidComponentPrefixError(ConnectorType.toString(cty), node, restriction);
+    fail();
+  end if;
+end assertNotFlowStream;
 
 function mergeDerivedAttributes
   input Component.Attributes outerAttr;
@@ -3228,6 +3270,9 @@ algorithm
     if not Component.getFixedAttribute(component) then
       // Except non-fixed parameters.
       isStructural := false;
+    elseif Component.isExternalObject(component) then
+      // Except external objects.
+      isStructural := false;
     elseif Binding.isUnbound(compBinding) then
       // Except parameters with no bindings.
       if not evalAllParams then
@@ -3302,6 +3347,7 @@ algorithm
             isNotFixed := false;
           elseif var == Variability.PARAMETER and
                  (not requireFinal or Component.isFinal(c)) and
+                 not Component.isExternalObject(c) and
                  Component.getFixedAttribute(c) then
             isNotFixed := isBindingNotFixed(Component.getBinding(c), requireFinal, depth + 1);
           else

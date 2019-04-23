@@ -778,13 +778,14 @@ public
       case ENUM_LITERAL()    then exp.ty;
       case CLKCONST()        then Type.CLOCK();
       case CREF()            then exp.ty;
+      case TYPENAME()        then exp.ty;
       case ARRAY()           then exp.ty;
       case RANGE()           then exp.ty;
       case TUPLE()           then exp.ty;
       case RECORD()          then exp.ty;
       case CALL()            then Call.typeOf(exp.call);
       case SIZE()            then if isSome(exp.dimIndex) then
-                                    Type.INTEGER() else typeOf(exp.exp);
+                                    Type.INTEGER() else Type.sizeType(typeOf(exp.exp));
       case END()             then Type.INTEGER();
       case BINARY()          then Operator.typeOf(exp.operator);
       case UNARY()           then Operator.typeOf(exp.operator);
