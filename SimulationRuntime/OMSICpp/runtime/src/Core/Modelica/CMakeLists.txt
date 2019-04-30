@@ -236,6 +236,7 @@ if(BUILD_SHARED_LIBS)
 endif(BUILD_SHARED_LIBS)
 
 IF(MSVC)
+  message(STATUS "MSVC config file generated in ${PROJECT_BINARY_DIR}/ModelicaConfig_msvc.inc")
  GET_TARGET_PROPERTY(libModelica ${ModelicaName} LOCATION)
  GET_FILENAME_COMPONENT(libModelicaName ${libModelica} NAME)
  set(PCH_LIB ${libModelicaName})

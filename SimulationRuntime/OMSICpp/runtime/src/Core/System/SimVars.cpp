@@ -617,9 +617,11 @@ void SimVars::savePreVariables()
 			std::copy(_bool_vars, _bool_vars + _dim_bool, _pre_bool_vars);
 		}
 	}
+
 	if (_dim_string > 0) {
 		if (_use_omsu) {
-			std::copy(_omsi_string_vars, _omsi_string_vars + _dim_string, _pre_omsi_string_vars);
+			//std::copy(_omsi_string_vars, _omsi_string_vars + _dim_string, _pre_omsi_string_vars);
+			throw ModelicaSimulationError(MODEL_EQ_SYSTEM, "for omsu systems, string variables are not supported yet");
 		}
 		else {
 			std::copy(_string_vars, _string_vars + _dim_string, _pre_string_vars);

@@ -17,11 +17,11 @@
         },
         {
           "name": "CMAKE_INSTALL_PREFIX",
-          "value": "D:\\OpenModelica\\omc\\omc_win32_dev\\build"
+          "value": "D:\\OpenModelica\\omc\\win32_omc_dev\\build"
         },
         {
-          "name": "OMC_LIB",
-          "value": "lib/omc"
+          "name": "LIB_OMC",
+          "value": "lib/omc/"
         }
       ],
       "ctestCommandArgs": "",
@@ -49,11 +49,11 @@
         },
         {
           "name": "CMAKE_INSTALL_PREFIX",
-          "value": "D:\\OpenModelica\\omc\\omc_win32_dev\\build"
+          "value": "D:\\OpenModelica\\omc\\win32_omc_dev\\build"
         },
         {
-          "name": "OMC_LIB",
-          "value": "lib/omc"
+          "name": "LIB_OMC",
+          "value": "lib/omc/"
         }
       ],
       "ctestCommandArgs": "",
@@ -104,7 +104,7 @@
         },
         {
           "name": "CMAKE_INSTALL_PREFIX",
-          "value": "D:\\OpenModelica\\omc\\omc_win32_dev\\build"
+          "value": "D:\\OpenModelica\\omc\\win32_omc_dev\\build"
         },
         {
           "name": "USE_CPP_03",
