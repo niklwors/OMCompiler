@@ -1431,7 +1431,7 @@ algorithm
         else
           filenameprefix := Absyn.pathString(className);
           try
-            (cache, Values.STRING(str)) := buildModelFMU(cache, env, className, "2.0", "me", "<default>", true, {"static"});
+            (cache, Values.STRING(str),_) := buildModelFMU(cache, env, className, "2.0", "me", "<default>", true, {"static"});
             if stringEmpty(str) then
               fail();
             end if;
@@ -3649,6 +3649,7 @@ algorithm
       ExecStat.execStat("buildModelFMU: Generate platform " + platform);
     else
       Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {"Configure for platform:\"" + platform + "\" does not exist"});
+      fail();
     end try;
   end for;
 
@@ -3656,9 +3657,6 @@ algorithm
   if 0 <> System.systemCall(cmd, outFile=logfile) then
     Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {cmd + "\n\n" + System.readFile(logfile)});
     ExecStat.execStat("buildModelFMU failed");
-  else
-    timeCompile := System.realtimeTock(ClockIndexes.RT_CLOCK_BUILD_MODEL);
-    resultValues := ("timeCompile",Values.REAL(timeCompile)) :: resultValues;
   end if;
 
   if not System.regularFileExists(fmuTargetName + ".fmu") then
