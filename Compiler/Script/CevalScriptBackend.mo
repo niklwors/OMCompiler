@@ -1431,18 +1431,8 @@ algorithm
         else
           filenameprefix := Absyn.pathString(className);
           try
-            (cache, Values.STRING(str), _) := buildModelFMU(cache, env, className, "2.0", "me", "<default>", true, {"static"});
+            (cache, Values.STRING(str)) := buildModelFMU(cache, env, className, "2.0", "me", "<default>", true, {"static"});
             if stringEmpty(str) then
-              fail();
-            end if;
-            // choose the simulation tool OM FMU Import vs. OMSimulator
-            if Flags.isSet(Flags.OMSIC_SIM_OMS) then
-              sim_call := stringAppendList({Autoconf.make," -C"+System.makeC89Identifier(filenameprefix)+".fmutmp/", " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","OMSimulation"});
-            else
-              sim_call := stringAppendList({Autoconf.make," -C"+System.makeC89Identifier(filenameprefix)+".fmutmp/",  " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","fmiImport"});
-            end if;
-            if System.systemCall(sim_call,filenameprefix+"_FMU.log") <> 0 then
-              Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {"Compile imported FMU failed!\n",filenameprefix+"_FMU.log"});
               fail();
             end if;
             b := true;
@@ -1524,40 +1514,11 @@ algorithm
     case (cache,env,"simulate",vals as Values.CODE(Absyn.C_TYPENAME(className))::_,_)
       algorithm
         System.realtimeTick(ClockIndexes.RT_CLOCK_SIMULATE_TOTAL);
-        values := vals;
         if not Config.simCodeTarget() == "omsic" then
           (b,cache,compileDir,executable,_,outputFormat_str,_,simflags,resultValues,vals) := buildModel(cache,env,vals,msg);
         else
-          filenameprefix := Absyn.pathString(className);
-          Values.STRING(simflags) := getListNthShowError(vals, "while retreaving the simflags (12 arg) from the buildModel arguments", 0, 11);
-          Error.clearMessages() "Clear messages";
-          try
-            (cache,Values.STRING(str), resultValues) := buildModelFMU(cache, env, className, "2.0", "me", "<default>", true, {"static"});
-            if stringEmpty(str) then
-              fail();
-            end if;
-            // choose the simulation tool OM FMU Import vs. OMSimulator
-            if Flags.isSet(Flags.OMSIC_SIM_OMS) then
-              sim_call := stringAppendList({Autoconf.make," -C "+System.makeC89Identifier(filenameprefix)+".fmutmp/", " -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","OMSimulation"});
-            else
-              sim_call := stringAppendList({Autoconf.make," -C "+System.makeC89Identifier(filenameprefix)+".fmutmp/"," -f ",System.makeC89Identifier(filenameprefix) + "_FMU",".makefile"," ","fmiImport"});
-            end if;
-            if System.systemCall(sim_call,filenameprefix+"_FMU.log") <> 0 then
-              Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {"Compile imported FMU failed!\n",filenameprefix+"_FMU.log"});
-              fail();
-            end if;
-            b := true;
-          else
-            fail();
-          end try;
-          compileDir := System.pwd() + Autoconf.pathDelimiter;
-          executable := filenameprefix;
-          outputFormat_str := "mat";
-
-          if stringEmpty(simflags) then
-            simflags := simflags + " -r " + filenameprefix + "_res." + outputFormat_str;
-            values := List.replaceAt(Values.STRING(simflags), 12, values);
-          end if;
+          Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {"Can't simulate for SimCodeTarget=omsic!\n"});
+          fail();
         end if;
 
         if b then
@@ -2673,6 +2634,26 @@ algorithm
       then
         (cache,v);
 
+    case (cache,_,"updateConnection",{Values.CODE(Absyn.C_TYPENAME(classpath)),Values.STRING(str1), Values.STRING(str2),
+                                      Values.CODE(Absyn.C_MODIFICATION(Absyn.CLASSMOD(elementArgLst=eltargs,eqMod=Absyn.NOMOD())))},_)
+      equation
+        (b, p) = Interactive.updateConnectionAnnotation(classpath, str1, str2, Absyn.ANNOTATION(eltargs), SymbolTable.getAbsyn());
+        SymbolTable.setAbsyn(p);
+      then
+        (cache,Values.BOOL(b));
+
+    case (cache,_,"updateConnection",_,_) then (cache,Values.BOOL(false));
+
+    case (cache,_,"updateConnectionNames",{Values.CODE(Absyn.C_TYPENAME(classpath)),Values.STRING(str1), Values.STRING(str2),
+                                           Values.STRING(str3), Values.STRING(str4)},_)
+      equation
+        (b, p) = Interactive.updateConnectionNames(classpath, str1, str2, str3, str4, SymbolTable.getAbsyn());
+        SymbolTable.setAbsyn(p);
+      then
+        (cache,Values.BOOL(b));
+
+    case (cache,_,"updateConnectionNames",_,_) then (cache,Values.BOOL(false));
+
     case (cache,_,"getConnectionCount",{Values.CODE(Absyn.C_TYPENAME(path))},_)
       equation
         absynClass = Interactive.getPathedClassInProgram(path, SymbolTable.getAbsyn());
@@ -3619,7 +3600,7 @@ algorithm
   simSettings := convertSimulationOptionsToSimCode(defaulSimOpt);
   Flags.setConfigBool(Flags.BUILDING_FMU, true);
   try
-    (success, cache, libs, _, resultValues) := SimCodeMain.translateModel(SimCodeMain.TranslateModelKind.FMU(FMUVersion, FMUType, fmuTargetName), cache, inEnv, className, filenameprefix, addDummy, SOME(simSettings));
+    (success, cache, libs, _, _) := SimCodeMain.translateModel(SimCodeMain.TranslateModelKind.FMU(FMUVersion, FMUType, fmuTargetName), cache, inEnv, className, filenameprefix, addDummy, SOME(simSettings));
     true := success;
     outValue := Values.STRING((if not Config.getRunningTestsuite() then System.pwd() + Autoconf.pathDelimiter else "") + fmuTargetName + ".fmu");
   else
@@ -3648,30 +3629,17 @@ algorithm
       ExecStat.execStat("buildModelFMU: Generate C++ for platform " + platform);
     end for;
     if 0 <> System.systemCall("make -f " + filenameprefix + "_FMU.makefile clean", outFile=logfile) then
-    // do nothing
-  end if;
+      // do nothing
+    end if;
     return;
   end if;
 
-  System.realtimeTick(ClockIndexes.RT_CLOCK_BUILD_MODEL);
   if not Config.simCodeTarget() == "omsic" then
     CevalScript.compileModel(filenameprefix+"_FMU" , libs);
-
     ExecStat.execStat("buildModelFMU: Generate the FMI files");
-
-    fmutmp := filenameprefix + ".fmutmp";
-    logfile := filenameprefix + ".log";
-    dir := fmutmp+"/sources/";
   else
     fmutmp := filenameprefix+".fmutmp" + Autoconf.pathDelimiter;
-    try
-      CevalScript.compileModel(filenameprefix+"_FMU" , libs, fmutmp);
-      timeCompile := System.realtimeTock(ClockIndexes.RT_CLOCK_BUILD_MODEL);
-      resultValues := ("timeCompile",Values.REAL(timeCompile)) :: resultValues;
-    else
-      Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {System.readFile(fmutmp + filenameprefix+"_FMU.log")});
-      resultValues := ("timeCompile",Values.REAL(0)) :: resultValues;
-    end try;
+    CevalScript.compileModel(filenameprefix+"_FMU" , libs, fmutmp);
     return;
   end if;
 

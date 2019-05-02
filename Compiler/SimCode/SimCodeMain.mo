@@ -77,6 +77,7 @@ import CodegenCSharp;
 import CodegenCpp;
 import CodegenCppHpcom;
 import CodegenOMSIC;
+import CodegenOMSI_common;
 import CodegenOMSIC_Equations;
 import CodegenXML;
 import CodegenJava;
@@ -805,10 +806,8 @@ algorithm
         SerializeInitXML.simulationInitFileReturnBool(simCode=simCode, guid=guid);
         SerializeModelInfo.serialize(simCode, Flags.isSet(Flags.INFO_XML_OPERATIONS));
 
-        runTplWriteFile(func = function CodegenOMSIC.createFMIImportScript(a_fileNamePrefix=simCode.fileNamePrefix, a_fmuTargetName=simCode.fmuTargetName), file=simCode.fullPathPrefix+"/"+simCode.fileNamePrefix+"_fmiImport.mos");
-        runTplWriteFile(func = function CodegenOMSIC.createOMSimulationScript(a_fileNamePrefix=simCode.fileNamePrefix, a_fmuTargetName=simCode.fmuTargetName), file=simCode.fileNamePrefix+".lua");
-
-        runTplWriteFile(func = function CodegenFMU.fmuModelDescriptionFile(in_a_simCode=simCode, in_a_guid=guid, in_a_FMUVersion=FMUVersion, in_a_FMUType=FMUType, in_a_sourceFiles={}), file=simCode.fullPathPrefix+"/"+"modelDescription.xml");
+        //runTplWriteFile(func = function CodegenFMU.fmuModelDescriptionFile(in_a_simCode=simCode, in_a_guid=guid, in_a_FMUVersion=FMUVersion, in_a_FMUType=FMUType, in_a_sourceFiles={}), file=simCode.fullPathPrefix+"/"+"modelDescription.xml");
+        runTpl(func = function CodegenOMSI_common.generateFMUModelDescriptionFile(a_simCode=simCode, a_guid=guid, a_FMUVersion=FMUVersion, a_FMUType=FMUType, a_sourceFiles={}, a_fileName=simCode.fullPathPrefix+"/"+"modelDescription.xml"));
         runTplWriteFile(func = function CodegenOMSIC.createMakefile(a_simCode=simCode, a_target=Config.simulationCodeTarget(), a_makeflieName=fileprefix+"_FMU.makefile"), file=simCode.fullPathPrefix+"/"+fileprefix+"_FMU.makefile");
 
         runTplWriteFile(func = function CodegenOMSIC.generateOMSIC(a_simCode=simCode), file=simCode.fullPathPrefix+"/"+fileprefix+"_omsic.c");

@@ -89,17 +89,16 @@ CodegenFMUCppHpcom.mo : CodegenFMUCppHpcom.tpl CodegenFMUCpp.tpl SimCodeTV.mo Si
 	$(OMC) $< > $@.log || (cat $@.log && false)
 	@echo " "
 
-CodegenOMSI_common.mo : CodegenOMSI_common.tpl SimCodeTV.mo SimCodeBackendTV.mo CodegenFMU2.tpl
+# OMSI
+CodegenOMSI_common.mo : CodegenOMSI_common.tpl SimCodeTV.mo SimCodeBackendTV.mo CodegenUtil.tpl CodegenUtilSimulation.tpl CodegenCFunctions.tpl
 	@echo " ** CodegenOMSI_common template compilation ** "
 	$(OMC) $< > $@.log || (cat $@.log && false)
 	@echo " "
-
-CodegenOMSIC.mo : CodegenOMSIC.tpl SimCodeTV.mo SimCodeBackendTV.mo CodegenFMU2.tpl CodegenOMSIC_Equations.mo CodegenOMSI_common.mo
+CodegenOMSIC.mo : CodegenOMSIC.tpl SimCodeTV.mo SimCodeBackendTV.mo CodegenOMSI_common.tpl CodegenUtil.tpl CodegenUtilSimulation.tpl CodegenFMU.tpl
 	@echo " ** CodegenOMSIC template compilation ** "
 	$(OMC) $< > $@.log || (cat $@.log && false)
 	@echo " "
-
-CodegenOMSIC_Equations.mo : CodegenOMSIC_Equations.tpl SimCodeTV.mo SimCodeBackendTV.mo CodegenUtil.tpl CodegenUtilSimulation.tpl
+CodegenOMSIC_Equations.mo : CodegenOMSIC_Equations.tpl SimCodeTV.mo SimCodeBackendTV.mo CodegenC.tpl CodegenCFunctions.tpl CodegenUtil.tpl CodegenUtilSimulation.tpl
 	@echo " ** CodegenOMSIC_Equations template compilation ** "
 	$(OMC) $< > $@.log || (cat $@.log && false)
 	@echo " "
