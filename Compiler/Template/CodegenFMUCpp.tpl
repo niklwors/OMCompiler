@@ -146,7 +146,7 @@ case SIMCODE(modelInfo=MODELINFO(__),simulationSettingsOpt = SOME(settings as SI
   class <%lastIdentOfPath(modelInfo.name)%>WriteOutput  : public IWriteOutput,public <%lastIdentOfPath(modelInfo.name)%>StateSelection
   {
    public:
-    <%lastIdentOfPath(modelInfo.name)%>WriteOutput(shared_ptr<IGlobalSettings> globalSettings): <%lastIdentOfPath(modelInfo.name)%>StateSelection(globalSettings) {}
+    <%lastIdentOfPath(modelInfo.name)%>WriteOutput(shared_ptr<IGlobalSettings> globalSettings,omsi_t* omsu = NULL): <%lastIdentOfPath(modelInfo.name)%>StateSelection(globalSettings,omsu) {}
     virtual ~<%lastIdentOfPath(modelInfo.name)%>WriteOutput() {}
 
     virtual void writeOutput(const IWriteOutput::OUTPUT command = IWriteOutput::UNDEF_OUTPUT) {}
@@ -643,8 +643,8 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
   # run with nmake from Visual Studio Command Prompt
   # FMU packaging requires PATH to <%makefileParams.omhome%>/mingw/bin
   OMHOME=<%makefileParams.omhome%>
-  include <%makefileParams.omhome%>/include/omc/cpp/ModelicaConfig_msvc.inc
-  include <%makefileParams.omhome%>/include/omc/cpp/ModelicaLibraryConfig_msvc.inc
+  include <%makefileParams.omhome%>/include/omc/omsicpp/ModelicaConfig_msvc.inc
+  include <%makefileParams.omhome%>/include/omc/omsicpp/ModelicaLibraryConfig_msvc.inc
   # Simulations use /Od by default
   SIM_OR_DYNLOAD_OPT_LEVEL=
   MODELICAUSERCFLAGS=
@@ -659,7 +659,7 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
   # /I - Include Directories
   # /DNOMINMAX - Define NOMINMAX (does what it says)
   # /TP - Use C++ Compiler
-  CFLAGS=$(SYSTEM_CFLAGS) /w /I"<%makefileParams.omhome%>/include/omc/cpp/" /I"$(BOOST_INCLUDE)" /I"$(SUITESPARSE_INCLUDE)" /I. /TP /DNOMINMAX /DNO_INTERACTIVE_DEPENDENCY /DFMU_BUILD /DRUNTIME_STATIC_LINKING
+  CFLAGS=$(SYSTEM_CFLAGS) /w /I"<%makefileParams.omhome%>/include/omc/omsi/" /I"<%makefileParams.omhome%>/include/omc/omsi/base" /I"<%makefileParams.omhome%>/include/omc/omsi/solver/"  /I"<%makefileParams.omhome%>/include/omc/omsicpp/" /I"$(BOOST_INCLUDE)" /I"$(SUITESPARSE_INCLUDE)" /I. /TP /DNOMINMAX /DNO_INTERACTIVE_DEPENDENCY /DFMU_BUILD /DRUNTIME_STATIC_LINKING
 
   # /MD - link with MSVCRT.LIB
   # /link - [linker options and libraries]
@@ -667,7 +667,7 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
   OMCPP_SOLVER_LIBS=OMCppNewton_static.lib OMCppDgesv_static.lib OMCppDgesvSolver_static.lib -lOMCppSolver_static
   MODELICA_UTILITIES_LIB=OMCppModelicaUtilities_static.lib
   EXTRA_LIBS=<%dirExtra%> <%libsExtra%>
-  LDFLAGS=/link /DLL /NOENTRY /LIBPATH:"<%makefileParams.omhome%>/lib/omc/cpp/msvc" /LIBPATH:"<%makefileParams.omhome%>/bin" OMCppSystem_static.lib OMCppMath_static.lib OMCppExtensionUtilities_static.lib OMCppDataExchange_static.lib OMCppFMU_static.lib  $(OMCPP_SOLVER_LIBS)  $(EXTRA_LIBS) $(MODELICA_UTILITIES_LIB)
+  LDFLAGS=/link /DLL /NOENTRY /LIBPATH:"<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/omsicpp/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/msvc" /LIBPATH:"<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/msvc/debug"  /LIBPATH:"<%makefileParams.omhome%>/bin" OMCppSystem_static.lib OMCppMath_static.lib OMCppExtensionUtilities_static.lib OMCppDataExchange_static.lib OMCppFMU_static.lib  $(OMCPP_SOLVER_LIBS)  $(EXTRA_LIBS) $(MODELICA_UTILITIES_LIB)
   PLATFORM="<%makefileParams.platform%>"
 
   MODELICA_SYSTEM_LIB=<%fileNamePrefix%>
@@ -715,8 +715,8 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
 
   #TARGET_TRIPLET=
   OMHOME=<%makefileParams.omhome%>
-  include $(OMHOME)/include/omc/cpp/ModelicaConfig_gcc.inc
-  include $(OMHOME)/include/omc/cpp/ModelicaLibraryConfig_gcc.inc
+  include $(OMHOME)/include/omc/omsicpp/ModelicaConfig_gcc.inc
+  include $(OMHOME)/include/omc/omsicpp/ModelicaLibraryConfig_gcc.inc
 
   # simulations use -O0 by default; can be changed to e.g. -O2 or -Ofast
   SIM_OPT_LEVEL=-O0
@@ -741,13 +741,13 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
 
   CFLAGS_BASED_ON_INIT_FILE=<%extraCflags%>
   FMU_CFLAGS=$(subst -DUSE_THREAD,,$(subst -O0,$(SIM_OPT_LEVEL),$(SYSTEM_CFLAGS))) $(ABI_CFLAG)
-  CFLAGS=$(CFLAGS_BASED_ON_INIT_FILE) -Winvalid-pch $(FMU_CFLAGS) -DFMU_BUILD -DRUNTIME_STATIC_LINKING -I"$(OMHOME)/include/omc/cpp" -I"$(UMFPACK_INCLUDE)" -I"$(SUNDIALS_INCLUDE)" -I"$(BOOST_INCLUDE)" <%makefileParams.includes ; separator=" "%> <%additionalCFlags_GCC%>
+  CFLAGS=$(CFLAGS_BASED_ON_INIT_FILE) -Winvalid-pch $(FMU_CFLAGS) -DFMU_BUILD -DRUNTIME_STATIC_LINKING  -I"$(OMHOME)/include/omc/omsi/" -I"$(OMHOME)/include/omc/omsi/base" -I"$(OMHOME)/include/omc/omsi/solver" -I"$(OMHOME)/include/omc/omsicpp/"  -I"$(UMFPACK_INCLUDE)" -I"$(SUNDIALS_INCLUDE)" -I"$(BOOST_INCLUDE)" <%makefileParams.includes ; separator=" "%> <%additionalCFlags_GCC%>
 
   ifeq ($(USE_LOGGER),ON)
     $(eval CFLAGS=$(CFLAGS) -DUSE_LOGGER)
   endif
 
-  LDFLAGS=-L"$(OMHOME)/lib/$(TRIPLET)/omc/cpp" <%additionalLinkerFlags_GCC%> -Wl,--no-undefined
+  LDFLAGS=-L"$(OMHOME)/lib/<%Autoconf.triple%>/omc/omsicpp" <%additionalLinkerFlags_GCC%> -Wl,--no-undefined
 
   CALCHELPERMAINFILE=OMCpp<%fileNamePrefix%>CalcHelperMain.cpp
 

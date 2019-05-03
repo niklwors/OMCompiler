@@ -1,0 +1,77 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "args": [
+        "-S",
+        "0.0",
+        "-E",
+        "10.0",
+        "-H",
+        "0.02",
+        "-G",
+        "500",
+        "-P",
+        "csv",
+        "-T",
+        "1e-006",
+        "-I",
+        "dassl",
+        "-R",
+        "D:\\OpenModelica\\omc\\omc_win32_dev\\build\\lib\\omc\\omsicpp\\msvc",
+        "-M",
+        "D:\\OpenModelica\\omc\\omc_win32_dev\\testsuite\\openmodelica\\cppruntime",
+        "-r",
+        "D:\\OpenModelica\\omc\\omc_win32_dev\\testsuite\\openmodelica\\cppruntime\\tearnonlin1_res.csv "
+      ],
+      "name": "tearnonlin1",
+      "project": "D:\\OpenModelica\\omc\\omc_win32_dev\\testsuite\\openmodelica\\cppruntime\\tearnonlin1.exe",
+      "type": "default",
+      "env": "PATH=D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/bin/msvc;D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/lib//omc//msvc;D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/lib//omc//;D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/lib//omc/omsicpp/msvc;;%PATH%"
+    },
+    {
+
+      "env": "PATH=D:\\Tools\\mingw64\\bin;D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/bin;D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/lib//omc/omsicpp/;D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/lib//omc//;;%PATH%",
+      "args": [
+        "-S",
+        "0.0",
+        "-E",
+        "10.0",
+        "-H",
+        "0.02",
+        "-G",
+        "500",
+        "-P",
+        "csv",
+        "-T",
+        "1e-006",
+        "-I",
+        "dassl",
+        "-R",
+        "D:/OpenModelica/msys_scripts//../omc/omc_win32_dev/build/lib//omc/omsicpp/",
+        "-M",
+        "D:/OpenModelica/omc/omc_win32_dev/testsuite/openmodelica/cppruntime/fmu/modelExchange/2.0/",
+        "-r",
+        "D:/OpenModelica/omc/omc_win32_dev/testsuite/openmodelica/cppruntime/fmu/modelExchange/2.0/DIC_me_FMU_res.mat"
+      ],
+      "type": "cppdbg",
+      "request": "launch",
+      "launchCompleteCommand": "exec-run",
+      "program": "D:\\OpenModelica\\omc\\omc_win32_dev\\testsuite\\openmodelica\\cppruntime\\fmu\\modelExchange\\2.0\\DIC_me_FMU.exe",
+      "name": "DIC_me_FMU",
+      "windows": {
+        "MIMode": "gdb",
+        "miDebuggerPath": "D:\\Tools\\mingw64\\bin\\gdb.exe",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ]
+      }
+
+    }
+  ]
+}
