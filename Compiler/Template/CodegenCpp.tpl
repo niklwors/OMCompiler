@@ -12371,7 +12371,7 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
     let rel2 = giveZeroFunc4(exp2, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
     <<
         //binary zero crossing
-        f[<%index1%>] = (<%rel1%> <%op%> <%rel2%>) ? 1 : -1;
+        f[<%index1%>] = (<%rel1%> < 0 <%op%> <%rel2%> < 0) ? 1 : -1;
 
     >>
    case binary_rel2 as LUNARY(__) then
@@ -12379,7 +12379,7 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
      let rel1 = giveZeroFunc4(exp, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
      <<
         //unary zero crossing
-        f[<%index1%>] = (<%op%> <%rel1%>)? 1 : -1;
+        f[<%index1%>] = (<%op%> (<%rel1%> < 0))? 1 : -1;
 
      >>
    case CALL(path=IDENT(name="sample"), expLst={_, start, interval}) then
