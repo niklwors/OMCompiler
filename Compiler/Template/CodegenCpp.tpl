@@ -136,6 +136,7 @@ case SIMCODE(__) then
    <<
    <%generateHeaderIncludeString(simCode, &extraFuncs , &extraFuncsDecl, extraFuncsNamespace)%>
    <%additionalIncludes%>
+   /*Test*/
    <%generateClassDeclarationCode(simCode ,context, &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace, additionalPublicMembers, additionalProtectedMembers, memberVariableDefinitions, useFlatArrayNotation)%>
    >>
 end simulationHeaderFile;
@@ -145,13 +146,16 @@ template simulationInitHeaderFile(SimCode simCode ,Text& extraFuncs,Text& extraF
  "Generates code for header file for simulation target."
 ::=
 match simCode
-case SIMCODE(modelInfo=MODELINFO(__),initialEquations=initialequations,parameterEquations=parameterEquations,fileNamePrefix=fileNamePrefix,omsiData=omsiData as SOME(OMSI_DATA(initialization=initialization as OMSI_FUNCTION(__)))) then
+case SIMCODE(modelInfo=MODELINFO(__),initialEquations=initialequations,parameterEquations=parameterEquations,fileNamePrefix=fileNamePrefix) then
 
 let initeqs = match  Config.simCodeTarget()
       case "Cpp" then
          generateEquationMemberFuncDecls(initialequations,"initEquation")
       case "omsicpp" then
-       CodegenOMSI_common.generateOmsiMemberFunction(initialization,fileNamePrefix+"Initialize","initialize")
+       match simCode
+       case SIMCODE(omsiData=omsiData as SOME(OMSI_DATA(initialization=initialization as OMSI_FUNCTION(__)))) then
+        CodegenOMSI_common.generateOmsiMemberFunction(initialization,fileNamePrefix+"Initialize","initialize")
+       end match
 end match
 
 
@@ -1542,7 +1546,7 @@ template simulationMainRunScript(SimCode simCode ,Text& extraFuncs,Text& extraFu
     let outputParameter = if (stringEq(settings.outputFormat, "empty")) then "-O none" else ""
     let fileNamePrefixx = fileNamePrefix
 
-    let libFolder =simulationLibDir(simulationCodeTarget(),simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)
+    let libFolder =simulationLibDirs(simulationCodeTarget(),simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)
     let libPaths = makefileParams.libPaths |> path => path; separator=";"
     let binFolder =simulationBinDir(simulationCodeTarget(),simCode )
     match makefileParams.platform
@@ -1584,6 +1588,24 @@ template simulationLibDir(String target, SimCode simCode ,Text& extraFuncs,Text&
       end match
   end match
 end simulationLibDir;
+
+template simulationLibDirs(String target, SimCode simCode ,Text& extraFuncs,Text& extraFuncsDecl,Text extraFuncsNamespace)
+ "Generates code for header file for simulation target."
+::=
+  match getGeneralTarget(target)
+    case "debugrt"
+    case "msvc" then
+      match simCode
+        case SIMCODE(makefileParams=MAKEFILE_PARAMS(__)) then
+          '<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/omsicpp/msvc;<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/msvc;<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc//'
+      end match
+    else
+      match simCode
+        case SIMCODE(makefileParams=MAKEFILE_PARAMS(__)) then
+          '<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc/omsicpp/;<%makefileParams.omhome%>/lib/<%Autoconf.triple%>/omc//'
+      end match
+  end match
+end simulationLibDirs;
 
 template simulationBinDir(String target, SimCode simCode)
  "Generates code for header file for simulation target."
@@ -3146,9 +3168,9 @@ case SIMCODE(modelInfo=MODELINFO(__), makefileParams=MAKEFILE_PARAMS(__), simula
   # /DNOMINMAX - Define NOMINMAX (does what it says)
   # /TP - Use C++ Compiler
   !IF "$(PCH_FILE)" == ""
-  CFLAGS=  $(SYSTEM_CFLAGS) /I"<%makefileParams.omhome%>/include/omc/omsicpp/" /I. <%makefileParams.includes%>  /I"$(BOOST_INCLUDE)" /I"$(UMFPACK_INCLUDE)" /I"$(SUNDIALS_INCLUDE)" /DNOMINMAX /TP /DNO_INTERACTIVE_DEPENDENCY <%additionalCFlags_MSVC%>
+  CFLAGS=  $(SYSTEM_CFLAGS) /I"<%makefileParams.omhome%>/include/omc/omsi/" /I"<%makefileParams.omhome%>/include/omc/omsi/base" /I"<%makefileParams.omhome%>/include/omc/omsi/solver/"  /I"<%makefileParams.omhome%>/include/omc/omsicpp/" /I. <%makefileParams.includes%>  /I"$(BOOST_INCLUDE)" /I"$(UMFPACK_INCLUDE)" /I"$(SUNDIALS_INCLUDE)" /DNOMINMAX /TP /DNO_INTERACTIVE_DEPENDENCY <%additionalCFlags_MSVC%>
   !ELSE
-  CFLAGS=  $(SYSTEM_CFLAGS) /I"<%makefileParams.omhome%>/include/omc/omsicpp/" /I. <%makefileParams.includes%>  /I"$(BOOST_INCLUDE)" /I"$(UMFPACK_INCLUDE)" /I"$(SUNDIALS_INCLUDE)" /DNOMINMAX /TP /DNO_INTERACTIVE_DEPENDENCY  /Fp<%makefileParams.omhome%>/include/omc/omsicpp/Core/$(PCH_FILE)  /YuCore/$(H_FILE) <%additionalCFlags_MSVC%>
+  CFLAGS=  $(SYSTEM_CFLAGS) /I"<%makefileParams.omhome%>/include/omc/omsi/" /I"<%makefileParams.omhome%>/include/omc/omsi/base" /I"<%makefileParams.omhome%>/include/omc/omsi/solver/"  /I"<%makefileParams.omhome%>/include/omc/omsicpp/" /I. <%makefileParams.includes%>  /I"$(BOOST_INCLUDE)" /I"$(UMFPACK_INCLUDE)" /I"$(SUNDIALS_INCLUDE)" /DNOMINMAX /TP /DNO_INTERACTIVE_DEPENDENCY  /Fp<%makefileParams.omhome%>/include/omc/omsicpp/Core/$(PCH_FILE)  /YuCore/$(H_FILE) <%additionalCFlags_MSVC%>
   !ENDIF
   CPPFLAGS =
   # /ZI enable Edit and Continue debug info
@@ -3218,7 +3240,7 @@ case "gcc" then
             EXEEXT=<%makefileParams.exeext%>
             DLLEXT=<%makefileParams.dllext%>
 
-            CFLAGS_COMMON=<%extraCflags%> -Winvalid-pch $(SYSTEM_CFLAGS) -I"$(SCOREP_INCLUDE)" -I"$(OMHOME)/include/omc/omsicpp/" -I. <%makefileParams.includes%> -I"$(BOOST_INCLUDE)" -I"$(UMFPACK_INCLUDE)" -I"$(SUNDIALS_INCLUDE)" <%makefileParams.includes ; separator=" "%> <%match sopt case SOME(s as SIMULATION_SETTINGS(__)) then s.cflags %> <%additionalCFlags_GCC%> <%extraCppFlags%>
+            CFLAGS_COMMON=<%extraCflags%> -Winvalid-pch $(SYSTEM_CFLAGS) -I"$(SCOREP_INCLUDE)"  -I"$(OMHOME)/include/omc/omsi/" -I"$(OMHOME)/include/omc/omsi/base" -I"$(OMHOME)/include/omc/omsi/solver" -I"$(OMHOME)/include/omc/omsicpp/" -I. <%makefileParams.includes%> -I"$(BOOST_INCLUDE)" -I"$(UMFPACK_INCLUDE)" -I"$(SUNDIALS_INCLUDE)" <%makefileParams.includes ; separator=" "%> <%match sopt case SOME(s as SIMULATION_SETTINGS(__)) then s.cflags %> <%additionalCFlags_GCC%> <%extraCppFlags%>
 
             ifeq ($(USE_SCOREP),ON)
             $(eval CC=scorep --user --nocompiler $(CC))
@@ -5796,6 +5818,7 @@ case SIMCODE(modelInfo = MODELINFO(__),makefileParams = MAKEFILE_PARAMS(__),init
    //let () = System.tmpTickReset(0)
    let &varDecls = buffer "" /*BUFD*/
    let modelname = identOfPathDot(modelInfo.name)
+   let initfilename =fileNamePrefix + "_init.xml"
    let initFunctions = functionInitial(startValueEquations, varDecls, simCode, &extraFuncs, &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
    let initZeroCrossings = functionOnlyZeroCrossing(zeroCrossings,varDecls,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace)
    let initEventHandling = eventHandlingInit(simCode , &extraFuncs , &extraFuncsDecl,  extraFuncsNamespace)
@@ -5859,19 +5882,21 @@ case SIMCODE(modelInfo = MODELINFO(__),makefileParams = MAKEFILE_PARAMS(__),init
    void <%lastIdentOfPath(modelInfo.name)%>Initialize::initializeFreeVariables()
    {
 
-      <%match  Config.simCodeTarget()
+       <%match  Config.simCodeTarget()
          case "Cpp"
          then
          <<
           <%if (boolNot(Flags.isSet(Flags.HARDCODED_START_VALUES))) then
-          'string init_file_path  = _global_settings->getInitfilePath();
+           'string init_file_path  =  "<%initfilename%>";
             <%if (Flags.getConfigBool(Flags.LABELED_REDUCTION)) then
              <<
+
                _reader  =  shared_ptr<IPropertyReader>(new XmlPropertyReader(_global_settings,init_file_path,_dimRHS));
 
              >>
              else
              <<
+
               _reader  =  shared_ptr<IPropertyReader>(new XmlPropertyReader(_global_settings,init_file_path));
 
              >>
@@ -6943,7 +6968,7 @@ template generateClassDeclarationCode(SimCode simCode,Context context,Text& extr
  "Generates class declarations."
 ::=
 match simCode
-case SIMCODE(modelInfo = MODELINFO(__),omsiData=omsiData as SOME(OMSI_DATA(simulation=simulation as OMSI_FUNCTION(__)))) then
+case SIMCODE(modelInfo = MODELINFO(__)) then
 
 let friendclasses = generatefriendAlgloops(listAppend(listAppend(allEquations, initialEquations), getClockedEquations(getSubPartitions(clockedPartitions))), simCode, &extraFuncs, &extraFuncsDecl, extraFuncsNamespace)
 let algloopsolvers = generateAlgloopsolverVariables(modelInfo,simCode, &extraFuncs, &extraFuncsDecl, extraFuncsNamespace)
@@ -6958,7 +6983,10 @@ let memberfuncs = match  Config.simCodeTarget()
       case "Cpp" then
         generateEquationMemberFuncDecls(allEquations,"evaluate")
       case "omsicpp" then
+      match simCode
+      case SIMCODE(omsiData=omsiData as SOME(OMSI_DATA(simulation=simulation as OMSI_FUNCTION(__)))) then
        CodegenOMSI_common.generateOmsiMemberFunction(simulation,lastIdentOfPath(modelInfo.name),"evaluate")
+       end match
       end match
 
 let clockedfuncs = generateClockedFuncDecls(getSubPartitions(clockedPartitions), "evaluate")

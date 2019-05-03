@@ -34,13 +34,12 @@ class TextFileWriter : public ContainerManager
     void init(std::string output_path, std::string file_name, size_t dim)
     {
         _file_name = file_name;
-		_output_path = output_path;
+
         if (_output_stream.is_open())
             _output_stream.close();
 
-		std::stringstream res_output_path;
-		res_output_path << output_path << file_name;
-		_output_stream.open(res_output_path.str().c_str(), ios::out);
+
+		_output_stream.open(_file_name.c_str(), ios::out);
         if (_output_stream.fail())
           throw ModelicaSimulationError(DATASTORAGE, string("Failed to open results file ") + file_name);
     }

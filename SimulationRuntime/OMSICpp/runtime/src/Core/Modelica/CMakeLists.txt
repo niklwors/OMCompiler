@@ -233,9 +233,13 @@ MESSAGE(STATUS " ")
 
 if(BUILD_SHARED_LIBS)
   create_precompiled_header(${ModelicaName} runtime/include/Core/Modelica.h)
+ELSEIF(BUILD_SHARED_LIBS)
+SET(SYSTEM_CFLAGS CMAKE_CXX_FLAGS)
 endif(BUILD_SHARED_LIBS)
 
 IF(MSVC)
+  message(STATUS "MSVC config file generated in ${PROJECT_BINARY_DIR}/ModelicaConfig_msvc.inc")
+  message(STATUS ${CMAKE_CXX_FLAGS} "and" ${SYSTEM_CFLAGS} )
  GET_TARGET_PROPERTY(libModelica ${ModelicaName} LOCATION)
  GET_FILENAME_COMPONENT(libModelicaName ${libModelica} NAME)
  set(PCH_LIB ${libModelicaName})
