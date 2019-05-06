@@ -17,7 +17,7 @@
         },
         {
           "name": "CMAKE_INSTALL_PREFIX",
-          "value": "D:\\OpenModelica\\omc\\win32_omc_dev\\build"
+          "value": "D:\\OpenModelica\\omc\\omc_win32_dev\\build"
         },
         {
           "name": "LIB_OMC",
@@ -49,7 +49,7 @@
         },
         {
           "name": "CMAKE_INSTALL_PREFIX",
-          "value": "D:\\OpenModelica\\omc\\win32_omc_dev\\build"
+          "value": "D:\\OpenModelica\\omc\\omc_win32_dev\\build"
         },
         {
           "name": "LIB_OMC",
