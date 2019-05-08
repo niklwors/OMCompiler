@@ -679,7 +679,7 @@ algorithm
              gridStr, logXStr, logYStr, x1Str, x2Str, y1Str, y2Str, curveWidthStr, curveStyleStr, legendPosition, footer, autoScaleStr,scriptFile,logFile, simflags2, outputFile,
              systemPath, gccVersion, gd, strlinearizeTime, suffix,cname, modeldescriptionfilename, tmpDir, tmpFile;
       list<DAE.Exp> simOptions;
-      list<Values.Value> vals,values;
+      list<Values.Value> vals;
       Absyn.Path path,classpath,className,baseClassPath;
       SCode.Program scodeP,sp;
       Option<list<SCode.Element>> fp;
@@ -1304,7 +1304,7 @@ algorithm
 
     case (cache,env,"translateModelFMU", Values.CODE(Absyn.C_TYPENAME(className))::Values.STRING(str1)::Values.STRING(str2)::Values.STRING(filenameprefix)::_,_)
       algorithm
-        (cache,ret_val,_) := buildModelFMU(cache, env, className, str1, str2, filenameprefix, true);
+        (cache,ret_val) := buildModelFMU(cache, env, className, str1, str2, filenameprefix, true);
       then (cache,ret_val);
 
     case (cache,_,"translateModelFMU", _,_)
@@ -1312,7 +1312,7 @@ algorithm
 
     case (cache,env,"buildModelFMU", Values.CODE(Absyn.C_TYPENAME(className))::Values.STRING(str1)::Values.STRING(str2)::Values.STRING(filenameprefix)::Values.ARRAY(valueLst=cvars)::_,_)
       algorithm
-        (cache,ret_val,_) := buildModelFMU(cache, env, className, str1, str2, filenameprefix, true, list(ValuesUtil.extractValueString(vv) for vv in cvars));
+        (cache,ret_val) := buildModelFMU(cache, env, className, str1, str2, filenameprefix, true, list(ValuesUtil.extractValueString(vv) for vv in cvars));
       then (cache,ret_val);
 
     case (cache,_,"buildModelFMU", _,_)
@@ -1431,7 +1431,7 @@ algorithm
         else
           filenameprefix := Absyn.pathString(className);
           try
-            (cache, Values.STRING(str),_) := buildModelFMU(cache, env, className, "2.0", "me", "<default>", true, {"static"});
+            (cache, Values.STRING(str)) := buildModelFMU(cache, env, className, "2.0", "me", "<default>", true, {"static"});
             if stringEmpty(str) then
               fail();
             end if;
@@ -1523,7 +1523,7 @@ algorithm
 
         if b then
           exeDir := compileDir;
-          (cache,simSettings) := calculateSimulationSettings(cache,env,values,msg);
+          (cache,simSettings) := calculateSimulationSettings(cache,env,vals,msg);
           SimCode.SIMULATION_SETTINGS(outputFormat = outputFormat_str) := simSettings;
           result_file := stringAppendList(List.consOnTrue(not Config.getRunningTestsuite(),compileDir,{executable,"_res.",outputFormat_str}));
           // result file might have been set by simflags (-r ...)
@@ -1548,7 +1548,7 @@ algorithm
         end if;
 
         timeTotal := System.realtimeTock(ClockIndexes.RT_CLOCK_SIMULATE_TOTAL);
-        (cache,simValue) := createSimulationResultFromcallModelExecutable(b,resI,timeTotal,timeSimulation,resultValues,cache,className,values,result_file,logFile);
+        (cache,simValue) := createSimulationResultFromcallModelExecutable(b,resI,timeTotal,timeSimulation,resultValues,cache,className,vals,result_file,logFile);
       then
         (cache,simValue);
 
@@ -3560,7 +3560,6 @@ protected function buildModelFMU " author: Frenkel TUD
   input list<String> platforms = {"static"};
   output FCore.Cache cache;
   output Values.Value outValue;
-  output list<tuple<String, Values.Value>> resultValues;
 protected
   Boolean staticSourceCodeFMU, success;
   String filenameprefix, fmutmp, logfile, dir, cmd;
@@ -3570,7 +3569,6 @@ protected
   list<String> libs;
   Boolean isWindows;
   String FMUType = inFMUType;
-  Real timeCompile;
 algorithm
   cache := inCache;
   if not FMI.checkFMIVersion(FMUVersion) then
@@ -3644,13 +3642,8 @@ algorithm
   end if;
 
   for platform in platforms loop
-    try
-      configureFMU(platform, fmutmp, System.realpath(fmutmp)+"/resources/"+System.stringReplace(listGet(Util.stringSplitAtChar(platform," "),1),"/","-")+".log", isWindows);
-      ExecStat.execStat("buildModelFMU: Generate platform " + platform);
-    else
-      Error.addMessage(Error.SIMULATOR_BUILD_ERROR, {"Configure for platform:\"" + platform + "\" does not exist"});
-      fail();
-    end try;
+    configureFMU(platform, fmutmp, System.realpath(fmutmp)+"/resources/"+System.stringReplace(listGet(Util.stringSplitAtChar(platform," "),1),"/","-")+".log", isWindows);
+    ExecStat.execStat("buildModelFMU: Generate platform " + platform);
   end for;
 
   cmd := "rm -f \"" + fmuTargetName + ".fmu\" && cd \"" +  fmutmp + "\" && zip -r \"../" + fmuTargetName + ".fmu\" *";
@@ -5094,7 +5087,7 @@ algorithm
     local
       BackendDAE.BackendDAE indexed_dlow_1;
       list<String> libs;
-      String file_dir,init_filename,method_str,filenameprefix,exeFile,s3,simflags,sim_create_call;
+      String file_dir,init_filename,method_str,filenameprefix,exeFile,s3,simflags;
       Absyn.Path classname;
       Absyn.Program p;
       Absyn.Class cdef;
@@ -5168,10 +5161,10 @@ algorithm
         if success then
           try
             CevalScript.compileModel(filenameprefix, libs);
-            timeCompile := System.realtimeTock(ClockIndexes.RT_CLOCK_BUILD_MODEL);
           else
             success := false;
           end try;
+          timeCompile := System.realtimeTock(ClockIndexes.RT_CLOCK_BUILD_MODEL);
         else
           timeCompile := 0.0;
         end if;

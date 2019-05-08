@@ -882,7 +882,6 @@ algorithm
       Boolean isFMI2;
       String fmiVersion;
       BackendDAE.SymbolicJacobians fmiDer;
-      Boolean symJacBackup;
       DAE.FunctionTree funcs;
       list<Option<Integer>> allRoots;
 
