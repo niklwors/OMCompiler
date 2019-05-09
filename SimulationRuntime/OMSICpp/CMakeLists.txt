@@ -133,7 +133,7 @@ IF(NOT FMU_TARGET)
   MESSAGE(STATUS "MSVC")
   SET(LIBINSTALLEXT "${CMAKE_INSTALL_PREFIX}/${OMC_LIB}/omsicpp/msvc" CACHE STRING "library directory" FORCE)
  ELSE(MSVC)
-	 SET(LIBINSTALLEXT "${CMAKE_INSTALL_PREFIX}/${OMC_LIB}/" CACHE STRING "library directory" FORCE)
+	 SET(LIBINSTALLEXT "${CMAKE_INSTALL_PREFIX}/${OMC_LIB}/omsicpp" CACHE STRING "library directory" FORCE)
  ENDIF(MSVC)
 ENDIF(NOT FMU_TARGET)
 MESSAGE(STATUS "Using library folder extension " ${LIBINSTALLEXT})
@@ -1232,7 +1232,7 @@ SET(HS 	runtime/include/Core/Utils/extension/adaptable_factory.hpp
    INSTALL_HEADERS_WITH_DIRECTORY(HS)
 if(UNIX AND Boost_INCLUDE_DIR STREQUAL "/usr/include")
   # symlink boost includes outside platform specific /usr/include
-  install(CODE "execute_process(COMMAND ln -sf /usr/include/boost \"${CMAKE_INSTALL_PREFIX}/include/omc/cpp/\")")
+  install(CODE "execute_process(COMMAND ln -sf /usr/include/boost \"${CMAKE_INSTALL_PREFIX}/include/omc/omsicpp/\")")
 endif(UNIX AND Boost_INCLUDE_DIR STREQUAL "/usr/include")
 
 
