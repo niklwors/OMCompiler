@@ -24,7 +24,7 @@ public:
    virtual shared_ptr<INonLinSolverSettings> createNonLinSolverSettings(string nonlin_solver)
    {
       string nonlin_solver_key;
-      #ifndef ENABLE_OMSI
+
       if(nonlin_solver.compare("newton")==0)
       {
         shared_ptr<INonLinSolverSettings> settings = createNewtonSettings();
@@ -40,13 +40,11 @@ public:
       #endif //ENABLE_SUNDIALS_STATIC
       throw ModelicaSimulationError(MODEL_FACTORY,"Selected nonlin solver is not available");
       //return NonLinSolverOMCFactory<CreationPolicy>::createNonLinSolverSettings(nonlin_solver);
-       #else
-      throw ModelicaSimulationError(MODEL_FACTORY,"osi for nonlinear solver is not yet supported");
-      #endif //ENABLE_OMSI
+
    }
    virtual shared_ptr<INonLinearAlgLoopSolver> createNonLinSolver(string solver_name, shared_ptr<INonLinSolverSettings> solver_settings,shared_ptr<INonLinearAlgLoop> algLoop = shared_ptr<INonLinearAlgLoop>())
    {
-      #ifndef ENABLE_OMSI
+
       if(solver_name.compare("newton")==0)
       {
         shared_ptr<INonLinearAlgLoopSolver> newton = createNewtonSolver(solver_settings,algLoop);
@@ -61,10 +59,6 @@ public:
       }
       #endif //ENABLE_SUNDIALS_STATIC
       throw ModelicaSimulationError(MODEL_FACTORY,"Selected nonlin solver is not available");
-      #else
-      throw ModelicaSimulationError(MODEL_FACTORY,"osi for nonlinear solver is not yet supported");
-      #endif //ENABLE_OMSI
-      //return NonLinSolverOMCFactory<CreationPolicy>::createNonLinSolver(algLoop, solver_name, solver_settings);
     }
 };
 /** @} */ // end of simcorefactoriesPolicies

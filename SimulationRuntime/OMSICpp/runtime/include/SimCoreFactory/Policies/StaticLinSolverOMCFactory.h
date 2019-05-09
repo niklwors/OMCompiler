@@ -22,7 +22,7 @@ public:
 
   virtual shared_ptr<ILinSolverSettings> createLinSolverSettings(string lin_solver)
   {
-      #ifndef ENABLE_OMSI
+
       if(lin_solver.compare("linearSolver")==0)
       {
           throw ModelicaSimulationError(MODEL_FACTORY,"Selected lin solver is not supported for static Linking. Use DGESV instead.");
@@ -34,13 +34,11 @@ public:
       }
       else
         throw ModelicaSimulationError(MODEL_FACTORY,"Selected lin solver is not available");
-      #else
-      throw ModelicaSimulationError(MODEL_FACTORY,"osi for nonlinear solver is not yet supported");
-      #endif //ENABLE_OMSI
+
   }
   virtual shared_ptr<ILinearAlgLoopSolver> createLinSolver(string solver_name, shared_ptr<ILinSolverSettings> solver_settings,shared_ptr<ILinearAlgLoop> algLoop = shared_ptr<ILinearAlgLoop>())
   {
-       #ifndef ENABLE_OMSI
+
        if(solver_name.compare("linearSolver")==0)
        {
           throw ModelicaSimulationError(MODEL_FACTORY,"Selected lin solver is not supported for static Linking. Use DGESV instead.");
@@ -52,9 +50,7 @@ public:
        }
        else
           throw ModelicaSimulationError(MODEL_FACTORY,"Selected lin solver is not available");
-      #else
-      throw ModelicaSimulationError(MODEL_FACTORY,"osi for nonlinear solver is not yet supported");
-      #endif //ENABLE_OMSI
+
    }
 
 protected:
