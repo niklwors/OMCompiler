@@ -12342,7 +12342,7 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
 ::=
 
   match relation
-  case rel as  RELATION(index=zerocrossingIndex) then
+  case rel as RELATION(index=zerocrossingIndex) then
       let e1 = daeExp(exp1, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
       let e2 = daeExp(exp2, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
       match rel.operator
@@ -12350,18 +12350,18 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
       case LESSEQ(__) then
         <<
         if(_conditions[<%zerocrossingIndex%>])
-            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>);
+            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>) < 0;
         else
-            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6);
+            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6) < 0;
 
         >>
       case GREATER(__)
       case GREATEREQ(__) then
         <<
         if(_conditions[<%zerocrossingIndex%>])
-            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6);
+            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6) < 0;
         else
-            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>);
+            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>) < 0;
 
         >>
        end match
@@ -12371,7 +12371,7 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
     let rel2 = giveZeroFunc4(exp2, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
     <<
         //binary zero crossing
-        f[<%index1%>] = (<%rel1%> < 0 <%op%> <%rel2%> < 0) ? 1 : -1;
+        f[<%index1%>] = (<%rel1%> <%op%> <%rel2%>) ? 1 : -1;
 
     >>
    case binary_rel2 as LUNARY(__) then
@@ -12379,7 +12379,7 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
      let rel1 = giveZeroFunc4(exp, varDecls /*BUFP*/,preExp ,simCode ,extraFuncs,extraFuncsDecl,extraFuncsNamespace, stateDerVectorName /*=__zDot*/,  useFlatArrayNotation)
      <<
         //unary zero crossing
-        f[<%index1%>] = (<%op%> (<%rel1%> < 0))? 1 : -1;
+        f[<%index1%>] = (<%op%> (<%rel1%>))? 1 : -1;
 
      >>
    case CALL(path=IDENT(name="sample"), expLst={_, start, interval}) then
@@ -12413,7 +12413,7 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
   case rel as  RELATION(index=zerocrossingIndex) then
       let e1 = daeExp(exp1, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
       let e2 = daeExp(exp2, contextOther, &preExp /*BUFC*/, &varDecls /*BUFD*/,simCode , &extraFuncs , &extraFuncsDecl, extraFuncsNamespace, stateDerVectorName, useFlatArrayNotation)
-      let tmp = tempDecl('double', &varDecls)
+      let tmp = tempDecl('bool', &varDecls)
 
       match rel.operator
       case LESSEQ(__)
@@ -12421,9 +12421,9 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
         let &preExp +=
         <<
         if(_conditions[<%zerocrossingIndex%>])
-          <%tmp%>=(<%e1%> - 1e-6 - <%e2%>);
+          <%tmp%>=(<%e1%> - 1e-6 - <%e2%>) < 0;
         else
-          <%tmp%>=(<%e2%> - <%e1%> -  1e-6);
+          <%tmp%>=(<%e2%> - <%e1%> -  1e-6) < 0;
 
         >>
         tmp
@@ -12432,9 +12432,9 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
          let &preExp +=
          <<
           if(_conditions[<%zerocrossingIndex%>])
-            <%tmp%> = (<%e2%> - <%e1%> - 1e-6);
+            <%tmp%> = (<%e2%> - <%e1%> - 1e-6) < 0;
           else
-            <%tmp%> = (<%e1%> - 1e-6 - <%e2%>);
+            <%tmp%> = (<%e1%> - 1e-6 - <%e2%>) < 0;
 
          >>
          tmp
@@ -12443,9 +12443,9 @@ template giveZeroFunc4(Exp relation, Text &varDecls /*BUFP*/,Text &preExp ,SimCo
         let &preExp +=
          <<
           if(_conditions[<%zerocrossingIndex%>])
-            <%tmp%> = (<%e2%> - <%e1%> - 1e-6);
+            <%tmp%> = (<%e2%> - <%e1%> - 1e-6) = 0;
           else
-            <%tmp%> = (<%e1%> - 1e-6 - <%e2%>);
+            <%tmp%> = (<%e1%> - 1e-6 - <%e2%>) = 0;
 
          >>
          tmp
