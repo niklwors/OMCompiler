@@ -12350,18 +12350,18 @@ template giveZeroFunc3(Integer index1, Exp relation, Text &varDecls /*BUFP*/,Tex
       case LESSEQ(__) then
         <<
         if(_conditions[<%zerocrossingIndex%>])
-            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>) < 0;
+            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>);
         else
-            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6) < 0;
+            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6);
 
         >>
       case GREATER(__)
       case GREATEREQ(__) then
         <<
         if(_conditions[<%zerocrossingIndex%>])
-            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6) < 0;
+            f[<%index1%>] = (<%e2%> - <%e1%> - 1e-6);
         else
-            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>) < 0;
+            f[<%index1%>] = (<%e1%> - 1e-6 - <%e2%>);
 
         >>
        end match
