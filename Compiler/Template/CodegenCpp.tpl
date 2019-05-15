@@ -5886,8 +5886,8 @@ case SIMCODE(modelInfo = MODELINFO(__),makefileParams = MAKEFILE_PARAMS(__),init
          case "Cpp"
          then
          <<
-          <%if (boolNot(Flags.isSet(Flags.HARDCODED_START_VALUES))) then
-           'string init_file_path  =  "<%initfilename%>";
+           #if !defined(FMU_BUILD)
+           string init_file_path  =  "<%initfilename%>";
             <%if (Flags.getConfigBool(Flags.LABELED_REDUCTION)) then
              <<
 
@@ -5901,8 +5901,9 @@ case SIMCODE(modelInfo = MODELINFO(__),makefileParams = MAKEFILE_PARAMS(__),init
 
              >>
             %>
-          _reader->readInitialValues(*this, getSimVars());'
-          %>
+          _reader->readInitialValues(*this, getSimVars());
+
+         #endif
          >>
          case "omsicpp"
          then

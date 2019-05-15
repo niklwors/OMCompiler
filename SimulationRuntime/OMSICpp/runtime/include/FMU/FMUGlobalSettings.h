@@ -59,5 +59,7 @@ public:
     virtual int getSolverThreads() { return 1; };
     virtual OutputFormat getOutputFormat() {return EMPTY;};
     virtual void setOutputFormat(OutputFormat) {};
+     virtual string getInitfilePath(){ return "";}
+  virtual void setInitfilePath(string){};
 private:
 };

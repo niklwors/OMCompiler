@@ -5,12 +5,12 @@
 #include <FMU/IFMUInterface.h>
 #include <FMU/FMUGlobalSettings.h>
 #include <FMU/FMULogger.h>
-#include <Core/SimController/ISimObjects.h>
+
 
 class FMUWrapper : public IFMUInterface
 {
 private:
-    FMUGlobalSettings _global_settings;
+    shared_ptr<FMUGlobalSettings> _global_settings;
     MODEL_CLASS *_model;
     double _need_update;
 
@@ -29,7 +29,8 @@ public:
     FMUWrapper(fmiString instanceName, fmiString GUID, fmiCallbackFunctions functions, fmiBoolean loggingOn) : IFMUInterface(instanceName, GUID, functions, loggingOn), _need_update(true)
     {
       //FMULogger::initialize(functions.logger, this, instanceName);
-      _model = createSystemFMU(&_global_settings);
+      _global_settings = shared_ptr<FMUGlobalSettings>(new FMUGlobalSettings());
+      _model = createSystemFMU(_global_settings);
       _model->setInitial(true);
     }
 

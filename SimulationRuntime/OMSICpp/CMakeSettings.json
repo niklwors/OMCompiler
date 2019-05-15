@@ -20,7 +20,7 @@
           "value": "D:\\OpenModelica\\omc\\omc_win32_dev\\build"
         },
         {
-          "name": "LIB_OMC",
+          "name": "OMC_LIB",
           "value": "lib/omc"
         }
       ],
